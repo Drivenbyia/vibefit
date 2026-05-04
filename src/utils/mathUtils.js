@@ -53,6 +53,19 @@ export const calculateWeeklyBalance = (daysData, targets) => {
   };
 };
 
+export const calculateWeightStats = (daysData) => {
+  const series = daysData
+    .map(({ key, day }) => ({ key, w: day?.weight ? num(day.weight) : null }))
+    .filter((p) => p.w !== null);
+
+  if (series.length === 0) return { avgWeight: null, weightDelta: null, weightSeries: [] };
+
+  const avg = series.reduce((acc, { w }) => acc + w, 0) / series.length;
+  const delta = series.length >= 2 ? series[series.length - 1].w - series[0].w : null;
+
+  return { avgWeight: avg, weightDelta: delta, weightSeries: series };
+};
+
 // internal: returns the target key (train/off/we) for a given date key
 const dayTypeFromTargets = (key) => {
   const d = new Date(key + 'T12:00:00').getDay();

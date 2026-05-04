@@ -6,6 +6,7 @@ export const emptyDay = () => ({
   expenditure: { kcal: '', steps: '' },
   workout: null,
   waist: '',
+  weight: '',
   notes: '',
 });
 

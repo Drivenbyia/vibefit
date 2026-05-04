@@ -124,3 +124,21 @@ Transformation de VibeFit en Progressive Web App installable et fonctionnelle sa
 - Conforme à la décision "Architecture Local First" — zéro donnée réseau, fonctionnement offline garanti.
 
 ---
+
+## 2026-05-04 — Module Weight Tracking
+
+### Objectif
+Intégration du suivi du poids corporel (pesée quotidienne), en cohérence avec le tour de taille existant.
+
+### Fichiers modifiés
+- `src/models/day.js` : ajout du champ `weight: ''` dans `emptyDay()`.
+- `src/utils/mathUtils.js` : nouvelle fonction `calculateWeightStats(daysData)` → retourne `{ avgWeight, weightDelta, weightSeries }`.
+- `src/components/views/TodayView.jsx` : nouveau `Card` avec `NumberInput` poids (icône `Scale`, `inputMode="decimal"`, `step="0.1"`, suffix "kg"), affiché en permanence au-dessus de la carte tour de taille.
+- `src/components/views/WeekView.jsx` : nouvelle carte "POIDS" avec liste des pesées, moyenne hebdo et delta (premier/dernier jour) avec code couleur `PALETTE.deep`/`PALETTE.accent`.
+
+### Vérification
+- Build Vite ✓ (733 ms, 0 erreur, 0 warning).
+- Aucune dépendance externe ajoutée.
+- Données stockées uniquement en localStorage via `useVibefitStorage` (conforme décision Local First).
+
+---

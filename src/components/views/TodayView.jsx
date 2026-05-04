@@ -1,4 +1,4 @@
-import { Flame, Activity, Dumbbell, Ruler, FileText, AlertCircle } from 'lucide-react';
+import { Flame, Activity, Dumbbell, Ruler, Scale, FileText, AlertCircle } from 'lucide-react';
 import { PALETTE } from '../../constants/config.js';
 import { num } from '../../utils/mathUtils.js';
 import { dayType } from '../../models/day.js';
@@ -216,6 +216,23 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
             Aucune
           </Pill>
         </div>
+      </Card>
+
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <Scale size={16} color={PALETTE.deep} />
+          <div className="vf-body" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink, letterSpacing: '0.02em' }}>
+            POIDS DU JOUR
+          </div>
+        </div>
+        <NumberInput
+          value={day.weight}
+          onChange={(v) => updateDay({ weight: v })}
+          placeholder="ex. 78.5"
+          suffix="kg"
+          inputMode="decimal"
+          step="0.1"
+        />
       </Card>
 
       {(isMonday || day.waist) && (
