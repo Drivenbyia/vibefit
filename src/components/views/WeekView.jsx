@@ -1,64 +1,190 @@
 import { useMemo } from 'react';
-import { Ruler } from 'lucide-react';
-import { PALETTE } from '../../constants/config.js';
+import { Ruler, TrendingDown, TrendingUp, Minus, Zap, Beef, Wheat, Droplets } from 'lucide-react';
+import { PALETTE, DEFAULT_TARGETS } from '../../constants/config.js';
 import { addDays, startOfWeek, fmtFr, shortFr } from '../../utils/dateUtils.js';
-import { num } from '../../utils/mathUtils.js';
+import { num, calculateWeeklyBalance } from '../../utils/mathUtils.js';
 import { dayType } from '../../models/day.js';
 import Card from '../ui/Card.jsx';
-import StatCard from '../ui/StatCard.jsx';
+
+function SectionLabel({ children }) {
+  return (
+    <div style={{
+      fontSize: 10,
+      fontWeight: 700,
+      color: PALETTE.muted,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 12,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function MacroBar({ label, icon: Icon, value, target, color }) {
+  const pct = target > 0 ? Math.min((value / target) * 100, 120) : 0;
+  const isOver = pct > 108;
+
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Icon size={12} color={color} strokeWidth={2.5} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.08em' }}>
+            {label}
+          </span>
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 800, color: isOver ? PALETTE.accent : PALETTE.ink }}>
+          {Math.round(value)}
+          <span style={{ fontSize: 10, fontWeight: 500, color: PALETTE.muted, marginLeft: 3 }}>
+            / {Math.round(target)} g
+          </span>
+        </span>
+      </div>
+      <div style={{ height: 5, background: PALETTE.paper, borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%',
+          width: `${Math.min(pct, 100)}%`,
+          background: isOver ? PALETTE.accent : color,
+          borderRadius: 999,
+          transition: 'width 0.5s cubic-bezier(.4,0,.2,1)',
+        }} />
+      </div>
+    </div>
+  );
+}
+
+function DayBar({ day, dayKey, target, isToday, onPress }) {
+  const kcal = day ? num(day.intake?.kcal) : 0;
+  const hasData = kcal > 0;
+  const pct = target > 0 ? (kcal / target) * 100 : 0;
+  const isOver = pct > 110;
+  const isLow = hasData && pct < 80;
+  const barColor = !hasData ? PALETTE.line
+    : isOver ? PALETTE.accent
+    : isLow ? PALETTE.warn
+    : PALETTE.deep;
+  const barH = hasData ? Math.max((pct / 130) * 52, 6) : 3;
+
+  return (
+    <button
+      onClick={() => onPress(dayKey)}
+      style={{
+        flex: 1,
+        background: 'transparent',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '0 2px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 4,
+      }}
+    >
+      <div style={{
+        fontSize: 9,
+        fontWeight: 700,
+        color: isToday ? PALETTE.accent : PALETTE.muted,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+      }}>
+        {shortFr(dayKey)}
+      </div>
+      <div style={{ height: 56, display: 'flex', alignItems: 'flex-end', width: '100%' }}>
+        <div style={{
+          width: '100%',
+          height: barH,
+          background: barColor,
+          borderRadius: '3px 3px 0 0',
+          opacity: hasData ? 1 : 0.35,
+          outline: isToday ? `2px solid ${PALETTE.accent}` : 'none',
+          outlineOffset: 1,
+        }} />
+      </div>
+      <div style={{
+        fontSize: 9,
+        fontWeight: hasData ? 700 : 400,
+        color: hasData ? PALETTE.ink : PALETTE.muted,
+        letterSpacing: '0.02em',
+      }}>
+        {hasData ? `${(kcal / 1000).toFixed(1)}k` : '—'}
+      </div>
+    </button>
+  );
+}
 
 export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarget }) {
+  const resolvedTargets = targets ?? DEFAULT_TARGETS;
   const start = startOfWeek(dateKey);
+
   const days = useMemo(() =>
     Array.from({ length: 7 }, (_, i) => {
       const k = addDays(start, i);
-      return { key: k, day: data.days[k] || null };
+      return { key: k, day: data?.days?.[k] ?? null };
     })
-  , [start, data.days]);
+  , [start, data?.days]);
 
-  let totalIntake = 0, totalExp = 0, totalSteps = 0, totalProt = 0;
-  let trainCompleted = 0;
-  days.forEach(({ key, day }) => {
-    if (!day) return;
-    totalIntake += num(day.intake.kcal);
-    totalExp += num(day.expenditure.kcal);
-    totalSteps += num(day.expenditure.steps);
-    totalProt += num(day.intake.protein);
-    if (day.workout) trainCompleted += 1;
-  });
-  const plannedTrainTotal = days.filter(d => dayType(d.key, d.day) === 'train').length;
-  const balance = totalIntake - totalExp;
-  const recordedDays = days.filter(d => d.day && (num(d.day.intake.kcal) > 0 || num(d.day.expenditure.kcal) > 0)).length;
+  const weekly = useMemo(
+    () => calculateWeeklyBalance(days, resolvedTargets),
+    [days, resolvedTargets]
+  );
+
+  const plannedTrain = days.filter(({ key, day }) => dayType(key, day) === 'train').length;
 
   const waistSeries = days
-    .map(({ key, day }) => ({ key, w: day && day.waist ? num(day.waist) : null }))
+    .map(({ key, day }) => ({ key, w: day?.waist ? num(day.waist) : null }))
     .filter((p) => p.w !== null);
+
+  const balanceColor = weekly.netBalance < -100
+    ? PALETTE.deep
+    : weekly.netBalance > 100
+    ? PALETTE.accent
+    : PALETTE.muted;
+
+  const BalanceIcon = weekly.netBalance < -100
+    ? TrendingDown
+    : weekly.netBalance > 100
+    ? TrendingUp
+    : Minus;
+
+  const protTarget = resolvedTargets.train?.protein ?? 160;
+  const carbsTargetTrain = resolvedTargets.train?.carbs ?? 280;
+  const carbsTargetOff = resolvedTargets.off?.carbs ?? 120;
+  const avgCarbsTarget = (carbsTargetTrain + carbsTargetOff) / 2;
+  const fatTargetTrain = resolvedTargets.train?.fat ?? 70;
+  const fatTargetOff = resolvedTargets.off?.fat ?? 75;
+  const avgFatTarget = (fatTargetTrain + fatTargetOff) / 2;
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+      {/* ── Header + calendrier ─────────────────────────────── */}
       <Card>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.12em', marginBottom: 3 }}>
               SEMAINE DU
             </div>
             <div className="vf-display" style={{ fontSize: 18, fontWeight: 700 }}>
               {fmtFr(start)}
             </div>
+            <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 2 }}>
+              {weekly.recordedDays} / 7 jours saisis
+            </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.12em', marginBottom: 3 }}>
               SOLDE NET
             </div>
-            <div
-              className="vf-display vf-tabular"
-              style={{
-                fontSize: 22, fontWeight: 900,
-                color: balance < 0 ? PALETTE.deep : balance > 0 ? PALETTE.accent : PALETTE.ink,
-              }}
-            >
-              {balance >= 0 ? '+' : ''}{Math.round(balance)}
-              <span className="vf-body" style={{ fontSize: 12, fontWeight: 500, color: PALETTE.muted, marginLeft: 4 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end' }}>
+              <BalanceIcon size={16} color={balanceColor} strokeWidth={2.5} />
+              <span
+                className="vf-display vf-tabular"
+                style={{ fontSize: 22, fontWeight: 900, color: balanceColor }}
+              >
+                {weekly.netBalance >= 0 ? '+' : ''}{Math.round(weekly.netBalance)}
+              </span>
+              <span className="vf-body" style={{ fontSize: 11, fontWeight: 500, color: PALETTE.muted }}>
                 kcal
               </span>
             </div>
@@ -68,9 +194,9 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
           {days.map(({ key, day }) => {
             const t = dayType(key, day);
-            const recorded = day && (num(day.intake.kcal) > 0 || day.workout || num(day.expenditure.steps) > 0);
+            const recorded = day && (num(day.intake?.kcal) > 0 || day.workout || num(day.expenditure?.steps) > 0);
             const isToday = key === dateKey;
-            const colorMap = { train: PALETTE.deep, off: PALETTE.accent, we: PALETTE.muted };
+            const dotColor = { train: PALETTE.deep, off: PALETTE.accent, we: PALETTE.muted }[t];
             return (
               <button
                 key={key}
@@ -94,27 +220,154 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
                 <span className="vf-display vf-tabular" style={{ fontSize: 16, fontWeight: 900 }}>
                   {key.slice(8, 10)}
                 </span>
-                <span
-                  style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: recorded ? colorMap[t] : 'transparent',
-                    border: `1.5px solid ${colorMap[t]}`,
-                  }}
-                />
+                <span style={{
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: recorded ? dotColor : 'transparent',
+                  border: `1.5px solid ${dotColor}`,
+                }} />
               </button>
             );
           })}
         </div>
       </Card>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <StatCard label="APPORT TOTAL" value={Math.round(totalIntake)} unit="kcal" sub={`${recordedDays}/7 jours saisis`} />
-        <StatCard label="DÉPENSE TOTALE" value={Math.round(totalExp)} unit="kcal" sub="Garmin" />
-        <StatCard label="PAS CUMULÉS" value={Math.round(totalSteps).toLocaleString('fr-FR')} unit="" sub={`Cible : ${(stepsTarget * 5).toLocaleString('fr-FR')} (Lun-Ven)`} />
-        <StatCard label="PROTÉINES" value={Math.round(totalProt)} unit="g" sub={`Cible : ${(targets.train.protein || 160) * 7}g`} />
-        <StatCard label="SÉANCES" value={`${trainCompleted}/${plannedTrainTotal || 3}`} unit="" sub="dont 1× Bas du corps obligatoire" colSpan={2} />
-      </div>
+      {/* ── Section 1 : Bilan Net ───────────────────────────── */}
+      <Card>
+        <SectionLabel>Bilan Net</SectionLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+          {[
+            { label: 'APPORT', value: Math.round(weekly.totalIntake), unit: 'kcal', color: PALETTE.ink },
+            { label: 'DÉPENSE', value: Math.round(weekly.totalExp), unit: 'kcal', color: PALETTE.ink },
+            { label: 'SÉANCES', value: `${weekly.trainDone}/${plannedTrain || 3}`, unit: '', color: weekly.trainDone >= (plannedTrain || 3) ? PALETTE.deep : PALETTE.accent },
+          ].map(({ label, value, unit, color }) => (
+            <div
+              key={label}
+              style={{
+                background: PALETTE.paper,
+                borderRadius: 10,
+                padding: '10px 8px',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: 9, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 4 }}>
+                {label}
+              </div>
+              <div className="vf-display vf-tabular" style={{ fontSize: 18, fontWeight: 900, color }}>
+                {value}
+              </div>
+              {unit && (
+                <div style={{ fontSize: 9, color: PALETTE.muted, marginTop: 2 }}>{unit}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </Card>
 
+      {/* ── Section 2 : Tendance kcal (barres CSS) ─────────── */}
+      <Card>
+        <SectionLabel>Tendance calorique</SectionLabel>
+        <div style={{ display: 'flex', gap: 0, alignItems: 'flex-end' }}>
+          {days.map(({ key, day }) => {
+            const t = dayType(key, day);
+            const target = resolvedTargets[t]?.kcal ?? resolvedTargets.off.kcal;
+            return (
+              <DayBar
+                key={key}
+                dayKey={key}
+                day={day}
+                target={target}
+                isToday={key === dateKey}
+                onPress={setDateKey}
+              />
+            );
+          })}
+        </div>
+        <div style={{
+          marginTop: 10,
+          paddingTop: 10,
+          borderTop: `1px solid ${PALETTE.line}`,
+          display: 'flex',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}>
+          {[
+            { color: PALETTE.deep, label: 'Dans la cible' },
+            { color: PALETTE.accent, label: 'Surplus' },
+            { color: PALETTE.warn, label: 'Sous la cible' },
+            { color: PALETTE.line, label: 'Non saisi' },
+          ].map(({ color, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
+              <span style={{ fontSize: 10, color: PALETTE.muted }}>{label}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* ── Section 3 : Moyennes par jour saisi ─────────────── */}
+      <Card>
+        <SectionLabel>
+          Moyennes / jour saisi
+          {weekly.recordedDays > 0 && (
+            <span style={{ color: PALETTE.accent, marginLeft: 6 }}>
+              ÷ {weekly.recordedDays}
+            </span>
+          )}
+        </SectionLabel>
+
+        {weekly.recordedDays === 0 ? (
+          <div style={{ fontSize: 13, color: PALETTE.muted, padding: '4px 0 8px' }}>
+            Aucun jour saisi cette semaine.
+          </div>
+        ) : (
+          <>
+            <MacroBar
+              label="Protéines"
+              icon={Beef}
+              value={weekly.avgProt}
+              target={protTarget}
+              color="#4CAF50"
+            />
+            <MacroBar
+              label="Glucides"
+              icon={Wheat}
+              value={weekly.avgCarbs}
+              target={avgCarbsTarget}
+              color="#2196F3"
+            />
+            <MacroBar
+              label="Lipides"
+              icon={Droplets}
+              value={weekly.avgFat}
+              target={avgFatTarget}
+              color="#FF9800"
+            />
+            <div style={{
+              marginTop: 12,
+              paddingTop: 10,
+              borderTop: `1px solid ${PALETTE.line}`,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Zap size={12} color={PALETTE.muted} strokeWidth={2.5} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.08em' }}>
+                  KCAL MOY.
+                </span>
+              </div>
+              <div className="vf-tabular" style={{ fontSize: 16, fontWeight: 800, color: PALETTE.ink }}>
+                {Math.round(weekly.avgIntake)}
+                <span style={{ fontSize: 10, fontWeight: 500, color: PALETTE.muted, marginLeft: 4 }}>
+                  kcal / {Math.round(weekly.avgKcalTarget)} cible
+                </span>
+              </div>
+            </div>
+          </>
+        )}
+      </Card>
+
+      {/* ── Tour de taille ──────────────────────────────────── */}
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <Ruler size={16} color={PALETTE.deep} />
@@ -123,28 +376,27 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
           </div>
         </div>
         {waistSeries.length === 0 ? (
-          <div style={{ fontSize: 13, color: PALETTE.muted, padding: '10px 0' }}>
+          <div style={{ fontSize: 13, color: PALETTE.muted, padding: '4px 0' }}>
             Aucune mesure cette semaine. Mesure-toi le lundi à jeun.
           </div>
         ) : (
-          <div>
-            {waistSeries.map(({ key, w }) => (
-              <div key={key} style={{
-                display: 'flex', justifyContent: 'space-between',
-                padding: '8px 0', borderBottom: `1px solid ${PALETTE.line}`,
-              }}>
-                <span className="vf-body" style={{ fontSize: 13, color: PALETTE.muted, textTransform: 'capitalize' }}>
-                  {fmtFr(key)}
-                </span>
-                <span className="vf-mono vf-tabular" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink }}>
-                  {w} cm
-                </span>
-              </div>
-            ))}
-          </div>
+          waistSeries.map(({ key, w }) => (
+            <div key={key} style={{
+              display: 'flex', justifyContent: 'space-between',
+              padding: '8px 0', borderBottom: `1px solid ${PALETTE.line}`,
+            }}>
+              <span className="vf-body" style={{ fontSize: 13, color: PALETTE.muted, textTransform: 'capitalize' }}>
+                {fmtFr(key)}
+              </span>
+              <span className="vf-mono vf-tabular" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink }}>
+                {w} cm
+              </span>
+            </div>
+          ))
         )}
       </Card>
 
+      {/* ── Rappel hebdo ────────────────────────────────────── */}
       <Card style={{ background: PALETTE.deepSoft, borderColor: PALETTE.deep }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
           <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.deep, borderRadius: 2 }} />
@@ -153,17 +405,17 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
               Rappel hebdo
             </div>
             <div style={{ fontSize: 13, color: PALETTE.ink, lineHeight: 1.5 }}>
-              Le solde ({Math.round(balance)} kcal) est fiable <strong>uniquement si tu saisis les calories TOTALES
-              Garmin</strong> (BMR + actif), pas juste les calories de séance.
-              Sinon le solde est faussé de +2000 kcal.
+              Le solde ({Math.round(weekly.netBalance)} kcal) est fiable <strong>uniquement si tu saisis les calories
+              TOTALES Garmin</strong> (BMR + actif), pas juste les calories de séance.
               {' '}Le déficit hebdo cible est <strong>≈ −1900 kcal</strong>.
-              {balance > -1000 && balance < 0 && " Continue, c'est bon."}
-              {balance >= 0 && recordedDays > 0 && ' Vérifie que tu saisis bien les calories totales Garmin.'}
-              {balance <= -2500 && ' Déficit important : assure-toi de bien recharger les jours TRAIN.'}
+              {weekly.netBalance > -1000 && weekly.netBalance < 0 && weekly.recordedDays > 0 && " Continue, c'est bon."}
+              {weekly.netBalance >= 0 && weekly.recordedDays > 0 && ' Vérifie que tu saisis bien les calories totales Garmin.'}
+              {weekly.netBalance <= -2500 && ' Déficit important : assure-toi de bien recharger les jours TRAIN.'}
             </div>
           </div>
         </div>
       </Card>
+
     </div>
   );
 }

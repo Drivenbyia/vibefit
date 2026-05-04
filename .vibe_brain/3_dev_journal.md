@@ -74,6 +74,33 @@ Implémentation du système de sauvegarde/restauration JSON sans aucune dépenda
 
 ---
 
+## Session 2026-05-04 — Bilan Hebdomadaire (WeekView analytics)
+
+### Contexte
+Implémentation du dashboard analytique WeekView : 3 sections distinctes, zéro librairie de chart, résilience aux données manquantes.
+
+### Actions réalisées
+- `src/utils/mathUtils.js` — ajout de `calculateWeeklyBalance(daysData, targets)` :
+  - Filtre les jours vides (`day.intake.kcal > 0 || expenditure.kcal > 0`).
+  - Divise par `recordedDays` (non par 7) pour éviter de fausser les moyennes.
+  - Retourne : `netBalance`, totaux, moyennes par macro, `avgKcalTarget` calculé sur les jours avec cible non-null.
+  - Source la référence calorique depuis `DEFAULT_TARGETS` de `config.js`.
+- `src/components/views/WeekView.jsx` — refonte complète en 5 blocs :
+  1. **Header + calendrier** — semaine, solde net avec icône tendance (TrendingDown/Up/Minus), dot coloré par type de jour.
+  2. **Bilan Net** — grid 3 colonnes : apport total, dépense totale, séances réalisées/planifiées.
+  3. **Tendance calorique** — barres CSS pures (flex + height en px), couleur par état (cible/surplus/sous/vide), légende inline.
+  4. **Moyennes / jour saisi** — 3 MacroBars avec jauge CSS (protéines/glucides/lipides) + kcal moyen vs cible.
+  5. **Tour de taille + Rappel hebdo** — inchangés dans la logique, refactorés pour lisibilité.
+- Composants internes purs (pas de hook, pas d'effet) : `SectionLabel`, `MacroBar`, `DayBar`.
+- Fallbacks défensifs : `data?.days?.[k] ?? null`, `targets ?? DEFAULT_TARGETS`, guard `recordedDays === 0`.
+
+### Vérification
+- `npm run build` : ✅ 0 erreur, 0 warning — bundle 191 kB / 58 kB gzip.
+- Aucune donnée `vibefit_v1` écrasée (lecture dérivée uniquement).
+- Zéro librairie chart externe ajoutée.
+
+---
+
 ## Session 2026-05-04 — Intégration PWA offline-first
 
 ### Contexte
