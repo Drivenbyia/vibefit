@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+    <meta name="theme-color" content="#0E1116" />
+    <meta name="description" content="VibeFit — Tracker quotidien de recomposition corporelle." />
+
+    <!-- iOS: add to home screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="VibeFit" />
+
+    <!-- Favicon: 'V' orange sur fond noir, inline SVG (zéro requête) -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1116'/%3E%3Cpath d='M16 18 L32 48 L48 18' stroke='%23FF5A1F' stroke-width='8' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230E1116'/%3E%3Cpath d='M45 50 L90 135 L135 50' stroke='%23FF5A1F' stroke-width='22' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E"
+    />
+
+    <title>VibeFit — Recomposition</title>
+
+    <!-- Fonts: chargement parallèle au JS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
