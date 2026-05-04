@@ -1,42 +1,41 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Download, Upload, Trash2, Check, AlertCircle } from 'lucide-react';
 import { PALETTE } from '../../constants/config.js';
-import { toKey } from '../../utils/dateUtils.js';
+import { exportBackup, importBackup } from '../../utils/backupUtils.js';
 import Card from '../ui/Card.jsx';
 
 export default function DataView({ data, setData }) {
   const [importStatus, setImportStatus] = useState(null);
+  const fileInputRef = useRef(null);
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `vibefit-${toKey(new Date())}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  const handleExport = () => exportBackup(data);
 
-  const importJson = (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const parsed = JSON.parse(ev.target.result);
-        if (!parsed.days || typeof parsed.days !== 'object') {
-          throw new Error('Format invalide');
+    if (!window.confirm('Êtes-vous sûr de vouloir écraser vos données actuelles ?')) {
+      e.target.value = '';
+      return;
+    }
+    importBackup(
+      file,
+      (parsed) => {
+        try {
+          if (!parsed.days || typeof parsed.days !== 'object') {
+            throw new Error('Format invalide');
+          }
+          setData((prev) => ({ ...prev, days: { ...prev.days, ...parsed.days } }));
+          setImportStatus({ ok: true, msg: `Importé ${Object.keys(parsed.days).length} jour(s)` });
+        } catch (err) {
+          setImportStatus({ ok: false, msg: 'Fichier invalide : ' + err.message });
         }
-        setData((prev) => ({ ...prev, days: { ...prev.days, ...parsed.days } }));
-        setImportStatus({ ok: true, msg: `Importé ${Object.keys(parsed.days).length} jour(s)` });
-      } catch (err) {
+        setTimeout(() => setImportStatus(null), 3000);
+      },
+      (err) => {
         setImportStatus({ ok: false, msg: 'Fichier invalide : ' + err.message });
-      }
-      setTimeout(() => setImportStatus(null), 3000);
-    };
-    reader.readAsText(file);
+        setTimeout(() => setImportStatus(null), 3000);
+      },
+    );
     e.target.value = '';
   };
 
@@ -67,34 +66,41 @@ export default function DataView({ data, setData }) {
           BACKUP
         </div>
         <button
-          onClick={exportJson}
+          onClick={handleExport}
           style={{
             width: '100%', padding: '14px',
             background: PALETTE.ink, color: '#fff', border: 'none',
             borderRadius: 10, fontWeight: 700, fontSize: 14,
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            cursor: 'pointer', marginBottom: 8,
+            cursor: 'pointer', marginBottom: 8, minHeight: 44,
           }}
           className="vf-body"
         >
           <Download size={18} />
           Exporter en JSON
         </button>
-        <label
+        <button
+          onClick={() => fileInputRef.current?.click()}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             width: '100%', padding: '14px',
             background: PALETTE.paper, color: PALETTE.ink,
             border: `1px solid ${PALETTE.line}`,
             borderRadius: 10, fontWeight: 700, fontSize: 14,
-            cursor: 'pointer',
+            cursor: 'pointer', minHeight: 44,
           }}
           className="vf-body"
         >
           <Upload size={18} />
           Importer un JSON
-          <input type="file" accept="application/json" onChange={importJson} style={{ display: 'none' }} />
-        </label>
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json"
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
         {importStatus && (
           <div
             style={{
