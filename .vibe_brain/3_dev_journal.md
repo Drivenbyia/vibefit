@@ -142,3 +142,27 @@ Intégration du suivi du poids corporel (pesée quotidienne), en cohérence avec
 - Données stockées uniquement en localStorage via `useVibefitStorage` (conforme décision Local First).
 
 ---
+
+## 2026-05-04 — 🔒 Clôture V1.0 Golden Master — Feature Freeze
+
+### Décision
+La phase de développement actif de VibeFit est officiellement close. Le produit entre en phase **RUN** : test terrain intensif, sans ajout de nouvelle fonctionnalité pendant 4 semaines minimum (jusqu'au 2026-06-01).
+
+### Périmètre V1.0 validé
+- **Architecture Local First** : zéro donnée réseau, `localStorage` + clé `vibefit_v1` comme unique source de vérité. Décision irréversible pour le cycle RUN.
+- **PWA offline-first** : installable, cache Workbox CacheFirst, artefacts `sw.js` + `manifest.webmanifest` générés — build 182 kB / 56 kB gzip.
+- **Backup JSON** : export/import 100% local, zéro appel réseau, protection `window.confirm` avant écrasement.
+- **WeekView analytique** : 5 blocs (header, bilan net, tendance calorique, moyennes macros, poids) — zéro librairie chart externe.
+- **Weight Tracking** : pesée quotidienne (`TodayView`), stats hebdo avec moyenne et delta (premier/dernier jour saisi) dans `WeekView`.
+- **Architecture modulaire** : `App.jsx` orchestrateur pur (54 lignes), séparation stricte constants / utils / hooks / models / ui / layout / views.
+
+### État du build au gel
+- `npm run build` : ✅ 0 erreur, 0 warning — bundle stable.
+- Aucune dépendance non déclarée. Aucun appel réseau implicite.
+
+### Protocole RUN
+- Aucune nouvelle fonctionnalité avant fin du cycle d'évaluation (2026-06-01 au plus tôt).
+- Les bugs critiques (perte de données, crash au démarrage) restent éligibles à un patch ciblé.
+- Toute décision post-RUN sera documentée dans `4_business_decisions.md`.
+
+---

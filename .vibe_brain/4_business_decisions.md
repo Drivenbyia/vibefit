@@ -63,4 +63,15 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 - **Impact** : Structure `src/constants/`, `src/utils/`, `src/hooks/`, `src/models/`, `src/components/ui/`, `src/components/layout/`, `src/components/views/`.
 - **Réversibilité** : Facile (imports directs, pas de magie).
 
+### 2026-05-04 — Feature Freeze V1.0 & entrée en phase RUN
+- **Décision** : Gel immédiat et total de toutes les nouvelles fonctionnalités. VibeFit V1.0 est déclaré **Golden Master**. Le produit entre en cycle de test terrain intensif (RUN) pour une durée minimale de 4 semaines, jusqu'au 2026-06-01.
+- **Contexte** : Le scope V1.0 est complet — tracker quotidien, WeekView analytique, poids, backup JSON, PWA offline-first, gestion des objectifs. Aucun bug bloquant connu. Le produit est prêt pour une évaluation en conditions réelles.
+- **Alternatives considérées** : Continuer à itérer (historique graphique multi-semaines, notifications), lancer une bêta ouverte.
+- **Raison du choix** : Toute fonctionnalité ajoutée avant test terrain est du gaspillage potentiel. La priorité est de valider les hypothèses d'usage réel avant d'investir davantage.
+- **Impact** :
+  - Aucune PR de feature ne sera mergée avant la fin du cycle RUN.
+  - Les bugs critiques (perte de données, crash) restent éligibles à un patch d'urgence.
+  - Le backlog post-RUN est documenté dans `2_project_overview.md`.
+- **Réversibilité** : Facile (décision de process, non technique — peut être levée à tout moment par décision explicite).
+
 ---
