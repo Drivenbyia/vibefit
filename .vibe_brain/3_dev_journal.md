@@ -166,3 +166,16 @@ La phase de développement actif de VibeFit est officiellement close. Le produit
 - Toute décision post-RUN sera documentée dans `4_business_decisions.md`.
 
 ---
+
+## 2026-05-10 — Spécifications V2 : AI Bridge (Export LLM)
+
+**Mise à jour documentaire uniquement — zéro modification du code source.**
+
+Spécifications UI/UX et techniques pour la V2 de l'export LLM (AI Bridge) intégrées à `2_project_overview.md` :
+- Bouton "Partager au Coach" positionné en bas de `WeekView`, design ghost/secondaire, copie Clipboard API.
+- Utilitaire `getHistoricalWeeks(n)` (scope 8 semaines / 56 jours) — filtre localStorage sans modification de schéma.
+- Gestion explicite des trous de données et des nouveaux utilisateurs dans le Markdown généré.
+- Contrainte de bundle : import lazy, pas d'impact sur le bundle initial ni la charge mémoire.
+- Data Layer V1 validée comme suffisante pour un rendu client-side pur sans latence.
+
+---

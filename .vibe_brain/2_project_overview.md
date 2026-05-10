@@ -1,6 +1,6 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-05-04
+last_updated: 2026-05-10
 ---
 
 # 🗺️ Project Overview — VibeFit
@@ -49,6 +49,31 @@ _Aucune. Feature Freeze V1.0 actif._
 
 ## Backlog post-RUN (à évaluer après 2026-06-01)
 - [ ] Historique graphique multi-semaines
+- [ ] **AI Bridge — Export LLM V2** (voir spécifications détaillées ci-dessous)
+
+## Spécifications V2 — AI Bridge (Export LLM)
+> Statut : **SPÉCIFIÉ — en attente de fin de cycle RUN (2026-06-01)**
+
+### Objectif
+Permettre à l'utilisateur de partager un résumé structuré de ses 8 dernières semaines (Markdown) directement dans le presse-papiers, pour consultation par un coach ou un LLM externe.
+
+### UI/UX — Bouton "Partager au Coach"
+- **Position** : En bas de `WeekView`, sous la section Notes.
+- **Design** : Bouton secondaire/ghost, minimaliste — respecte la charte graphique V1 (pas de nouvelle couleur, pas de nouvelle icône imposée).
+- **Interaction** : Copie directe du Markdown généré dans le presse-papiers via `navigator.clipboard.writeText()` — zéro redirection, zéro appel réseau.
+- **Feedback** : Toast ou changement d'état du bouton ("Copié !") pendant ~2 secondes.
+
+### Data Layer — Extraction historique
+- **Scope** : 8 semaines glissantes (56 jours).
+- **Fonction utilitaire** : `getHistoricalWeeks(n)` dans `src/utils/` — filtre les clés `vibefit_v1` du `localStorage` sur les `n` dernières semaines.
+- **Aucune modification de schéma** : la structure localStorage existante (clé `vibefit_v1`) est suffisante, sans migration requise.
+- **Gestion des trous** : les semaines sans saisie apparaissent explicitement dans le Markdown généré (mention `"Aucune donnée saisie pour cette semaine"`) — pas d'omission silencieuse.
+- **Nouveaux utilisateurs** : `getHistoricalWeeks(n)` retourne uniquement les semaines disponibles — pas d'erreur, pas de semaines fictives.
+
+### Robustesse & Performance
+- **Data Layer V1 jugée suffisante** : remonter 56 jours de logs en client-side pur ne génère pas de latence mesurable — aucune optimisation préalable requise.
+- **Contrainte de bundle** : la fonction d'export est un utilitaire léger, chargé en `lazy` ou importé à la demande — elle ne doit pas alourdir le bundle initial ni la charge mémoire au démarrage.
+- **Offline-first garanti** : la génération du Markdown est 100% locale, aucune dépendance réseau.
 
 ## Dépendances actives
 | Package | Version | Usage |
