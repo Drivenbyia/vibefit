@@ -10,6 +10,7 @@
 - **Paradigme :** Moteur déterministe 100% Local First (lecture exclusive du `localStorage`, aucune dépendance réseau).
 - **State Preparation :** Fonction `extractSignals()` responsable de l'extraction et de la normalisation des données brutes avant évaluation. Produit un objet d'état structuré et typé.
 - **Idempotence :** Fonction `evaluateWeekly()` strictement IDEMPOTENTE — calcul unique par semaine ISO, résultat mis en cache (clé : `expert_result_<isoWeek>`). Aucun déclenchement multiple possible pour une même semaine.
+- **Guard Global :** `evaluateWeekly()` DOIT vérifier la présence d'au minimum **8 semaines de logs historiques complets** avant de générer toute recommandation. En deçà de ce seuil, la fonction retourne un état vide (`{ triggered: false, reason: "INSUFFICIENT_HISTORY" }`) sans évaluer aucune règle. Ce guard protège en priorité la règle R4 (PLATEAU_STRICT) et R3 (NEAT_DRIFT), dont les triggers comparatifs (`waistBlockedWeeks >= 3`, `stepsLastWeek`) produiraient des faux positifs sur un historique court.
 - **Validation :** Plan de Backtesting obligatoire sur les logs historiques existants avant toute mise en production. Les règles doivent être validées sur au minimum 8 semaines de données réelles.
 
 ---
@@ -131,10 +132,30 @@ Les champs suivants **existent déjà** dans la structure de données de la V1 :
 
 ### 4.3 Plan de Backtesting (Obligatoire avant déploiement)
 
-Avant mise en production, chaque règle doit être validée selon ce protocole :
+Le plan de validation se déroule en deux phases distinctes :
+
+#### Phase 1 — Crash Test de juin (Intégrité du code — 4 semaines d'historique)
+
+> **Calendrier :** Exécution prévue courant juin 2026, à l'issue du cycle RUN V1.0 (≥ 2026-06-01).
+> **Périmètre :** Validation de l'intégrité du code uniquement — pas de validation des recommandations.
+
+À ce stade, l'historique disponible sera de ~4 semaines. Le Guard Global se déclenchera systématiquement (`INSUFFICIENT_HISTORY`). Le Crash Test vérifie :
+
+1. Que `evaluateWeekly()` ne crashe pas sur des données réelles partielles.
+2. Que le Guard Global retourne bien `{ triggered: false, reason: "INSUFFICIENT_HISTORY" }` et bloque toutes les règles.
+3. Que la Null Safety fonctionne sur tous les champs optionnels (`notes`, `waist`, `steps`, `hrvStatus`, `sleepScore`).
+4. Que le cache d'idempotence (`expert_result_<isoWeek>`) est correctement écrit et relu.
+
+**Critère de succès :** Zéro crash, zéro recommandation générée (guard actif), zéro exception non gérée.
+
+#### Phase 2 — Backtesting qualité (Pertinence des recommandations — 8 semaines minimum)
+
+> **Calendrier :** Exécution possible à partir de fin juillet 2026 (8 semaines de RUN accumulées).
+
+Avant mise en production des recommandations actives, chaque règle est validée selon ce protocole :
 
 1. Exporter l'historique complet du `localStorage` (via la feature backup JSON existante).
-2. Rejouer `evaluateWeekly()` sur chaque semaine historique disponible (minimum 8 semaines).
+2. Rejouer `evaluateWeekly()` sur chaque semaine historique disponible (minimum 8 semaines — Guard levé).
 3. Pour chaque déclenchement détecté, vérifier manuellement la pertinence de la recommandation générée.
 4. Taux d'acceptabilité minimum : **80% de déclenchements jugés pertinents** avant activation en production.
 5. Documenter les faux positifs par règle dans ce fichier (section à compléter post-backtesting).
