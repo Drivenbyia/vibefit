@@ -84,11 +84,11 @@ Toute règle du moteur doit respecter l'interface suivante (documentation, pas d
 
 ### R6 — CORTISOL_SPIKE [Priority: 9]
 
-- **Trigger :** `weightReboundKg > 1 && waistStable && notes?.match(/(fatigue|sommeil|stress|épuisé|nuit courte)/i)`
+- **Trigger :** `weightReboundKg > 1 && waistStable && (hrvStatus === 'FATIGUÉ' || sleepScore < 60 || notes?.match(/(fatigue|sommeil|stress|épuisé)/i))`
 - **Cooldown :** 5 jours
-- **Context :** `weightReboundKg`, `waistStable`, `notes`
+- **Context :** `weightReboundKg`, `waistStable`, `notes`, `hrvStatus` *(Enum : ÉQUILIBRÉ | TENDU | FATIGUÉ — Null Safe, absent si pas de montre connectée)*, `sleepScore` *(0–100 — Null Safe, absent si pas de montre connectée)*
 - **Action :** Alerte rétention d'eau probable (cortisol/glycogène) — **blocage explicite de toute baisse calorique** jusqu'à normalisation.
-- **Rationale :** Un rebond de poids brut > 1kg avec tour de taille stable et notes évoquant la fatigue/manque de sommeil est un pattern typique de rétention hydrique liée au cortisol ou à la surcompensation glycogénique. Réduire les calories dans ce contexte serait une erreur d'interprétation du signal.
+- **Rationale :** Un rebond de poids brut > 1kg avec tour de taille stable et au moins un signal de stress récupératif (HRV dégradé, score de sommeil < 60, ou notes évoquant fatigue/stress) est un pattern typique de rétention hydrique liée au cortisol ou à la surcompensation glycogénique. Réduire les calories dans ce contexte serait une erreur d'interprétation du signal. Un score de sommeil < 60 est un indicateur fort de rétention hydrique liée au cortisol.
 
 ---
 
@@ -122,8 +122,12 @@ Les champs suivants **existent déjà** dans la structure de données de la V1 :
 | `weight` | Présent par entrée | Requis à la saisie |
 | `calories` | Présent par entrée | Requis à la saisie |
 | `steps` | Optionnel par entrée | Peut être `null` |
+| `hrvStatus` | Optionnel (V2) | Statut hebdomadaire Garmin Connect — saisie manuelle le lundi. Enum : `ÉQUILIBRÉ`, `TENDU`, `FATIGUÉ`. `null` si l'utilisateur n'a pas de montre connectée. |
+| `sleepScore` | Optionnel (V2) | Moyenne hebdomadaire du score de sommeil, ou score de la nuit précédant la pesée — saisie manuelle. Entier 0–100. `null` si l'utilisateur n'a pas de montre connectée. |
 
-**Aucune refonte de la Data Layer n'est nécessaire.** Ce développement V2 s'appuie exclusivement sur les données existantes. Le Feature Freeze V1 n'est pas impacté.
+> **RÉSOLUTION :** Le marqueur **Body Battery** est officiellement retiré des spécifications afin d'éviter la redondance des signaux. `hrvStatus` et `sleepScore` couvrent le même périmètre sémantique avec une meilleure précision et une saisie plus standardisée.
+
+**Aucune refonte de la Data Layer n'est nécessaire.** Ce développement V2 s'appuie exclusivement sur les données existantes enrichies de deux champs optionnels à saisie manuelle. Le Feature Freeze V1 n'est pas impacté.
 
 ### 4.3 Plan de Backtesting (Obligatoire avant déploiement)
 
