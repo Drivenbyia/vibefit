@@ -179,3 +179,26 @@ Spécifications UI/UX et techniques pour la V2 de l'export LLM (AI Bridge) inté
 - Data Layer V1 validée comme suffisante pour un rendu client-side pur sans latence.
 
 ---
+
+## Session 2026-05-11 — AI Bridge V2 : implémentation export Markdown presse-papiers
+
+**Dérogation Feature Freeze** : levée partielle exceptionnelle — commit `d01d7c2` sur `main`.
+
+### Fichiers créés / modifiés
+- `src/utils/exportUtils.js` *(nouveau)* — `getHistoricalWeeks(n)` : lit `vibefit_v1` dans localStorage, formate les 8 dernières semaines en Markdown, fallback "Aucune donnée saisie pour cette semaine" pour les semaines vides.
+- `src/components/views/WeekView.jsx` *(modifié)* — bouton ghost "Partager au Coach" (`ClipboardCopy` → `Check`) + feedback "Copié !" 2s via `useState` + `useCallback`.
+
+### Décisions techniques
+- Logique dans `utils/` (pas un hook) : fonction pure synchrone, zéro state React.
+- Aucune couleur hors charte — `PALETTE.deep` / `PALETTE.muted` / `PALETTE.line` uniquement.
+- Build Vite ✓ — revue react-review ✓ — zéro violation bloquante.
+
+---
+
+## Session 2026-05-11 — Patch bugfix : clé protéine dans exportUtils
+
+**Bug** : `getHistoricalWeeks` affichait systématiquement `P: 0g` dans le Markdown exporté.
+**Cause** : `exportUtils.js` lisait `day.intake.prot` alors que le modèle (`day.js`) utilise la clé `day.intake.protein`.
+**Fix** : une ligne modifiée dans `src/utils/exportUtils.js` — `prot` → `protein`. Fallback `?? 0` conservé.
+
+---

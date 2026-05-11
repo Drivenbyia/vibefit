@@ -13,7 +13,7 @@ function formatDay(key, day) {
   if (day.intake?.kcal) {
     parts.push(
       `Apport: ${Math.round(day.intake.kcal)} kcal` +
-      ` (P: ${Math.round(day.intake.prot ?? 0)}g` +
+      ` (P: ${Math.round(day.intake.protein ?? 0)}g` +
       ` / G: ${Math.round(day.intake.carbs ?? 0)}g` +
       ` / L: ${Math.round(day.intake.fat ?? 0)}g)`
     );
