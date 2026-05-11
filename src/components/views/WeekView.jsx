@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
-import { Ruler, Scale, TrendingDown, TrendingUp, Minus, Zap, Beef, Wheat, Droplets } from 'lucide-react';
+import { useMemo, useState, useCallback } from 'react';
+import { Ruler, Scale, TrendingDown, TrendingUp, Minus, Zap, Beef, Wheat, Droplets, ClipboardCopy, Check } from 'lucide-react';
+import { getHistoricalWeeks } from '../../utils/exportUtils.js';
 import { PALETTE, DEFAULT_TARGETS } from '../../constants/config.js';
 import { addDays, startOfWeek, fmtFr, shortFr } from '../../utils/dateUtils.js';
 import { num, calculateWeeklyBalance, calculateWeightStats } from '../../utils/mathUtils.js';
@@ -114,6 +115,18 @@ function DayBar({ day, dayKey, target, isToday, onPress }) {
 }
 
 export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarget }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleExport = useCallback(async () => {
+    const markdown = getHistoricalWeeks(8);
+    try {
+      await navigator.clipboard.writeText(markdown);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (_) {
+      // clipboard refusé — silencieux
+    }
+  }, []);
   const resolvedTargets = targets ?? DEFAULT_TARGETS;
   const start = startOfWeek(dateKey);
 
@@ -472,6 +485,34 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
           </div>
         </div>
       </Card>
+
+      {/* ── Export AI Bridge ────────────────────────────────── */}
+      <button
+        onClick={handleExport}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          width: '100%',
+          padding: '12px 16px',
+          background: 'transparent',
+          border: `1.5px solid ${PALETTE.line}`,
+          borderRadius: 12,
+          cursor: 'pointer',
+          color: copied ? PALETTE.deep : PALETTE.muted,
+          fontSize: 13,
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          transition: 'color 0.2s, border-color 0.2s',
+          borderColor: copied ? PALETTE.deep : PALETTE.line,
+        }}
+      >
+        {copied
+          ? <Check size={15} strokeWidth={2.5} />
+          : <ClipboardCopy size={15} strokeWidth={2.5} />}
+        {copied ? 'Copié !' : 'Partager au Coach'}
+      </button>
 
     </div>
   );
