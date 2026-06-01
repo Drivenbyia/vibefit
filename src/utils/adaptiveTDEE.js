@@ -3,7 +3,9 @@ import { STORAGE_KEY } from '../constants/config.js';
 // 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
 const KCAL_PER_KG = 7700;
 const SMOOTHING_WINDOW = 7;
-const MIN_POINTS_FOR_TDEE = 7; // minimum par métrique sur 14j
+const MIN_POINTS_FOR_TDEE = 7; // minimum par métrique sur la fenêtre
+const HISTORY_SCAN_DAYS = 30;  // horizon de scan pour la fenêtre glissante
+const WINDOW_SIZE = 14;        // taille cible de la sous-fenêtre TDEE
 
 /**
  * Interpolation linéaire des poids manquants dans une série chronologique.
@@ -67,15 +69,55 @@ function movingAverage7(entries) {
 }
 
 /**
- * Extrait les signaux physiologiques clés sur les 28 derniers jours.
+ * Data Quality Score d'une sous-fenêtre : nombre de jours où l'utilisateur
+ * a saisi SIMULTANÉMENT un poids ET un apport calorique.
+ */
+function windowQualityScore(window) {
+  return window.filter(e => e.weight !== null && e.intake !== null).length;
+}
+
+/**
+ * Moteur de fenêtre glissante : scanne les `entries` (max HISTORY_SCAN_DAYS),
+ * évalue chaque sous-fenêtre de WINDOW_SIZE jours et retourne les indices de
+ * la fenêtre au Data Quality Score maximal.
+ * En cas d'égalité de score, la fenêtre la plus récente est retenue.
+ * Dégradation gracieuse si l'historique total est inférieur à WINDOW_SIZE :
+ * toutes les entrées disponibles sont utilisées sans crash.
+ */
+function findBestWindow(entries) {
+  const n = entries.length;
+
+  if (n <= WINDOW_SIZE) {
+    return { startIdx: 0, endIdx: n - 1, size: n };
+  }
+
+  let bestScore = -1;
+  let bestStart = n - WINDOW_SIZE; // défaut : fenêtre la plus récente
+
+  for (let start = 0; start <= n - WINDOW_SIZE; start++) {
+    const score = windowQualityScore(entries.slice(start, start + WINDOW_SIZE));
+    // >= pour que la fenêtre la plus récente l'emporte en cas d'égalité
+    if (score >= bestScore) {
+      bestScore = score;
+      bestStart = start;
+    }
+  }
+
+  return { startIdx: bestStart, endIdx: bestStart + WINDOW_SIZE - 1, size: WINDOW_SIZE };
+}
+
+/**
+ * Extrait les signaux physiologiques clés sur la fenêtre optimale (≤30 jours).
  *
  * Retourne :
  *   smoothedWeight   — poids lissé 7j (kg, 2 décimales) ou null
- *   adaptiveTDEE     — TDEE calculé sur 14j (kcal/j) ou null si données < seuil
- *   weightTrend14d   — variation de poids lissée sur 14j (kg) ou null
- *   avgIntake        — apport moyen journalier sur 14j (kcal) ou null
+ *   adaptiveTDEE     — TDEE calculé sur la fenêtre optimale (kcal/j) ou null si données < seuil
+ *   weightTrend14d   — variation de poids lissée sur la fenêtre optimale (kg) ou null
+ *   avgIntake        — apport moyen journalier sur la fenêtre optimale (kcal) ou null
  *   confidence       — densité de données 0–100 %
- *   hasEnoughData    — true si ≥ 7 entrées poids ET ≥ 7 jours d'apport sur 14j
+ *   hasEnoughData    — true si ≥ 7 entrées poids ET ≥ 7 jours d'apport sur la fenêtre
+ *   windowStart      — date ISO de début de la fenêtre retenue
+ *   windowEnd        — date ISO de fin de la fenêtre retenue
  */
 export function extractSignals() {
   let stored = { days: {} };
@@ -87,10 +129,10 @@ export function extractSignals() {
   }
   const days = stored.days ?? {};
 
-  // Fenêtre glissante de 28 jours (J-27 → J0)
+  // Historique brut sur HISTORY_SCAN_DAYS jours (J-29 → J0)
   const today = new Date().toISOString().slice(0, 10);
   const entries = [];
-  for (let i = 27; i >= 0; i--) {
+  for (let i = HISTORY_SCAN_DAYS - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
     const key = d.toISOString().slice(0, 10);
@@ -104,19 +146,21 @@ export function extractSignals() {
     });
   }
 
-  // Métriques de densité sur les 14 derniers jours
-  const last14 = entries.slice(-14);
-  const weightPoints = last14.filter(e => e.weight !== null).length;
-  const intakeDays14 = last14.filter(e => e.intake !== null);
-  const intakePoints = intakeDays14.length;
+  // Sélection de la fenêtre optimale par Data Quality Score
+  const { startIdx, endIdx, size } = findBestWindow(entries);
+  const bestWindow = entries.slice(startIdx, endIdx + 1);
+  const windowStart = bestWindow[0].date;
+  const windowEnd = bestWindow[bestWindow.length - 1].date;
 
-  // Confidence : (poids renseignés + apports renseignés) / 28 max attendus
-  const confidence = Math.min(100, Math.round(((weightPoints + intakePoints) / 28) * 100));
-
+  // Métriques de qualité sur la fenêtre optimale
+  const weightPoints = bestWindow.filter(e => e.weight !== null).length;
+  const intakeDays = bestWindow.filter(e => e.intake !== null);
+  const intakePoints = intakeDays.length;
+  const confidence = Math.min(100, Math.round(((weightPoints + intakePoints) / (2 * size)) * 100));
   const hasEnoughData =
     weightPoints >= MIN_POINTS_FOR_TDEE && intakePoints >= MIN_POINTS_FOR_TDEE;
 
-  // Lissage : interpolation puis moyenne mobile 7j
+  // Lissage sur l'historique complet pour une baseline plus robuste
   const interpolated = interpolateWeights(entries);
   const smoothedEntries = movingAverage7(interpolated);
 
@@ -129,10 +173,11 @@ export function extractSignals() {
         )
       : null;
 
-  // Tendance 14j : première moitié vs seconde moitié de la fenêtre lissée
-  const window14 = smoothedEntries.slice(-14);
-  const firstHalf = window14.slice(0, 7).filter(e => e.smoothed !== null);
-  const secondHalf = window14.slice(7).filter(e => e.smoothed !== null);
+  // Tendance sur la fenêtre optimale (valeurs lissées)
+  const smoothedWindow = smoothedEntries.slice(startIdx, endIdx + 1);
+  const half = Math.floor(smoothedWindow.length / 2);
+  const firstHalf = smoothedWindow.slice(0, half).filter(e => e.smoothed !== null);
+  const secondHalf = smoothedWindow.slice(half).filter(e => e.smoothed !== null);
 
   let weightTrend14d = null;
   if (firstHalf.length > 0 && secondHalf.length > 0) {
@@ -141,18 +186,18 @@ export function extractSignals() {
     weightTrend14d = parseFloat((avgLast - avgFirst).toFixed(2));
   }
 
-  // Apport moyen 14j (jours saisis uniquement)
+  // Apport moyen sur la fenêtre optimale (jours saisis uniquement)
   const avgIntake =
     intakePoints > 0
-      ? Math.round(intakeDays14.reduce((s, e) => s + e.intake, 0) / intakePoints)
+      ? Math.round(intakeDays.reduce((s, e) => s + e.intake, 0) / intakePoints)
       : null;
 
   // TDEE adaptatif : fiable uniquement si assez de données
-  // dailyImbalance = (Δpoids_kg × 7700 kcal) / 14 jours
-  // TDEE = apport_moyen - déséquilibre_journalier
+  // dailyImbalance = (Δpoids_kg × 7700 kcal) / taille_fenêtre
+  // TDEE = apport_moyen − déséquilibre_journalier
   let adaptiveTDEE = null;
   if (hasEnoughData && weightTrend14d !== null && avgIntake !== null) {
-    const dailyImbalance = (weightTrend14d * KCAL_PER_KG) / 14;
+    const dailyImbalance = (weightTrend14d * KCAL_PER_KG) / size;
     adaptiveTDEE = Math.round(avgIntake - dailyImbalance);
   }
 
@@ -163,5 +208,7 @@ export function extractSignals() {
     avgIntake,
     confidence,
     hasEnoughData,
+    windowStart,
+    windowEnd,
   };
 }
