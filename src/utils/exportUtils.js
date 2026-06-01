@@ -52,9 +52,14 @@ export function getHistoricalWeeks(n = 8) {
   const intakeStr = signals.avgIntake !== null ? `${signals.avgIntake} kcal` : 'N/A';
   const confidenceStr = `${signals.confidence}%`;
 
+  const periodStr =
+    signals.windowStart && signals.windowEnd
+      ? `${signals.windowStart} → ${signals.windowEnd}`
+      : 'N/A';
   const header =
     `⚡ TDEE adaptatif : ${tdeeStr} | Tendance poids 14j : ${trendStr}` +
-    ` | Confiance : ${confidenceStr} | Apport moyen : ${intakeStr}`;
+    ` | Confiance : ${confidenceStr} | Apport moyen : ${intakeStr}` +
+    ` | Période : ${periodStr}`;
 
   const lines = [`# Rapport VibeFit — ${n} dernières semaines\n`, header, ''];
 
