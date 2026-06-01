@@ -1,5 +1,6 @@
 import { STORAGE_KEY } from '../constants/config.js';
 import { startOfWeek, addDays, fmtFr } from './dateUtils.js';
+import { extractSignals } from './adaptiveTDEE.js';
 
 function formatDay(key, day) {
   const label = fmtFr(key);
@@ -41,7 +42,21 @@ export function getHistoricalWeeks(n = 8) {
   const today = new Date().toISOString().slice(0, 10);
   const currentWeekStart = startOfWeek(today);
 
-  const lines = [`# Rapport VibeFit — ${n} dernières semaines\n`];
+  const signals = extractSignals();
+  const tdeeStr = signals.adaptiveTDEE !== null
+    ? `${signals.adaptiveTDEE} kcal`
+    : 'N/A (données < 14j)';
+  const trendStr = signals.weightTrend14d !== null
+    ? `${signals.weightTrend14d >= 0 ? '+' : ''}${signals.weightTrend14d} kg`
+    : 'N/A';
+  const intakeStr = signals.avgIntake !== null ? `${signals.avgIntake} kcal` : 'N/A';
+  const confidenceStr = `${signals.confidence}%`;
+
+  const header =
+    `⚡ TDEE adaptatif : ${tdeeStr} | Tendance poids 14j : ${trendStr}` +
+    ` | Confiance : ${confidenceStr} | Apport moyen : ${intakeStr}`;
+
+  const lines = [`# Rapport VibeFit — ${n} dernières semaines\n`, header, ''];
 
   for (let w = 0; w < n; w++) {
     const weekStart = startOfWeek(addDays(currentWeekStart, -w * 7));

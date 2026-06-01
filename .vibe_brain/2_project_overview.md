@@ -1,15 +1,15 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-05-11
+last_updated: 2026-06-01
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🔒 EN PRODUCTION — V1.0 Golden Master (Feature Freeze actif — dérogation AI Bridge V2 appliquée)**
+- **Phase : 🚀 V2 Phase A — DÉPLOIEMENT STAGING (TDEE Adaptatif + AI Bridge V2 Header + Badge Protéines)**
 - Branche active : `main`
-- Dernier commit : `d01d7c2` — feat(bridge): export markdown 8 semaines vers presse-papiers (AI Bridge V2)
-- Cycle RUN en cours : test terrain intensif — durée minimale 4 semaines (jusqu'au 2026-06-01)
+- Dernier commit signé : `685f0b6` — feat(targets): preset diet break + alerte sous-alimentation critique
+- Cycle RUN V1 terminé (2026-06-01) — V2 Phase A livrée
 
 ## Structure des fichiers (src/)
 
@@ -21,7 +21,8 @@ src/
     dateUtils.js       — toKey, dayTypeFromKey, fmtFr, shortFr, addDays, startOfWeek
     mathUtils.js       — num, calculateWeeklyBalance
     backupUtils.js     — exportBackup, importBackup
-    exportUtils.js     — getHistoricalWeeks(n) : export Markdown 8 semaines (AI Bridge V2)
+    exportUtils.js     — getHistoricalWeeks(n) : export Markdown 8 semaines (AI Bridge V2 + header TDEE)
+    adaptiveTDEE.js    — extractSignals() : TDEE adaptatif, lissage poids 7j, tendance 14j, confidence
   models/
     day.js             — emptyDay, dayType
   hooks/
@@ -45,10 +46,18 @@ src/
 - [x] PWA offline-first (installable, cache Workbox)
 - [x] Gestion des objectifs caloriques (PRESETS : maintenance, sèche, bulk)
 
-## Fonctionnalités V2 livrées (dérogation Feature Freeze)
-- [x] **AI Bridge — Export Markdown presse-papiers** (`WeekView` → bouton "Partager au Coach", `exportUtils.js`)
+## Fonctionnalités V2 livrées
 
-## Backlog post-RUN (à évaluer après 2026-06-01)
+### Phase A (2026-06-01)
+- [x] **AI Bridge V1 — Export Markdown presse-papiers** (`WeekView` → bouton "Partager au Coach", `exportUtils.js`)
+- [x] **TDEE Adaptatif** — module `adaptiveTDEE.js` : lissage poids 7j, interpolation null-safe, tendance 14j, confidence 0–100%
+- [x] **AI Bridge V2 Header** — première ligne du Markdown : TDEE | tendance | confiance | apport moyen
+- [x] **Badge Protéines** — pill discret dans WeekView si moyenne hebdo < 160 g (seuil fixe)
+
+### Phase B (gelée — backtesting requis)
+- [ ] R2 PERTE_RAPIDE, R3 NEAT_DRIFT, R4 PLATEAU_STRICT, R5 WEEKEND_FAILURE, R6 CORTISOL_SPIKE
+
+## Backlog
 - [ ] Historique graphique multi-semaines
 
 ## Spécifications V2 — AI Bridge (Export LLM)
