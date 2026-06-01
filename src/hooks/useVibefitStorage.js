@@ -8,11 +8,16 @@ export function useVibefitStorage() {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
+        const targets = parsed.targets || DEFAULT_TARGETS;
         return {
           days: parsed.days || {},
-          targets: parsed.targets || DEFAULT_TARGETS,
+          targets,
           stepsTarget: parsed.stepsTarget ?? DEFAULT_STEPS_TARGET,
           presetId: parsed.presetId || 'maintenance',
+          maintenanceKcal: parsed.maintenanceKcal || {
+            train: targets.train?.kcal ?? DEFAULT_TARGETS.train.kcal,
+            off: targets.off?.kcal ?? DEFAULT_TARGETS.off.kcal,
+          },
         };
       }
     } catch (e) {
@@ -23,6 +28,10 @@ export function useVibefitStorage() {
       targets: DEFAULT_TARGETS,
       stepsTarget: DEFAULT_STEPS_TARGET,
       presetId: 'maintenance',
+      maintenanceKcal: {
+        train: DEFAULT_TARGETS.train.kcal,
+        off: DEFAULT_TARGETS.off.kcal,
+      },
     };
   });
 
