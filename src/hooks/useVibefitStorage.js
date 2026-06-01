@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DEFAULT_TARGETS, DEFAULT_STEPS_TARGET, STORAGE_KEY } from '../constants/config.js';
+import { deriveMaintenanceKcal } from '../utils/presetUtils.js';
 
 export function useVibefitStorage() {
   const [data, setData] = useState(() => {
@@ -9,15 +10,15 @@ export function useVibefitStorage() {
       if (raw) {
         const parsed = JSON.parse(raw);
         const targets = parsed.targets || DEFAULT_TARGETS;
+        const presetId = parsed.presetId || 'maintenance';
         return {
           days: parsed.days || {},
           targets,
           stepsTarget: parsed.stepsTarget ?? DEFAULT_STEPS_TARGET,
-          presetId: parsed.presetId || 'maintenance',
-          maintenanceKcal: parsed.maintenanceKcal || {
-            train: targets.train?.kcal ?? DEFAULT_TARGETS.train.kcal,
-            off: targets.off?.kcal ?? DEFAULT_TARGETS.off.kcal,
-          },
+          presetId,
+          // Bootstrap : inverse le delta du preset actif pour retrouver la
+          // vraie maintenance (et non les valeurs de coupe/diet stockées).
+          maintenanceKcal: parsed.maintenanceKcal || deriveMaintenanceKcal(presetId, targets),
         };
       }
     } catch (e) {

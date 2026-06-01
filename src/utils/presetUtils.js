@@ -1,4 +1,4 @@
-import { PRESETS } from '../constants/config.js';
+import { PRESETS, DEFAULT_TARGETS } from '../constants/config.js';
 
 // Deltas kcal de chaque preset par rapport à la maintenance de base de l'utilisateur.
 // `off: null` = OFF calqué sur TRAIN (pas de cyclage — Diet Break).
@@ -42,5 +42,28 @@ export function computePresetTargets(presetId, maintenanceKcal) {
       carbs: Math.max(0, Math.round((offKcal - co.protein * 4 - co.fat * 9) / 4)),
     },
     we,
+  };
+}
+
+/**
+ * Retrouve la maintenance de base {train, off} depuis des targets stockées,
+ * en inversant le delta du preset actif. Utilisé une seule fois au bootstrap
+ * pour les utilisateurs antérieurs à l'introduction de `maintenanceKcal`.
+ *
+ * - presetId === 'maintenance'  → les targets SONT la maintenance (delta 0)
+ * - preset coupe/bulk connu     → maintenance = kcal_stocké − delta
+ * - 'custom' / preset inconnu    → les targets actuelles font foi (best effort)
+ * - diet_break (off non cyclé)   → off non récupérable, fallback DEFAULT_TARGETS
+ */
+export function deriveMaintenanceKcal(presetId, targets) {
+  const tTrain = targets?.train?.kcal ?? DEFAULT_TARGETS.train.kcal;
+  const tOff = targets?.off?.kcal ?? DEFAULT_TARGETS.off.kcal;
+  const delta = PRESET_KCAL_DELTAS[presetId];
+
+  if (!delta) return { train: tTrain, off: tOff };
+
+  return {
+    train: tTrain - delta.train,
+    off: delta.off === null ? DEFAULT_TARGETS.off.kcal : tOff - delta.off,
   };
 }

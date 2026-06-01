@@ -37,7 +37,7 @@ export const PRESETS = {
   },
   bulk: {
     label: 'Prise de masse',
-    sub: '+250 kcal / jour — gain ~250 g/sem',
+    sub: '+300 kcal / jour — gain ~300 g/sem',
     targets: {
       train: { kcal: 2700, protein: 160, carbs: 350, fat: 75, label: 'TRAIN' },
       off:   { kcal: 2200, protein: 160, carbs: 180, fat: 80, label: 'OFF' },
