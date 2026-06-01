@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Footprints, RotateCcw, Check } from 'lucide-react';
 import { PALETTE, PRESETS, DEFAULT_TARGETS, DEFAULT_STEPS_TARGET } from '../../constants/config.js';
 import { num } from '../../utils/mathUtils.js';
+import { computePresetTargets } from '../../utils/presetUtils.js';
 import Card from '../ui/Card.jsx';
 import NumberInput from '../ui/NumberInput.jsx';
 import Label from '../ui/Label.jsx';
@@ -41,7 +42,7 @@ function TargetEditor({ title, subtitle, accent, target, onChange, allowEmpty })
 }
 
 export default function TargetsView({ data, setData }) {
-  const { targets, stepsTarget, presetId } = data;
+  const { targets, stepsTarget, presetId, maintenanceKcal } = data;
   const [savedFlash, setSavedFlash] = useState(false);
 
   const setTargets = (newTargets, newPresetId = 'custom') => {
@@ -55,20 +56,45 @@ export default function TargetsView({ data, setData }) {
   };
 
   const applyPreset = (id) => {
-    const p = PRESETS[id];
-    if (!p) return;
-    setTargets(p.targets, id);
+    if (!PRESETS[id]) return;
+    setTargets(computePresetTargets(id, maintenanceKcal), id);
   };
 
   const resetDefaults = () => {
     if (confirm('Restaurer les cibles VIBEFIT par défaut ?')) {
-      setTargets(DEFAULT_TARGETS, 'maintenance');
-      setData((prev) => ({ ...prev, stepsTarget: DEFAULT_STEPS_TARGET }));
+      setData(prev => ({
+        ...prev,
+        targets: DEFAULT_TARGETS,
+        presetId: 'maintenance',
+        stepsTarget: DEFAULT_STEPS_TARGET,
+        maintenanceKcal: {
+          train: DEFAULT_TARGETS.train.kcal,
+          off: DEFAULT_TARGETS.off.kcal,
+        },
+      }));
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1200);
     }
   };
 
   const updateField = (dayKey, field, value) => {
     const v = value === '' ? null : num(value);
+
+    // Édition des kcal TRAIN ou OFF en mode maintenance → met à jour la base
+    // sans décrocher le preset, et propage via computePresetTargets.
+    if (presetId === 'maintenance' && field === 'kcal' && v !== null && (dayKey === 'train' || dayKey === 'off')) {
+      const newBase = { ...maintenanceKcal, [dayKey]: v };
+      setData(prev => ({
+        ...prev,
+        maintenanceKcal: newBase,
+        targets: computePresetTargets('maintenance', newBase),
+        presetId: 'maintenance',
+      }));
+      setSavedFlash(true);
+      setTimeout(() => setSavedFlash(false), 1200);
+      return;
+    }
+
     setTargets({ ...targets, [dayKey]: { ...targets[dayKey], [field]: v } }, 'custom');
   };
 
@@ -96,6 +122,13 @@ export default function TargetsView({ data, setData }) {
               <Check size={12} /> ENREGISTRÉ
             </div>
           )}
+        </div>
+
+        <div style={{ fontSize: 11, color: PALETTE.muted, marginBottom: 10, lineHeight: 1.4 }}>
+          Base maintenance · <strong style={{ color: PALETTE.ink }}>{maintenanceKcal.train} kcal</strong> TRAIN
+          {' / '}
+          <strong style={{ color: PALETTE.ink }}>{maintenanceKcal.off} kcal</strong> OFF
+          {' '}— les autres presets se calculent depuis ces valeurs
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
