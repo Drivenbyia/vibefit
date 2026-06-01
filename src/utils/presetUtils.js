@@ -15,7 +15,7 @@ export const DEFAULT_TDEE = 2000;
  */
 function presetKcal(presetId, tdee) {
   switch (presetId) {
-    case 'maintenance': return { train: tdee + 200,             off: tdee - 200 };
+    case 'maintenance': return { train: Math.max(1600, tdee + 200), off: Math.max(1600, tdee - 200) };
     case 'cut_light':   return { train: tdee,                   off: Math.max(1600, tdee - 400) };
     case 'cut_strong':  return { train: tdee - 200,             off: Math.max(1600, tdee - 600) };
     case 'bulk':        return { train: tdee + 500,             off: tdee + 100 };

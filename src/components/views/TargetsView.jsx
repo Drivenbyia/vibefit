@@ -22,7 +22,7 @@ function TargetEditor({ title, subtitle, accent, target, onChange, allowEmpty })
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div style={{ gridColumn: 'span 2' }}>
           <Label>Calories</Label>
-          <NumberInput value={target.kcal ?? ''} onChange={(v) => onChange('kcal', v)} placeholder={allowEmpty ? 'Aucune cible' : '0'} suffix="kcal" />
+          <NumberInput value={target.kcal ?? ''} onBlur={(v) => onChange('kcal', v)} placeholder={allowEmpty ? 'Aucune cible' : '0'} suffix="kcal" />
         </div>
         <div>
           <Label>Protéines</Label>
@@ -75,13 +75,19 @@ export default function TargetsView({ data, setData }) {
   };
 
   const updateField = (dayKey, field, value) => {
-    const v = value === '' ? null : num(value);
+    let v = value === '' ? null : num(value);
 
-    // Édition des kcal en mode maintenance → recalcule le TDEE de base
-    // depuis la valeur saisie, puis recompute les deux jours. Ne décroche pas le preset.
-    // maintenance TRAIN = TDEE + 200  →  TDEE = TRAIN - 200
-    // maintenance OFF  = TDEE - 200  →  TDEE = OFF  + 200
-    if (presetId === 'maintenance' && field === 'kcal' && v !== null && (dayKey === 'train' || dayKey === 'off')) {
+    // Plancher 1600 kcal — règle absolue sauf week-end (allowEmpty).
+    // Champ vidé sur un jour train/off : on conserve la valeur courante (pas de crash).
+    if (field === 'kcal' && dayKey !== 'we') {
+      if (v === null) return;
+      v = Math.max(1600, v);
+    }
+
+    // Maintenance kcal → recalcule le TDEE de base sans décrocher le preset.
+    // TRAIN = TDEE + 200  →  TDEE = TRAIN - 200
+    // OFF   = TDEE - 200  →  TDEE = OFF   + 200
+    if (presetId === 'maintenance' && field === 'kcal' && (dayKey === 'train' || dayKey === 'off')) {
       const newTDEE = Math.max(1400, dayKey === 'train' ? v - 200 : v + 200);
       setData(prev => ({
         ...prev,

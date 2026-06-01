@@ -1,6 +1,41 @@
+import { useState, useEffect, useRef } from 'react';
 import { PALETTE } from '../../constants/config.js';
 
-export default function NumberInput({ value, onChange, placeholder, suffix, min = 0 }) {
+/**
+ * Input numérique avec état local pour une frappe fluide.
+ *
+ * Deux modes :
+ * - Immédiat (pas de `onBlur`) : onChange est appelé à chaque frappe — comportement original.
+ * - Différé (`onBlur` fourni)  : seul onBlur est appelé à la sortie du champ.
+ *   Le state global n'est pas pollué par les valeurs intermédiaires de frappe.
+ *
+ * Dans les deux modes, la valeur parente (`value`) est resynchronisée dans le champ
+ * uniquement quand l'input n'est pas focusé (ex: clic sur un preset).
+ */
+export default function NumberInput({ value, onChange, onBlur: onBlurProp, placeholder, suffix, min = 0 }) {
+  const [localValue, setLocalValue] = useState(value != null ? String(value) : '');
+  const isFocused = useRef(false);
+
+  useEffect(() => {
+    if (!isFocused.current) {
+      setLocalValue(value != null ? String(value) : '');
+    }
+  }, [value]);
+
+  const handleChange = (e) => {
+    setLocalValue(e.target.value);
+    if (!onBlurProp && onChange) onChange(e.target.value);
+  };
+
+  const handleFocus = () => {
+    isFocused.current = true;
+  };
+
+  const handleBlur = (e) => {
+    isFocused.current = false;
+    if (onBlurProp) onBlurProp(e.target.value);
+  };
+
   return (
     <div
       style={{
@@ -17,8 +52,10 @@ export default function NumberInput({ value, onChange, placeholder, suffix, min 
         type="number"
         inputMode="decimal"
         min={min}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={localValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder={placeholder}
         className="vf-no-spin vf-tabular vf-body"
         style={{
