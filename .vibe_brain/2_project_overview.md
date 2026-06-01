@@ -1,6 +1,6 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-06-01
+last_updated: 2026-06-01 (session 2)
 ---
 
 # 🗺️ Project Overview — VibeFit
@@ -22,7 +22,7 @@ src/
     mathUtils.js       — num, calculateWeeklyBalance
     backupUtils.js     — exportBackup, importBackup
     exportUtils.js     — getHistoricalWeeks(n) : export Markdown 8 semaines (AI Bridge V2 + header TDEE)
-    adaptiveTDEE.js    — extractSignals() : TDEE adaptatif, lissage poids 7j, tendance 14j, confidence
+    adaptiveTDEE.js    — extractSignals() : TDEE adaptatif Sliding Window (30j scan, fenêtre 14j optimale), lissage poids 7j, tendance, confidence, windowStart/windowEnd
   models/
     day.js             — emptyDay, dayType
   hooks/
@@ -51,7 +51,8 @@ src/
 ### Phase A (2026-06-01)
 - [x] **AI Bridge V1 — Export Markdown presse-papiers** (`WeekView` → bouton "Partager au Coach", `exportUtils.js`)
 - [x] **TDEE Adaptatif** — module `adaptiveTDEE.js` : lissage poids 7j, interpolation null-safe, tendance 14j, confidence 0–100%
-- [x] **AI Bridge V2 Header** — première ligne du Markdown : TDEE | tendance | confiance | apport moyen
+- [x] **Sliding Window TDEE** — algorithme `findBestWindow()` : scan 30j, sous-fenêtres 14j, Data Quality Score (poids∩calories), arbitrage plus-récente en cas d'égalité, dégradation gracieuse < 14j, exposition `windowStart`/`windowEnd`
+- [x] **AI Bridge V2 Header** — première ligne du Markdown : TDEE | tendance | confiance | apport moyen | période retenue
 - [x] **Badge Protéines** — pill discret dans WeekView si moyenne hebdo < 160 g (seuil fixe)
 
 ### Phase B (gelée — backtesting requis)

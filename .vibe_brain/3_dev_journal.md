@@ -207,3 +207,30 @@ Spécifications UI/UX et techniques pour la V2 de l'export LLM (AI Bridge) inté
 - Sync Git vérifiée (branche main à jour avec origin/main).
 - Ajout preset diet_break (2500 kcal / 160g protéines) dans src/constants/config.js.
 - Alerte rouge 'Sous-alimentation critique' injectée dans TodayView.jsx (intake > 0 && intake < 1600). Zéro nouvel état créé — dérivé de la variable intake existante.
+
+---
+
+## [2026-06-01] Algorithme Sliding Window pour le TDEE Adaptatif
+
+### Contexte
+L'algorithme naïf utilisait `.slice(-14)` — toujours les 14 derniers jours, sans évaluation de la qualité des données. En période de logging irrégulier, la fenêtre retenue pouvait être pauvre en données alors qu'une fenêtre antérieure sur 30j aurait été bien plus dense.
+
+### Fichiers modifiés
+- `src/utils/adaptiveTDEE.js` — refactoring du moteur de sélection de fenêtre.
+- `src/utils/exportUtils.js` — ajout de la période retenue dans le header AI Bridge.
+
+### Algorithme implémenté
+- `HISTORY_SCAN_DAYS = 30` : horizon de scan élargi (vs 28 fixe).
+- `windowQualityScore(window)` : compte les jours avec **poids ET apport** simultanément présents.
+- `findBestWindow(entries)` : évalue les N−14+1 sous-fenêtres possibles, retient le score max. En cas d'égalité, la plus récente l'emporte (scan O(n), pas de sort).
+- Dégradation gracieuse : si historique total < 14j, `size = n réel`, aucun crash.
+- `dailyImbalance` divisé par `size` (non par 14 hardcodé) pour cohérence en mode dégradé.
+- `extractSignals()` retourne désormais `windowStart` et `windowEnd` (dates ISO).
+
+### AI Bridge
+Header Markdown enrichi : `| Période : YYYY-MM-DD → YYYY-MM-DD` expose la fenêtre retenue.
+
+### Vérification
+- Syntaxe : `acorn --ecma2020 --module` ✅ sur les deux fichiers.
+- Aucune régression sur la structure de retour — `windowStart`/`windowEnd` sont des champs additionnels non-breaking.
+- Commit : `618eef9` sur `claude/github-sync-status-MRUxV`, poussé sur origin.
