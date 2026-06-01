@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Footprints, RotateCcw, Check } from 'lucide-react';
 import { PALETTE, PRESETS, DEFAULT_TARGETS, DEFAULT_STEPS_TARGET } from '../../constants/config.js';
 import { num } from '../../utils/mathUtils.js';
-import { computePresetTargets } from '../../utils/presetUtils.js';
+import { computePresetTargets, DEFAULT_TDEE } from '../../utils/presetUtils.js';
 import Card from '../ui/Card.jsx';
 import NumberInput from '../ui/NumberInput.jsx';
 import Label from '../ui/Label.jsx';
@@ -42,7 +42,7 @@ function TargetEditor({ title, subtitle, accent, target, onChange, allowEmpty })
 }
 
 export default function TargetsView({ data, setData }) {
-  const { targets, stepsTarget, presetId, maintenanceKcal } = data;
+  const { targets, stepsTarget, presetId, baseTDEE } = data;
   const [savedFlash, setSavedFlash] = useState(false);
 
   const setTargets = (newTargets, newPresetId = 'custom') => {
@@ -57,7 +57,7 @@ export default function TargetsView({ data, setData }) {
 
   const applyPreset = (id) => {
     if (!PRESETS[id]) return;
-    setTargets(computePresetTargets(id, maintenanceKcal), id);
+    setTargets(computePresetTargets(id, baseTDEE), id);
   };
 
   const resetDefaults = () => {
@@ -67,10 +67,7 @@ export default function TargetsView({ data, setData }) {
         targets: DEFAULT_TARGETS,
         presetId: 'maintenance',
         stepsTarget: DEFAULT_STEPS_TARGET,
-        maintenanceKcal: {
-          train: DEFAULT_TARGETS.train.kcal,
-          off: DEFAULT_TARGETS.off.kcal,
-        },
+        baseTDEE: DEFAULT_TDEE,
       }));
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 1200);
@@ -80,14 +77,16 @@ export default function TargetsView({ data, setData }) {
   const updateField = (dayKey, field, value) => {
     const v = value === '' ? null : num(value);
 
-    // Édition des kcal TRAIN ou OFF en mode maintenance → met à jour la base
-    // sans décrocher le preset, et propage via computePresetTargets.
+    // Édition des kcal en mode maintenance → recalcule le TDEE de base
+    // depuis la valeur saisie, puis recompute les deux jours. Ne décroche pas le preset.
+    // maintenance TRAIN = TDEE + 200  →  TDEE = TRAIN - 200
+    // maintenance OFF  = TDEE - 200  →  TDEE = OFF  + 200
     if (presetId === 'maintenance' && field === 'kcal' && v !== null && (dayKey === 'train' || dayKey === 'off')) {
-      const newBase = { ...maintenanceKcal, [dayKey]: v };
+      const newTDEE = Math.max(1400, dayKey === 'train' ? v - 200 : v + 200);
       setData(prev => ({
         ...prev,
-        maintenanceKcal: newBase,
-        targets: computePresetTargets('maintenance', newBase),
+        baseTDEE: newTDEE,
+        targets: computePresetTargets('maintenance', newTDEE),
         presetId: 'maintenance',
       }));
       setSavedFlash(true);
@@ -125,10 +124,8 @@ export default function TargetsView({ data, setData }) {
         </div>
 
         <div style={{ fontSize: 11, color: PALETTE.muted, marginBottom: 10, lineHeight: 1.4 }}>
-          Base maintenance · <strong style={{ color: PALETTE.ink }}>{maintenanceKcal.train} kcal</strong> TRAIN
-          {' / '}
-          <strong style={{ color: PALETTE.ink }}>{maintenanceKcal.off} kcal</strong> OFF
-          {' '}— les autres presets se calculent depuis ces valeurs
+          TDEE de base · <strong style={{ color: PALETTE.ink }}>{baseTDEE} kcal</strong>
+          {' '}— tous les presets se calculent depuis cette valeur
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>

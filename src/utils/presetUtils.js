@@ -1,34 +1,40 @@
-import { PRESETS, DEFAULT_TARGETS } from '../constants/config.js';
+import { PRESETS } from '../constants/config.js';
 
-// Deltas kcal de chaque preset par rapport à la maintenance de base de l'utilisateur.
-// `off: null` = OFF calqué sur TRAIN (pas de cyclage — Diet Break).
-const PRESET_KCAL_DELTAS = {
-  maintenance: { train: 0,    off: 0    },
-  cut_light:   { train: -200, off: -200 },
-  cut_strong:  { train: -400, off: -400 },
-  bulk:        { train: +300, off: +300 },
-  diet_break:  { train: 0,    off: null },
-};
+export const DEFAULT_TDEE = 2000;
 
 /**
- * Calcule les targets complètes d'un preset depuis la maintenance de base.
- * - kcal  : maintenanceKcal + delta (plancher 1600 kcal sur les jours OFF en coupe)
- * - protein / fat : repris de la config du preset (fixes par protocole)
- * - carbs : absorbe le delta calorique résiduel (max 0)
+ * Formules kcal de chaque preset en fonction du TDEE de base.
  *
- * Retourne les targets de la config statique pour tout preset inconnu.
+ *  Maintenance  : TRAIN = TDEE + 200  / OFF = TDEE - 200
+ *  Sèche légère : TRAIN = TDEE        / OFF = max(1600, TDEE - 400)
+ *  Sèche forte  : TRAIN = TDEE - 200  / OFF = max(1600, TDEE - 600)
+ *  Prise masse  : TRAIN = TDEE + 500  / OFF = TDEE + 100  → moy. +300
+ *  Diet Break   : TRAIN = TDEE        / OFF = TDEE  (pas de cyclage)
+ *
+ * Le plancher 1600 kcal protège l'OFF en cas de TDEE bas.
  */
-export function computePresetTargets(presetId, maintenanceKcal) {
-  const delta = PRESET_KCAL_DELTAS[presetId];
-  const configPreset = PRESETS[presetId];
-  if (!delta || !configPreset) return configPreset?.targets ?? PRESETS.maintenance.targets;
+function presetKcal(presetId, tdee) {
+  switch (presetId) {
+    case 'maintenance': return { train: tdee + 200,             off: tdee - 200 };
+    case 'cut_light':   return { train: tdee,                   off: Math.max(1600, tdee - 400) };
+    case 'cut_strong':  return { train: tdee - 200,             off: Math.max(1600, tdee - 600) };
+    case 'bulk':        return { train: tdee + 500,             off: tdee + 100 };
+    case 'diet_break':  return { train: tdee,                   off: tdee };
+    default:            return { train: tdee + 200,             off: tdee - 200 };
+  }
+}
 
-  const trainKcal = maintenanceKcal.train + delta.train;
-  const offKcal = delta.off === null
-    ? trainKcal
-    : Math.max(1600, maintenanceKcal.off + delta.off);
-
+/**
+ * Calcule les targets complètes d'un preset depuis le TDEE de base.
+ * - kcal    : formule presetKcal()
+ * - protein : fixe par preset (config)
+ * - fat     : fixe par preset (config)
+ * - carbs   : absorbe le delta calorique résiduel (min 0)
+ */
+export function computePresetTargets(presetId, baseTDEE) {
+  const configPreset = PRESETS[presetId] ?? PRESETS.maintenance;
   const { train: ct, off: co, we } = configPreset.targets;
+  const { train: trainKcal, off: offKcal } = presetKcal(presetId, baseTDEE);
 
   return {
     train: {
@@ -46,24 +52,18 @@ export function computePresetTargets(presetId, maintenanceKcal) {
 }
 
 /**
- * Retrouve la maintenance de base {train, off} depuis des targets stockées,
- * en inversant le delta du preset actif. Utilisé une seule fois au bootstrap
- * pour les utilisateurs antérieurs à l'introduction de `maintenanceKcal`.
- *
- * - presetId === 'maintenance'  → les targets SONT la maintenance (delta 0)
- * - preset coupe/bulk connu     → maintenance = kcal_stocké − delta
- * - 'custom' / preset inconnu    → les targets actuelles font foi (best effort)
- * - diet_break (off non cyclé)   → off non récupérable, fallback DEFAULT_TARGETS
+ * Retrouve le TDEE de base depuis les targets et le presetId stockés.
+ * Utilisé au bootstrap pour les utilisateurs sans `baseTDEE` en store.
  */
-export function deriveMaintenanceKcal(presetId, targets) {
-  const tTrain = targets?.train?.kcal ?? DEFAULT_TARGETS.train.kcal;
-  const tOff = targets?.off?.kcal ?? DEFAULT_TARGETS.off.kcal;
-  const delta = PRESET_KCAL_DELTAS[presetId];
-
-  if (!delta) return { train: tTrain, off: tOff };
-
-  return {
-    train: tTrain - delta.train,
-    off: delta.off === null ? DEFAULT_TARGETS.off.kcal : tOff - delta.off,
-  };
+export function deriveBaseTDEE(presetId, targets) {
+  const trainKcal = targets?.train?.kcal;
+  if (trainKcal == null) return DEFAULT_TDEE;
+  switch (presetId) {
+    case 'maintenance': return trainKcal - 200;
+    case 'cut_light':   return trainKcal;
+    case 'cut_strong':  return trainKcal + 200;
+    case 'bulk':        return trainKcal - 500;
+    case 'diet_break':  return trainKcal;
+    default:            return trainKcal - 200;
+  }
 }
