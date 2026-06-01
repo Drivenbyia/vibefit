@@ -202,3 +202,8 @@ Spécifications UI/UX et techniques pour la V2 de l'export LLM (AI Bridge) inté
 **Fix** : une ligne modifiée dans `src/utils/exportUtils.js` — `prot` → `protein`. Fallback `?? 0` conservé.
 
 ---
+
+## [2026-06-01] Hotfix V1.1
+- Sync Git vérifiée (branche main à jour avec origin/main).
+- Ajout preset diet_break (2500 kcal / 160g protéines) dans src/constants/config.js.
+- Alerte rouge 'Sous-alimentation critique' injectée dans TodayView.jsx (intake > 0 && intake < 1600). Zéro nouvel état créé — dérivé de la variable intake existante.

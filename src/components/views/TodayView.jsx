@@ -109,6 +109,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
   const computedKcal = num(day.intake.protein) * 4 + num(day.intake.carbs) * 4 + num(day.intake.fat) * 9;
   const macroDelta = Math.abs(computedKcal - intake);
   const showMacroWarning = intake > 0 && computedKcal > 0 && macroDelta > 100;
+  const showUndereatAlert = intake > 0 && intake < 1600;
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -166,6 +167,18 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
             <NumberInput value={day.intake.fat} onChange={(v) => updateDay({ intake: { ...day.intake, fat: v } })} placeholder="0" suffix="g" />
           </div>
         </div>
+        {showUndereatAlert && (
+          <div style={{
+            marginTop: 10, padding: '10px 12px', background: '#FEE2E2',
+            borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8,
+            fontSize: 12, color: '#991B1B', border: '1px solid #FECACA',
+          }}>
+            <AlertCircle size={14} />
+            <span>
+              <strong>Sous-alimentation critique</strong> — {intake} kcal saisis, minimum recommandé 1 600 kcal.
+            </span>
+          </div>
+        )}
       </Card>
 
       <Card>

@@ -1,14 +1,14 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-05-10
+last_updated: 2026-05-11
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🔒 EN PRODUCTION — V1.0 Golden Master (Feature Freeze actif)**
+- **Phase : 🔒 EN PRODUCTION — V1.0 Golden Master (Feature Freeze actif — dérogation AI Bridge V2 appliquée)**
 - Branche active : `main`
-- Dernier commit : `fc06ffa` — feat(weight): suivi du poids corporel (saisie + stats hebdo)
+- Dernier commit : `d01d7c2` — feat(bridge): export markdown 8 semaines vers presse-papiers (AI Bridge V2)
 - Cycle RUN en cours : test terrain intensif — durée minimale 4 semaines (jusqu'au 2026-06-01)
 
 ## Structure des fichiers (src/)
@@ -21,6 +21,7 @@ src/
     dateUtils.js       — toKey, dayTypeFromKey, fmtFr, shortFr, addDays, startOfWeek
     mathUtils.js       — num, calculateWeeklyBalance
     backupUtils.js     — exportBackup, importBackup
+    exportUtils.js     — getHistoricalWeeks(n) : export Markdown 8 semaines (AI Bridge V2)
   models/
     day.js             — emptyDay, dayType
   hooks/
@@ -44,15 +45,14 @@ src/
 - [x] PWA offline-first (installable, cache Workbox)
 - [x] Gestion des objectifs caloriques (PRESETS : maintenance, sèche, bulk)
 
-## Fonctionnalités en cours
-_Aucune. Feature Freeze V1.0 actif._
+## Fonctionnalités V2 livrées (dérogation Feature Freeze)
+- [x] **AI Bridge — Export Markdown presse-papiers** (`WeekView` → bouton "Partager au Coach", `exportUtils.js`)
 
 ## Backlog post-RUN (à évaluer après 2026-06-01)
 - [ ] Historique graphique multi-semaines
-- [ ] **AI Bridge — Export LLM V2** (voir spécifications détaillées ci-dessous)
 
 ## Spécifications V2 — AI Bridge (Export LLM)
-> Statut : **SPÉCIFIÉ — en attente de fin de cycle RUN (2026-06-01)**
+> Statut : **LIVRÉ — commit `d01d7c2` (2026-05-11)**
 
 ### Objectif
 Permettre à l'utilisateur de partager un résumé structuré de ses 8 dernières semaines (Markdown) directement dans le presse-papiers, pour consultation par un coach ou un LLM externe.

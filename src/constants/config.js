@@ -44,6 +44,15 @@ export const PRESETS = {
       we:    { kcal: null, protein: 160, carbs: null, fat: null, label: 'WE' },
     },
   },
+  diet_break: {
+    label: 'Diet Break (Vacances)',
+    sub: 'Pause diète — maintien sans stress',
+    targets: {
+      train: { kcal: 2500, protein: 160, carbs: 290, fat: 80, label: 'TRAIN' },
+      off:   { kcal: 2500, protein: 160, carbs: 290, fat: 80, label: 'OFF' },
+      we:    { kcal: null, protein: 160, carbs: null, fat: null, label: 'WE' },
+    },
+  },
 };
 
 export const PALETTE = {
