@@ -1,15 +1,15 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-06-01 (session 2)
+last_updated: 2026-06-02
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🚀 V2 Phase A — DÉPLOIEMENT STAGING (TDEE Adaptatif + AI Bridge V2 Header + Badge Protéines)**
-- Branche active : `main`
-- Dernier commit signé : `685f0b6` — feat(targets): preset diet break + alerte sous-alimentation critique
-- Cycle RUN V1 terminé (2026-06-01) — V2 Phase A livrée
+- **Phase : 🚀 V2 Phase B — Moteur d'Objectifs Dynamiques (baseTDEE + presets relatifs + UX fluide)**
+- Branche active : `claude/github-sync-status-MRUxV` (PRs #2–#4 mergées dans `main`)
+- Dernier commit : `e27db70` — fix(ux): saisie fluide des kcal — état local + validation sur blur
+- Session 2026-06-02 : Sliding Window TDEE + Moteur d'Objectifs Dynamiques + fix UX input
 
 ## Structure des fichiers (src/)
 
@@ -26,15 +26,16 @@ src/
   models/
     day.js             — emptyDay, dayType
   hooks/
-    useVibefitStorage.js — source de vérité localStorage (clé vibefit_v1)
+    presetUtils.js       — computePresetTargets(presetId, baseTDEE), deriveBaseTDEE() — formules TDEE-based
+    useVibefitStorage.js — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
   components/
-    ui/                — Card, StatCard, NumberInput, Pill, Bar, Label, FontStyles
+    ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill, Bar, Label, FontStyles
     layout/            — Header, BottomNav
     views/
       TodayView.jsx    — Tracker quotidien (kcal, macros, séance, pas)
       WeekView.jsx     — Bilan hebdomadaire (solde, tendance, moyennes, tour de taille)
       DataView.jsx     — Import/export backup JSON
-      TargetsView.jsx  — Gestion des objectifs caloriques (PRESETS + override)
+      TargetsView.jsx  — Gestion des objectifs caloriques (presets dynamiques indexés sur baseTDEE)
   App.jsx              — Orchestrateur pur (54 lignes)
 ```
 
@@ -55,7 +56,12 @@ src/
 - [x] **AI Bridge V2 Header** — première ligne du Markdown : TDEE | tendance | confiance | apport moyen | période retenue
 - [x] **Badge Protéines** — pill discret dans WeekView si moyenne hebdo < 160 g (seuil fixe)
 
-### Phase B (gelée — backtesting requis)
+### Phase B (2026-06-02)
+- [x] **Moteur d'Objectifs Dynamiques** — `presetUtils.js` : `baseTDEE` source de vérité, formules TDEE-based pour chaque preset (Maintenance ±200, Sèche légère, Sèche forte, Bulk, Diet Break), migration silencieuse depuis l'ancien schéma
+- [x] **Fix preset sync** — éditer TRAIN/OFF en Maintenance recalcule `baseTDEE` sans décrocher le preset ; switcher de preset recompute depuis la vraie maintenance personnelle
+- [x] **Fix UX saisie** — `NumberInput` : état local interne, mode différé `onBlur` pour les kcal (fini les recalculs à chaque frappe), plancher 1600 kcal au blur, garde vide (pas de crash)
+
+### Phase C (gelée — backtesting requis)
 - [ ] R2 PERTE_RAPIDE, R3 NEAT_DRIFT, R4 PLATEAU_STRICT, R5 WEEKEND_FAILURE, R6 CORTISOL_SPIKE
 
 ## Backlog
@@ -94,4 +100,5 @@ Permettre à l'utilisateur de partager un résumé structuré de ses 8 dernière
 | vite | ^5.4.10 | Build tool |
 
 ## Points de vigilance actuels
-_Aucun identifié au démarrage._
+- `node_modules` absent en environnement remote — build/runtime non vérifiable en session. Tester sur machine locale avant merge en production.
+- `baseTDEE` persiste en localStorage : toute modification du schéma de formules (deltas) nécessite une migration explicite ou un reset.
