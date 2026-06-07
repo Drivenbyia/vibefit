@@ -234,3 +234,25 @@ Header Markdown enrichi : `| Période : YYYY-MM-DD → YYYY-MM-DD` expose la fen
 - Syntaxe : `acorn --ecma2020 --module` ✅ sur les deux fichiers.
 - Aucune régression sur la structure de retour — `windowStart`/`windowEnd` sont des champs additionnels non-breaking.
 - Commit : `618eef9` sur `claude/github-sync-status-MRUxV`, poussé sur origin.
+
+---
+
+## [2026-06-07] Audit cohérence Diet Break + fix message hebdo générique
+
+### Contexte
+L'utilisateur vient de basculer en preset **Diet Break** avant ses vacances et demande un check de cohérence global (jours d'entraînement, calories, app entière).
+
+### Audit
+- `computePresetTargets('diet_break', baseTDEE)` confirmé conforme : TRAIN = OFF = baseTDEE, macros (protéines/lipides) identiques des deux côtés dans `PRESETS.diet_break`, glucides dérivés identiques → aucune incohérence TRAIN/OFF.
+- Flux `targets[dayType]` vérifié générique dans `TodayView`/`WeekView` — aucune référence figée à l'ancien schéma `maintenanceKcal` (seule trace : ligne de migration silencieuse dans `useVibefitStorage.js`, volontaire).
+- **Incohérence trouvée** : la carte "Rappel hebdo" de `WeekView.jsx` affichait un texte codé en dur pour un contexte de sèche (`"Le déficit hebdo cible est ≈ −1900 kcal"` + logique d'alerte orientée déficit), peu importe le preset actif. En Diet Break (objectif = solde proche de 0), un solde proche de zéro — qui est justement la cible — déclenchait le message "Vérifie que tu saisis bien les calories totales Garmin", laissant penser à une erreur de saisie.
+
+### Fix
+- `weeklyReminderCopy(presetId, netBalance, recordedDays)` : nouvelle fonction pure dans `WeekView.jsx` qui adapte le texte et les seuils de feedback selon le type d'objectif du preset actif :
+  - `bulk` → message + seuils orientés surplus (cible ≈ +1900 kcal)
+  - `cut_light` / `cut_strong` → message + seuils orientés déficit (cible ≈ −1900 kcal, comportement original conservé)
+  - `maintenance` / `diet_break` (et `custom`) → message d'équilibre ("objectif : solde proche de 0 — pas de cyclage actif"), tolérance ±700 kcal/semaine pour le feedback positif
+
+### Vérification
+- Vérification d'équilibre des accolades sur le fichier modifié — aucune erreur de structure.
+- Pas de `node_modules` en environnement remote — build/lint non exécutables ; tester sur machine locale avant merge en prod.
