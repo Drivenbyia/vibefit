@@ -114,6 +114,42 @@ function DayBar({ day, dayKey, target, isToday, onPress }) {
   );
 }
 
+function weeklyReminderCopy(presetId, netBalance, recordedDays) {
+  if (presetId === 'bulk') {
+    return {
+      goal: 'Le surplus hebdo cible est ≈ +1900 kcal.',
+      hint: netBalance > 0 && netBalance < 1000 && recordedDays > 0
+        ? " Continue, c'est bon."
+        : netBalance <= 0 && recordedDays > 0
+        ? ' Vérifie que tu saisis bien les calories totales Garmin.'
+        : netBalance >= 2500
+        ? ' Surplus important : surveille la prise de masse pour rester propre.'
+        : '',
+    };
+  }
+  if (presetId === 'cut_light' || presetId === 'cut_strong') {
+    return {
+      goal: 'Le déficit hebdo cible est ≈ −1900 kcal.',
+      hint: netBalance > -1000 && netBalance < 0 && recordedDays > 0
+        ? " Continue, c'est bon."
+        : netBalance >= 0 && recordedDays > 0
+        ? ' Vérifie que tu saisis bien les calories totales Garmin.'
+        : netBalance <= -2500
+        ? ' Déficit important : assure-toi de bien recharger les jours TRAIN.'
+        : '',
+    };
+  }
+  // maintenance & diet_break — objectif d'équilibre, pas de cyclage actif
+  return {
+    goal: "L'objectif est un solde proche de l'équilibre (≈ 0 kcal) — pas de cyclage actif.",
+    hint: Math.abs(netBalance) <= 700 && recordedDays > 0
+      ? ' Tu es dans la cible, tout va bien.'
+      : Math.abs(netBalance) > 1500 && recordedDays > 0
+      ? ' Écart marqué par rapport à ton TDEE — vérifie tes saisies Garmin si besoin.'
+      : '',
+  };
+}
+
 export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarget }) {
   const [copied, setCopied] = useState(false);
 
@@ -161,6 +197,8 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
     : weekly.netBalance > 100
     ? TrendingUp
     : Minus;
+
+  const reminderCopy = weeklyReminderCopy(data.presetId, weekly.netBalance, weekly.recordedDays);
 
   const protTarget = resolvedTargets.train?.protein ?? 160;
   const carbsTargetTrain = resolvedTargets.train?.carbs ?? 280;
@@ -495,10 +533,8 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
             <div style={{ fontSize: 13, color: PALETTE.ink, lineHeight: 1.5 }}>
               Le solde ({Math.round(weekly.netBalance)} kcal) est fiable <strong>uniquement si tu saisis les calories
               TOTALES Garmin</strong> (BMR + actif), pas juste les calories de séance.
-              {' '}Le déficit hebdo cible est <strong>≈ −1900 kcal</strong>.
-              {weekly.netBalance > -1000 && weekly.netBalance < 0 && weekly.recordedDays > 0 && " Continue, c'est bon."}
-              {weekly.netBalance >= 0 && weekly.recordedDays > 0 && ' Vérifie que tu saisis bien les calories totales Garmin.'}
-              {weekly.netBalance <= -2500 && ' Déficit important : assure-toi de bien recharger les jours TRAIN.'}
+              {' '}{reminderCopy.goal}
+              {reminderCopy.hint}
             </div>
           </div>
         </div>
