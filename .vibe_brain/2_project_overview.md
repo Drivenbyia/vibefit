@@ -6,10 +6,10 @@ last_updated: 2026-06-11
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🛡️ V2 Phase B consolidée — audit de cohérence complet (utilisateur en Diet Break / vacances)**
+- **Phase : 🧱 V2 Phase B consolidée — refactoring 80 lignes complet (toutes les vues découpées, logique dans les hooks)**
 - Branche active : `claude/github-sync-status-MRUxV` (PRs #2–#4 mergées dans `main`)
-- Dernier commit : `f61878f` — fix(week): rappel hebdo cohérent avec le preset actif
-- Session 2026-06-11 : audit react-review global → 5 correctifs (crash reset DataView, typeOverride dans le bilan hebdo, import backup complet, tuile séances, dates UTC→locales)
+- Dernier commit : `93168da` — fix(audit): 5 correctifs de cohérence (+ refactoring 80 lignes en cours de commit)
+- Session 2026-06-11 : audit react-review (5 correctifs) puis découpage intégral — vues = orchestrateurs purs, 6 nouveaux hooks, 26 sous-composants, smoke test SSR 12/12 ✅, `vite build` ✅
 
 ## Structure des fichiers (src/)
 
@@ -26,17 +26,24 @@ src/
   models/
     day.js             — emptyDay, dayType
   hooks/
-    presetUtils.js       — computePresetTargets(presetId, baseTDEE), deriveBaseTDEE() — formules TDEE-based
     useVibefitStorage.js — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
+    useWeekStats.js      — dérivation hebdo complète (days, weekly, plannedTrain, séries, macros)
+    useDayMetrics.js     — métriques du jour (cibles, totaux, alertes)
+    useTargetsManager.js — logique presets/TDEE/updateField/reset
+    useBackupManager.js  — export/import/reset des données
+    useTransientValue.js — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
+  utils/ (suite)
+    presetUtils.js       — computePresetTargets(presetId, baseTDEE), deriveBaseTDEE() — formules TDEE-based
+    reminderUtils.js     — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
   components/
-    ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill, Bar, Label, FontStyles
-    layout/            — Header, BottomNav
-    views/
-      TodayView.jsx    — Tracker quotidien (kcal, macros, séance, pas)
-      WeekView.jsx     — Bilan hebdomadaire (solde, tendance, moyennes, tour de taille)
-      DataView.jsx     — Import/export backup JSON
-      TargetsView.jsx  — Gestion des objectifs caloriques (presets dynamiques indexés sur baseTDEE)
-  App.jsx              — Orchestrateur pur (54 lignes)
+    ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill, Bar, Label, SectionLabel, FontStyles
+    layout/            — Header, DayTypeSwitcher, BottomNav
+    views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes
+      TodayView.jsx    + today/   (BalanceCard, BalanceRing, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
+      WeekView.jsx     + week/    (WeekSummary, WeekCalendar, NetBalanceCard, DayBar, KcalTrendCard, MacroBar, ProteinBadge, AveragesCard, WaistCard, WeightCard, ReminderCard, ExportButton)
+      TargetsView.jsx  + targets/ (PresetPickerCard, StepsCard, TargetEditor, FooterCards)
+      DataView.jsx     + data/    (BackupCard, DataInfoCards)
+  App.jsx              — Orchestrateur pur (69 lignes)
 ```
 
 ## Fonctionnalités V1.0 — Scope gelé
@@ -100,6 +107,6 @@ Permettre à l'utilisateur de partager un résumé structuré de ses 8 dernière
 | vite | ^5.4.10 | Build tool |
 
 ## Points de vigilance actuels
-- `node_modules` absent en environnement remote — build/runtime non vérifiable en session. Tester sur machine locale avant merge en production.
+- ~~`node_modules` absent en remote~~ → **levé** : `npm install` + `vite build` fonctionnent désormais en session (vérifié 2026-06-11).
 - `baseTDEE` persiste en localStorage : toute modification du schéma de formules (deltas) nécessite une migration explicite ou un reset.
-- Reliquats non-bloquants signalés à l'audit 2026-06-11 (voir journal) : pill "Aucune" jamais active (marqueur `séance:none` jamais écrit), `NumberInput` ignore les props `step`/`inputMode`, timers de feedback sans cleanup, `WeekView.jsx` ≈ 575 lignes (>> règle 80 lignes).
+- Reliquats non-bloquants restants : pill "Aucune" jamais active (marqueur `séance:none` jamais écrit), `NumberInput` ignore les props `step`/`inputMode` passées pour le poids. (~~timers sans cleanup~~ et ~~WeekView 575 lignes~~ → corrigés par le refactoring 2026-06-11.)

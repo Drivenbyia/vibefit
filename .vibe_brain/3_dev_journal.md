@@ -287,3 +287,34 @@ Utilisateur en vacances (Diet Break actif) — audit global de l'app demandé : 
 ### Vérification
 - `node --check` ✅ sur les 4 `.js` modifiés ; équilibre accolades/parenthèses ✅ sur les 2 `.jsx`.
 - `node_modules` toujours absent en remote — tester build + parcours réel (reset, import, nuit > minuit) sur machine locale.
+
+---
+
+## [2026-06-11] Refactoring 80 lignes — découpage complet des vues
+
+### Contexte
+Demande explicite : découper tous les composants pour respecter la règle des 80 lignes (react-rules §3), sans rien casser, avec architecture propre. Autorisation explicite de déplacer du code.
+
+### Découverte majeure
+`npm install` fonctionne désormais en environnement remote → `vite build` exécutable en session. Le point de vigilance "build non vérifiable" est levé.
+
+### Architecture livrée
+- **Nouveaux hooks** (`src/hooks/`) — logique métier extraite des vues :
+  - `useWeekStats.js` — toute la dérivation hebdo (days, weekly, plannedTrain, séries poids/taille, cibles macros moyennes)
+  - `useDayMetrics.js` — métriques du jour (cibles, totaux, alertes macro/sous-alimentation)
+  - `useTargetsManager.js` — presets dynamiques, updateField/TDEE, reset
+  - `useBackupManager.js` — export/import/reset des données
+  - `useTransientValue.js` — feedback éphémère générique avec timer nettoyé à l'unmount (corrige le reliquat "timers sans cleanup" de l'audit)
+  - `useClipboardCopy.js` — copie presse-papiers + feedback (bâti sur useTransientValue)
+- **Sous-composants par vue** : `views/week/` (10 fichiers), `views/today/` (8), `views/targets/` (5), `views/data/` (2), `layout/DayTypeSwitcher.jsx`, `ui/SectionLabel.jsx`
+- **`utils/reminderUtils.js`** — `weeklyReminderCopy()` sortie de WeekView (logique métier pure)
+- Les vues sont des orchestrateurs purs : WeekView 573→42 lignes, TodayView 294→36, TargetsView 231→48, DataView 179→17, Header 99→62. **Tous les composants ≤ 80 lignes.**
+
+### Tests (réels, pas seulement syntaxiques)
+- `vite build` ✅ après chaque étape (3 checkpoints) et en final.
+- **Smoke test SSR** via `react-dom/server` + esbuild : rendu réel de App + les 4 vues + Header avec données Diet Break réalistes (overrides WE, semaine vide, state post-reset) → 12/12 ✅. Invariants vérifiés : Diet Break TRAIN=OFF=baseTDEE, rappel hebdo par preset (équilibre/déficit/surplus).
+- Piège rencontré : `renderToString` insère des `<!-- -->` entre nœuds texte — assertions à faire sur le HTML nettoyé.
+
+### Notes
+- Aucun changement de comportement voulu — JSX/styles copiés à l'identique, seuls les emplacements et le passage de props changent.
+- `package-lock.json` restauré (bruit npm 10.9 : flags `peer` retirés).
