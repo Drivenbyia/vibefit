@@ -256,3 +256,34 @@ L'utilisateur vient de basculer en preset **Diet Break** avant ses vacances et d
 ### Vérification
 - Vérification d'équilibre des accolades sur le fichier modifié — aucune erreur de structure.
 - Pas de `node_modules` en environnement remote — build/lint non exécutables ; tester sur machine locale avant merge en prod.
+
+---
+
+## [2026-06-11] Audit complet `/react-review` — 5 correctifs de cohérence
+
+### Contexte
+Utilisateur en vacances (Diet Break actif) — audit global de l'app demandé : révéler tout ce qui est incohérent ou bloquant. Inspection via le protocole react-review sur l'intégralité de `src/`.
+
+### Conformité react-rules.md (scan global)
+- Zéro classe React ✅ — zéro mutation d'état directe ✅ (les `.push()` détectés sont sur des tableaux locaux dans les utils)
+- Tous les `useEffect` ont un tableau de dépendances explicite ✅
+- Props déstructurées en signature partout ✅
+
+### 🚫 Bloquants corrigés
+1. **`DataView.reset()` crashait l'app** : `setData({ days: {} })` détruisait `targets`/`presetId`/`baseTDEE`/`stepsTarget` → `Header` lisait `targets[t]` sur undefined → écran blanc jusqu'au reload. Reset désormais vers un state complet par défaut.
+2. **`calculateWeeklyBalance` ignorait `typeOverride`** : la cible kcal moyenne hebdo était calculée depuis le calendrier pur — les jours basculés manuellement TRAIN/OFF/WE (Header) n'étaient pas pris en compte. Corrigé : `day?.typeOverride || dayTypeFromTargets(key)`.
+
+### ⚠️ Incohérences corrigées
+3. **Import backup partiel** : l'export JSON contient targets/presetId/baseTDEE/stepsTarget mais l'import ne restaurait que `days` → perte silencieuse des réglages sur nouvel appareil. L'import restaure désormais les réglages présents (validés par type).
+4. **Tuile SÉANCES `plannedTrain || 3`** : un 0 légitime (semaine 100% OFF/WE via overrides — cas vacances) retombait sur 3 → "0/3" rouge culpabilisant. Affiche désormais le vrai planning (0/0 → vert).
+5. **Dates UTC vs locales** : `adaptiveTDEE.js` et `exportUtils.js` utilisaient `toISOString()` brut (UTC) — fenêtre TDEE et rapport coach décalés d'un jour entre minuit et ~2h du matin en France. Alignés sur `toKey()`/`addDays()` (date locale, astuce midi).
+
+### ⚠️ Signalés non corrigés (non-bloquants, à arbitrer)
+- Pill "Aucune" de TodayView : condition `day.notes.includes('séance:none')` jamais vraie (rien n'écrit ce marqueur) — le pill ne s'affiche jamais actif.
+- `NumberInput` ignore les props `step`/`inputMode` passées par TodayView (poids) — props silencieusement perdues, l'input hardcode `inputMode="decimal"`.
+- Timers `setTimeout` de feedback (savedFlash/copied/importStatus) sans cleanup à l'unmount — bénin en React 18, mais hors règle stricte.
+- `WeekView.jsx` ≈ 575 lignes — très au-delà de la règle des 80 lignes/composant ; découpage à planifier (hors scope d'un audit en feature freeze).
+
+### Vérification
+- `node --check` ✅ sur les 4 `.js` modifiés ; équilibre accolades/parenthèses ✅ sur les 2 `.jsx`.
+- `node_modules` toujours absent en remote — tester build + parcours réel (reset, import, nuit > minuit) sur machine locale.

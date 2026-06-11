@@ -1,5 +1,5 @@
 import { STORAGE_KEY } from '../constants/config.js';
-import { startOfWeek, addDays, fmtFr } from './dateUtils.js';
+import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 
 function formatDay(key, day) {
@@ -39,7 +39,8 @@ export function getHistoricalWeeks(n = 8) {
   }
   const days = stored.days ?? {};
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Date locale (cohérente avec les clés de saisie) — pas la date UTC
+  const today = toKey(new Date());
   const currentWeekStart = startOfWeek(today);
 
   const signals = extractSignals();

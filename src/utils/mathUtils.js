@@ -25,8 +25,9 @@ export const calculateWeeklyBalance = (daysData, targets) => {
   const avg = (v) => (count > 0 ? v / count : 0);
 
   const kcalTargets = daysData
-    .map(({ key }) => {
-      const t = targets[dayTypeFromTargets(key)] ?? targets.off;
+    .map(({ key, day }) => {
+      // typeOverride (changement manuel TRAIN/OFF/WE dans le Header) prime sur le calendrier
+      const t = targets[day?.typeOverride || dayTypeFromTargets(key)] ?? targets.off;
       return t?.kcal ?? null;
     })
     .filter((v) => v !== null);

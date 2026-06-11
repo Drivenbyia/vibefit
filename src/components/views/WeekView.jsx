@@ -291,7 +291,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
           {[
             { label: 'APPORT', value: Math.round(weekly.totalIntake), unit: 'kcal', color: PALETTE.ink },
             { label: 'DÉPENSE', value: Math.round(weekly.totalExp), unit: 'kcal', color: PALETTE.ink },
-            { label: 'SÉANCES', value: `${weekly.trainDone}/${plannedTrain || 3}`, unit: '', color: weekly.trainDone >= (plannedTrain || 3) ? PALETTE.deep : PALETTE.accent },
+            { label: 'SÉANCES', value: `${weekly.trainDone}/${plannedTrain}`, unit: '', color: weekly.trainDone >= plannedTrain ? PALETTE.deep : PALETTE.accent },
           ].map(({ label, value, unit, color }) => (
             <div
               key={label}

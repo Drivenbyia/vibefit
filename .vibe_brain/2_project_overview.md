@@ -1,15 +1,15 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-06-02
+last_updated: 2026-06-11
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🚀 V2 Phase B — Moteur d'Objectifs Dynamiques (baseTDEE + presets relatifs + UX fluide)**
+- **Phase : 🛡️ V2 Phase B consolidée — audit de cohérence complet (utilisateur en Diet Break / vacances)**
 - Branche active : `claude/github-sync-status-MRUxV` (PRs #2–#4 mergées dans `main`)
-- Dernier commit : `e27db70` — fix(ux): saisie fluide des kcal — état local + validation sur blur
-- Session 2026-06-02 : Sliding Window TDEE + Moteur d'Objectifs Dynamiques + fix UX input
+- Dernier commit : `f61878f` — fix(week): rappel hebdo cohérent avec le preset actif
+- Session 2026-06-11 : audit react-review global → 5 correctifs (crash reset DataView, typeOverride dans le bilan hebdo, import backup complet, tuile séances, dates UTC→locales)
 
 ## Structure des fichiers (src/)
 
@@ -102,3 +102,4 @@ Permettre à l'utilisateur de partager un résumé structuré de ses 8 dernière
 ## Points de vigilance actuels
 - `node_modules` absent en environnement remote — build/runtime non vérifiable en session. Tester sur machine locale avant merge en production.
 - `baseTDEE` persiste en localStorage : toute modification du schéma de formules (deltas) nécessite une migration explicite ou un reset.
+- Reliquats non-bloquants signalés à l'audit 2026-06-11 (voir journal) : pill "Aucune" jamais active (marqueur `séance:none` jamais écrit), `NumberInput` ignore les props `step`/`inputMode`, timers de feedback sans cleanup, `WeekView.jsx` ≈ 575 lignes (>> règle 80 lignes).
