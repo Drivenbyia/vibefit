@@ -21,7 +21,7 @@ function formatDay(key, day) {
   }
   if (day.expenditure?.kcal) parts.push(`Dépense: ${Math.round(day.expenditure.kcal)} kcal`);
   if (day.expenditure?.steps) parts.push(`Pas: ${Number(day.expenditure.steps).toLocaleString('fr-FR')}`);
-  if (day.workout) parts.push(`Séance: ${day.workout}`);
+  if (day.workout) parts.push(`Séance: ${day.workout === 'none' ? 'aucune (repos déclaré)' : day.workout}`);
   if (day.weight) parts.push(`Poids: ${day.weight} kg`);
   if (day.waist) parts.push(`Tour de taille: ${day.waist} cm`);
   if (day.notes) parts.push(`Notes: ${day.notes}`);

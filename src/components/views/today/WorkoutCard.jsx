@@ -19,7 +19,7 @@ export default function WorkoutCard({ day, updateDay }) {
         <Pill active={day.workout === 'bas'} onClick={() => updateDay({ workout: day.workout === 'bas' ? null : 'bas' })} color={PALETTE.accent} bg={PALETTE.accent}>
           Bas ★
         </Pill>
-        <Pill active={day.workout === null && day.notes.includes('séance:none')} onClick={() => updateDay({ workout: null })} color={PALETTE.muted}>
+        <Pill active={day.workout === 'none'} onClick={() => updateDay({ workout: day.workout === 'none' ? null : 'none' })} color={PALETTE.muted}>
           Aucune
         </Pill>
       </div>

@@ -17,7 +17,8 @@ export const calculateWeeklyBalance = (daysData, targets) => {
       carbs: acc.carbs + num(day.intake?.carbs),
       fat: acc.fat + num(day.intake?.fat),
       steps: acc.steps + num(day.expenditure?.steps),
-      trainDone: acc.trainDone + (day.workout ? 1 : 0),
+      // 'none' (repos déclaré explicitement) n'est pas une séance effectuée
+      trainDone: acc.trainDone + (day.workout === 'haut' || day.workout === 'bas' ? 1 : 0),
     }),
     { intake: 0, exp: 0, protein: 0, carbs: 0, fat: 0, steps: 0, trainDone: 0 }
   );

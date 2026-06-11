@@ -318,3 +318,21 @@ Demande explicite : découper tous les composants pour respecter la règle des 8
 ### Notes
 - Aucun changement de comportement voulu — JSX/styles copiés à l'identique, seuls les emplacements et le passage de props changent.
 - `package-lock.json` restauré (bruit npm 10.9 : flags `peer` retirés).
+
+---
+
+## [2026-06-11] Fix pill "Aucune" — repos déclaré explicite (workout: 'none')
+
+### Contexte
+Reliquat de l'audit : le pill "Aucune" de la carte SÉANCE testait `day.notes.includes('séance:none')`, marqueur que rien n'écrivait jamais → jamais actif.
+
+### Design retenu
+Nouveau state explicite `workout: 'none'` = "repos déclaré" (distinct de `null` = "rien saisi") :
+- `WorkoutCard` : pill actif si `workout === 'none'`, toggleable comme Haut/Bas.
+- `mathUtils.trainDone` : ne compte que 'haut'/'bas' — un repos déclaré n'est pas une séance effectuée.
+- `WeekCalendar`/`exportUtils.hasData` : 'none' truthy → le jour compte comme saisi (déclarer son repos est une donnée) — comportement voulu, inchangé.
+- Export AI Bridge : affiche "Séance: aucune (repos déclaré)" au lieu de "Séance: none".
+- Rétrocompatible : les anciennes données ('haut'/'bas'/null) ne changent pas de comportement.
+
+### Vérification
+`vite build` ✅ + smoke SSR ciblé 5/5 (pill actif/inactif, trainDone=2 sur [haut, none, bas], rendu WeekView).
