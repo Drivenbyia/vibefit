@@ -17,7 +17,8 @@ export const calculateWeeklyBalance = (daysData, targets) => {
       carbs: acc.carbs + num(day.intake?.carbs),
       fat: acc.fat + num(day.intake?.fat),
       steps: acc.steps + num(day.expenditure?.steps),
-      trainDone: acc.trainDone + (day.workout ? 1 : 0),
+      // 'none' (repos déclaré explicitement) n'est pas une séance effectuée
+      trainDone: acc.trainDone + (day.workout === 'haut' || day.workout === 'bas' ? 1 : 0),
     }),
     { intake: 0, exp: 0, protein: 0, carbs: 0, fat: 0, steps: 0, trainDone: 0 }
   );
@@ -25,8 +26,9 @@ export const calculateWeeklyBalance = (daysData, targets) => {
   const avg = (v) => (count > 0 ? v / count : 0);
 
   const kcalTargets = daysData
-    .map(({ key }) => {
-      const t = targets[dayTypeFromTargets(key)] ?? targets.off;
+    .map(({ key, day }) => {
+      // typeOverride (changement manuel TRAIN/OFF/WE dans le Header) prime sur le calendrier
+      const t = targets[day?.typeOverride || dayTypeFromTargets(key)] ?? targets.off;
       return t?.kcal ?? null;
     })
     .filter((v) => v !== null);

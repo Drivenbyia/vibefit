@@ -1,4 +1,5 @@
 import { STORAGE_KEY } from '../constants/config.js';
+import { toKey, addDays } from './dateUtils.js';
 
 // 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
 const KCAL_PER_KG = 7700;
@@ -130,12 +131,12 @@ export function extractSignals() {
   const days = stored.days ?? {};
 
   // Historique brut sur HISTORY_SCAN_DAYS jours (J-29 → J0)
-  const today = new Date().toISOString().slice(0, 10);
+  // toKey/addDays = date LOCALE (astuce midi), alignée sur les clés de saisie de l'app.
+  // toISOString() brut donnerait la date UTC — décalée d'un jour la nuit en Europe.
+  const today = toKey(new Date());
   const entries = [];
   for (let i = HISTORY_SCAN_DAYS - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+    const key = addDays(today, -i);
     const day = days[key] ?? null;
     const rawWeight = day?.weight != null ? parseFloat(day.weight) : null;
     const rawIntake = day?.intake?.kcal != null ? parseFloat(day.intake.kcal) : null;

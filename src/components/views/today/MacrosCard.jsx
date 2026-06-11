@@ -1,0 +1,31 @@
+import { AlertCircle } from 'lucide-react';
+import { PALETTE } from '../../../constants/config.js';
+import { num } from '../../../utils/mathUtils.js';
+import Card from '../../ui/Card.jsx';
+import Bar from '../../ui/Bar.jsx';
+
+export default function MacrosCard({ day, dt, intake, computedKcal, macroDelta, showMacroWarning }) {
+  return (
+    <Card>
+      <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
+        MACRONUTRIMENTS
+      </div>
+      <Bar label="PROTÉINES" value={num(day.intake.protein)} target={dt.protein} color={PALETTE.deep} />
+      <Bar label="GLUCIDES" value={num(day.intake.carbs)} target={dt.carbs} color={PALETTE.accent} />
+      <Bar label="LIPIDES" value={num(day.intake.fat)} target={dt.fat} color="#7C5E3C" />
+      {showMacroWarning && (
+        <div style={{
+          marginTop: 8, padding: '8px 10px', background: PALETTE.highlight,
+          borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 12, color: PALETTE.accentDark,
+        }}>
+          <AlertCircle size={14} />
+          <span>
+            Macros calculent <strong>{Math.round(computedKcal)} kcal</strong>
+            {' '}mais tu as saisi <strong>{intake}</strong>. Écart {Math.round(macroDelta)}.
+          </span>
+        </div>
+      )}
+    </Card>
+  );
+}

@@ -1,5 +1,5 @@
 import { STORAGE_KEY } from '../constants/config.js';
-import { startOfWeek, addDays, fmtFr } from './dateUtils.js';
+import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 
 function formatDay(key, day) {
@@ -21,7 +21,7 @@ function formatDay(key, day) {
   }
   if (day.expenditure?.kcal) parts.push(`Dépense: ${Math.round(day.expenditure.kcal)} kcal`);
   if (day.expenditure?.steps) parts.push(`Pas: ${Number(day.expenditure.steps).toLocaleString('fr-FR')}`);
-  if (day.workout) parts.push(`Séance: ${day.workout}`);
+  if (day.workout) parts.push(`Séance: ${day.workout === 'none' ? 'aucune (repos déclaré)' : day.workout}`);
   if (day.weight) parts.push(`Poids: ${day.weight} kg`);
   if (day.waist) parts.push(`Tour de taille: ${day.waist} cm`);
   if (day.notes) parts.push(`Notes: ${day.notes}`);
@@ -39,7 +39,8 @@ export function getHistoricalWeeks(n = 8) {
   }
   const days = stored.days ?? {};
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Date locale (cohérente avec les clés de saisie) — pas la date UTC
+  const today = toKey(new Date());
   const currentWeekStart = startOfWeek(today);
 
   const signals = extractSignals();

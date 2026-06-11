@@ -256,3 +256,83 @@ L'utilisateur vient de basculer en preset **Diet Break** avant ses vacances et d
 ### Vérification
 - Vérification d'équilibre des accolades sur le fichier modifié — aucune erreur de structure.
 - Pas de `node_modules` en environnement remote — build/lint non exécutables ; tester sur machine locale avant merge en prod.
+
+---
+
+## [2026-06-11] Audit complet `/react-review` — 5 correctifs de cohérence
+
+### Contexte
+Utilisateur en vacances (Diet Break actif) — audit global de l'app demandé : révéler tout ce qui est incohérent ou bloquant. Inspection via le protocole react-review sur l'intégralité de `src/`.
+
+### Conformité react-rules.md (scan global)
+- Zéro classe React ✅ — zéro mutation d'état directe ✅ (les `.push()` détectés sont sur des tableaux locaux dans les utils)
+- Tous les `useEffect` ont un tableau de dépendances explicite ✅
+- Props déstructurées en signature partout ✅
+
+### 🚫 Bloquants corrigés
+1. **`DataView.reset()` crashait l'app** : `setData({ days: {} })` détruisait `targets`/`presetId`/`baseTDEE`/`stepsTarget` → `Header` lisait `targets[t]` sur undefined → écran blanc jusqu'au reload. Reset désormais vers un state complet par défaut.
+2. **`calculateWeeklyBalance` ignorait `typeOverride`** : la cible kcal moyenne hebdo était calculée depuis le calendrier pur — les jours basculés manuellement TRAIN/OFF/WE (Header) n'étaient pas pris en compte. Corrigé : `day?.typeOverride || dayTypeFromTargets(key)`.
+
+### ⚠️ Incohérences corrigées
+3. **Import backup partiel** : l'export JSON contient targets/presetId/baseTDEE/stepsTarget mais l'import ne restaurait que `days` → perte silencieuse des réglages sur nouvel appareil. L'import restaure désormais les réglages présents (validés par type).
+4. **Tuile SÉANCES `plannedTrain || 3`** : un 0 légitime (semaine 100% OFF/WE via overrides — cas vacances) retombait sur 3 → "0/3" rouge culpabilisant. Affiche désormais le vrai planning (0/0 → vert).
+5. **Dates UTC vs locales** : `adaptiveTDEE.js` et `exportUtils.js` utilisaient `toISOString()` brut (UTC) — fenêtre TDEE et rapport coach décalés d'un jour entre minuit et ~2h du matin en France. Alignés sur `toKey()`/`addDays()` (date locale, astuce midi).
+
+### ⚠️ Signalés non corrigés (non-bloquants, à arbitrer)
+- Pill "Aucune" de TodayView : condition `day.notes.includes('séance:none')` jamais vraie (rien n'écrit ce marqueur) — le pill ne s'affiche jamais actif.
+- `NumberInput` ignore les props `step`/`inputMode` passées par TodayView (poids) — props silencieusement perdues, l'input hardcode `inputMode="decimal"`.
+- Timers `setTimeout` de feedback (savedFlash/copied/importStatus) sans cleanup à l'unmount — bénin en React 18, mais hors règle stricte.
+- `WeekView.jsx` ≈ 575 lignes — très au-delà de la règle des 80 lignes/composant ; découpage à planifier (hors scope d'un audit en feature freeze).
+
+### Vérification
+- `node --check` ✅ sur les 4 `.js` modifiés ; équilibre accolades/parenthèses ✅ sur les 2 `.jsx`.
+- `node_modules` toujours absent en remote — tester build + parcours réel (reset, import, nuit > minuit) sur machine locale.
+
+---
+
+## [2026-06-11] Refactoring 80 lignes — découpage complet des vues
+
+### Contexte
+Demande explicite : découper tous les composants pour respecter la règle des 80 lignes (react-rules §3), sans rien casser, avec architecture propre. Autorisation explicite de déplacer du code.
+
+### Découverte majeure
+`npm install` fonctionne désormais en environnement remote → `vite build` exécutable en session. Le point de vigilance "build non vérifiable" est levé.
+
+### Architecture livrée
+- **Nouveaux hooks** (`src/hooks/`) — logique métier extraite des vues :
+  - `useWeekStats.js` — toute la dérivation hebdo (days, weekly, plannedTrain, séries poids/taille, cibles macros moyennes)
+  - `useDayMetrics.js` — métriques du jour (cibles, totaux, alertes macro/sous-alimentation)
+  - `useTargetsManager.js` — presets dynamiques, updateField/TDEE, reset
+  - `useBackupManager.js` — export/import/reset des données
+  - `useTransientValue.js` — feedback éphémère générique avec timer nettoyé à l'unmount (corrige le reliquat "timers sans cleanup" de l'audit)
+  - `useClipboardCopy.js` — copie presse-papiers + feedback (bâti sur useTransientValue)
+- **Sous-composants par vue** : `views/week/` (10 fichiers), `views/today/` (8), `views/targets/` (5), `views/data/` (2), `layout/DayTypeSwitcher.jsx`, `ui/SectionLabel.jsx`
+- **`utils/reminderUtils.js`** — `weeklyReminderCopy()` sortie de WeekView (logique métier pure)
+- Les vues sont des orchestrateurs purs : WeekView 573→42 lignes, TodayView 294→36, TargetsView 231→48, DataView 179→17, Header 99→62. **Tous les composants ≤ 80 lignes.**
+
+### Tests (réels, pas seulement syntaxiques)
+- `vite build` ✅ après chaque étape (3 checkpoints) et en final.
+- **Smoke test SSR** via `react-dom/server` + esbuild : rendu réel de App + les 4 vues + Header avec données Diet Break réalistes (overrides WE, semaine vide, state post-reset) → 12/12 ✅. Invariants vérifiés : Diet Break TRAIN=OFF=baseTDEE, rappel hebdo par preset (équilibre/déficit/surplus).
+- Piège rencontré : `renderToString` insère des `<!-- -->` entre nœuds texte — assertions à faire sur le HTML nettoyé.
+
+### Notes
+- Aucun changement de comportement voulu — JSX/styles copiés à l'identique, seuls les emplacements et le passage de props changent.
+- `package-lock.json` restauré (bruit npm 10.9 : flags `peer` retirés).
+
+---
+
+## [2026-06-11] Fix pill "Aucune" — repos déclaré explicite (workout: 'none')
+
+### Contexte
+Reliquat de l'audit : le pill "Aucune" de la carte SÉANCE testait `day.notes.includes('séance:none')`, marqueur que rien n'écrivait jamais → jamais actif.
+
+### Design retenu
+Nouveau state explicite `workout: 'none'` = "repos déclaré" (distinct de `null` = "rien saisi") :
+- `WorkoutCard` : pill actif si `workout === 'none'`, toggleable comme Haut/Bas.
+- `mathUtils.trainDone` : ne compte que 'haut'/'bas' — un repos déclaré n'est pas une séance effectuée.
+- `WeekCalendar`/`exportUtils.hasData` : 'none' truthy → le jour compte comme saisi (déclarer son repos est une donnée) — comportement voulu, inchangé.
+- Export AI Bridge : affiche "Séance: aucune (repos déclaré)" au lieu de "Séance: none".
+- Rétrocompatible : les anciennes données ('haut'/'bas'/null) ne changent pas de comportement.
+
+### Vérification
+`vite build` ✅ + smoke SSR ciblé 5/5 (pill actif/inactif, trainDone=2 sur [haut, none, bas], rendu WeekView).

@@ -2,11 +2,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PALETTE } from '../../constants/config.js';
 import { toKey, addDays, fmtFr } from '../../utils/dateUtils.js';
 import { dayType } from '../../models/day.js';
+import DayTypeSwitcher from './DayTypeSwitcher.jsx';
 
 export default function Header({ dateKey, setDateKey, day, updateDay, targets }) {
   const t = dayType(dateKey, day);
-  const dt = targets[t];
   const today = toKey(new Date());
+
+  const navButtonStyle = {
+    background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 10,
+    padding: 10, cursor: 'pointer', color: '#fff', display: 'flex',
+  };
 
   return (
     <div
@@ -28,14 +33,7 @@ export default function Header({ dateKey, setDateKey, day, updateDay, targets })
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <button
-          onClick={() => setDateKey(addDays(dateKey, -1))}
-          style={{
-            background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 10,
-            padding: 10, cursor: 'pointer', color: '#fff', display: 'flex',
-          }}
-          aria-label="Jour précédent"
-        >
+        <button onClick={() => setDateKey(addDays(dateKey, -1))} style={navButtonStyle} aria-label="Jour précédent">
           <ChevronLeft size={20} />
         </button>
         <button
@@ -49,51 +47,16 @@ export default function Header({ dateKey, setDateKey, day, updateDay, targets })
         >
           {fmtFr(dateKey)}
         </button>
-        <button
-          onClick={() => setDateKey(addDays(dateKey, 1))}
-          style={{
-            background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 10,
-            padding: 10, cursor: 'pointer', color: '#fff', display: 'flex',
-          }}
-          aria-label="Jour suivant"
-        >
+        <button onClick={() => setDateKey(addDays(dateKey, 1))} style={navButtonStyle} aria-label="Jour suivant">
           <ChevronRight size={20} />
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: 8 }}>
-        {['train', 'off', 'we'].map((t2) => {
-          const active = t === t2;
-          const colorMap = { train: PALETTE.deep, off: PALETTE.accent, we: '#888' };
-          return (
-            <button
-              key={t2}
-              onClick={() => updateDay({ typeOverride: t === t2 ? null : t2 })}
-              className="vf-body"
-              style={{
-                flex: 1,
-                padding: '8px 10px',
-                borderRadius: 8,
-                border: 'none',
-                background: active ? colorMap[t2] : 'rgba(255,255,255,0.08)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: 11,
-                letterSpacing: '0.08em',
-                cursor: 'pointer',
-                textTransform: 'uppercase',
-              }}
-            >
-              {targets[t2].label}
-              {dt.kcal && t === t2 && (
-                <span className="vf-mono" style={{ marginLeft: 6, opacity: 0.85, fontSize: 10 }}>
-                  {dt.kcal}kcal
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <DayTypeSwitcher
+        activeType={t}
+        targets={targets}
+        onToggle={(t2) => updateDay({ typeOverride: t === t2 ? null : t2 })}
+      />
     </div>
   );
 }
