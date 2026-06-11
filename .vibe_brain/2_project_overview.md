@@ -109,4 +109,4 @@ Permettre à l'utilisateur de partager un résumé structuré de ses 8 dernière
 ## Points de vigilance actuels
 - ~~`node_modules` absent en remote~~ → **levé** : `npm install` + `vite build` fonctionnent désormais en session (vérifié 2026-06-11).
 - `baseTDEE` persiste en localStorage : toute modification du schéma de formules (deltas) nécessite une migration explicite ou un reset.
-- Reliquats non-bloquants restants : pill "Aucune" jamais active (marqueur `séance:none` jamais écrit), `NumberInput` ignore les props `step`/`inputMode` passées pour le poids. (~~timers sans cleanup~~ et ~~WeekView 575 lignes~~ → corrigés par le refactoring 2026-06-11.)
+- Reliquat non-bloquant restant : `NumberInput` ignore les props `step`/`inputMode` passées pour le poids. (~~pill "Aucune"~~ → corrigé via `workout: 'none'` ; ~~timers sans cleanup~~ et ~~WeekView 575 lignes~~ → corrigés par le refactoring 2026-06-11.)
