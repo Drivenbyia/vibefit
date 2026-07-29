@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
 import { getHistoricalWeeks } from '../../utils/exportUtils.js';
 import { useWeekStats } from '../../hooks/useWeekStats.js';
+import { usePlateauDiagnosis } from '../../hooks/usePlateauDiagnosis.js';
 import { useClipboardCopy } from '../../hooks/useClipboardCopy.js';
+import DiagnosisCard from './week/DiagnosisCard.jsx';
 import Card from '../ui/Card.jsx';
 import WeekSummary from './week/WeekSummary.jsx';
 import WeekCalendar from './week/WeekCalendar.jsx';
@@ -20,6 +22,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
     proteinFloor, daysUnderProtein, daysNotLogged,
   } = useWeekStats(dateKey, data, targets);
 
+  const diagnosis = usePlateauDiagnosis(data, resolvedTargets);
   const [copied, copy] = useClipboardCopy(2000);
   const handleExport = useCallback(() => copy(getHistoricalWeeks(data, 8)), [copy, data]);
 
@@ -29,6 +32,12 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
         <WeekSummary start={start} recordedDays={weekly.recordedDays} netBalance={weekly.netBalance} />
         <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} />
       </Card>
+      <DiagnosisCard
+        status={diagnosis.status}
+        label={diagnosis.label}
+        detail={diagnosis.detail}
+        weeksEvaluated={diagnosis.weeksEvaluated}
+      />
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} />
       <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} />
       <AveragesCard

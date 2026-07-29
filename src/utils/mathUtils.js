@@ -1,4 +1,5 @@
 import { dayType } from '../models/day.js';
+import { toKey, startOfWeek, addDays } from './dateUtils.js';
 
 export const num = (v) => {
   const n = parseFloat(v);
@@ -61,6 +62,44 @@ export const calculateWeeklyBalance = (daysData, targets) => {
     avgKcalTarget: meanOver(({ key, day }) => (targets[dayType(key, day)] ?? targets.off).kcal),
     recordedDays: count,
   };
+};
+
+/**
+ * Agrège les `n` dernières semaines, de la plus ancienne à la plus récente.
+ * Alimente le protocole anti-rationalisation, qui a besoin de l'évolution
+ * semaine par semaine du poids, de l'apport et de l'adhérence.
+ */
+export const computeWeeklyHistory = (data, targets, n = 8) => {
+  const todayKey = toKey(new Date());
+  const currentWeekStart = startOfWeek(todayKey);
+
+  return Array.from({ length: n }, (_, i) => {
+    const weekStart = startOfWeek(addDays(currentWeekStart, -(n - 1 - i) * 7));
+    const days = Array.from({ length: 7 }, (_, d) => {
+      const key = addDays(weekStart, d);
+      return { key, day: data?.days?.[key] ?? null };
+    });
+
+    // Jours déjà écoulés — la semaine en cours n'en compte pas 7. Sans cette
+    // distinction, un lundi matin ferait passer une semaine parfaite pour un
+    // défaut d'adhérence (1 jour saisi sur 7 attendus).
+    const elapsedDays = days.filter(({ key }) => key <= todayKey).length;
+
+    const weekly = calculateWeeklyBalance(days, targets);
+    const { avgWeight } = calculateWeightStats(days);
+    const waists = days
+      .map(({ day }) => (day?.waist ? num(day.waist) : null))
+      .filter((v) => v !== null);
+
+    return {
+      weekStart,
+      elapsedDays,
+      recordedDays: weekly.recordedDays,
+      avgIntake: weekly.recordedDays > 0 ? weekly.avgIntake : null,
+      avgWeight,
+      avgWaist: waists.length > 0 ? waists.reduce((a, b) => a + b, 0) / waists.length : null,
+    };
+  });
 };
 
 export const calculateWeightStats = (daysData) => {

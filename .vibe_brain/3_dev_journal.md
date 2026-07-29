@@ -336,3 +336,42 @@ Nouveau state explicite `workout: 'none'` = "repos déclaré" (distinct de `null
 
 ### Vérification
 `vite build` ✅ + smoke SSR ciblé 5/5 (pill actif/inactif, trainDone=2 sur [haut, none, bas], rendu WeekView).
+
+---
+
+## [2026-07-29] Audit calculs — correction du TDEE adaptatif et protocole anti-rationalisation
+
+### Contexte
+Audit technique du moteur de calcul nutritionnel. Trois défauts structurels trouvés : le TDEE adaptatif n'alimentait aucune cible, sa formule était fausse d'environ 290 kcal/j, et le protocole anti-rationalisation n'existait qu'en spécification.
+
+### Lot 1 — Math et hygiène du signal
+- **Bug principal** : `dailyImbalance` divisait un écart de demi-moyennes par la taille de fenêtre (14 j) alors que cet écart couvre 7 jours — l'intervalle entre les centroïdes des deux moitiés. Sur une série synthétique à TDEE réel 2550, la formule retournait 2259.
+- Remplacé par une régression OLS (`olsSlope`), dont la pente est en kg/jour — plus aucune division par la taille de fenêtre.
+- Régression sur les poids **interpolés, pas lissés** : la moyenne mobile tronquée aux bords aplatissait les derniers points et coûtait encore 42 kcal/j. La moyenne mobile reste pour `smoothedWeight`, la valeur affichée.
+- `weightTrend14d` → `weightTrendPerWeek` : l'ancien champ, un delta à ~7 j d'équivalence, était exporté sous le libellé « Tendance poids 14j » vers le bridge IA.
+- Rejet des aberrations (bornes + sauts j/j par test bilatéral), suppression de la propagation à plat en tête/queue d'`interpolateWeights`, recouvrement poids × apport exigé (10 j/14), pénalité de récence sur la sélection de fenêtre.
+- `extractSignals(data)` et `getHistoricalWeeks(data, n)` reçoivent le state au lieu de lire `localStorage` — testables.
+
+### Lot 2 — Cohérence des cibles
+- `useAdaptiveTargets` + `RecalibrateCard` : branchement **opt-in** du TDEE mesuré. Les cibles ne bougent jamais seules.
+- `DEFAULT_TARGETS` dérivé de `DEFAULT_TDEE` (déplacé vers `presetUtils` pour éviter un cycle d'import) : le littéral 2400/1900 n'était sur la courbe d'aucun TDEE unique.
+- Écart de cyclage préservé sous le plancher calorique — un TDEE bas donnait TRAIN = OFF = 1600 sans avertissement.
+- `macroConflictKcal` signale les macros incohérentes au lieu de les masquer par un clamp à 0.
+- Plancher protéines garanti sur tous les types de jour (`clampTargetField`) ; badge compté en jours calendaires au lieu d'une moyenne sur jours saisis.
+- `dayType` : la séance loggée prime sur le calendrier.
+- Apport et cible comparés sur le même sous-ensemble de jours.
+- Suppression de `dayTypeFromTargets` (copie conforme de `dayTypeFromKey`) et centralisation des seuils.
+
+### Lot 3 — Protocole anti-rationalisation
+- `plateauProtocol.js` : diagnostic pur croisant TDEE, poids lissé et adhérence. **Aucune action sur les cibles** — les règles R2–R6 restent gelées jusqu'au backtesting.
+- Porte d'adhérence prioritaire : un écart de saisie ne peut jamais se présenter comme un plateau.
+- Garde-fou rétention d'eau : poids en hausse à tour de taille stable bloque toute conclusion de plateau.
+- `toKey` produit désormais une date locale réelle (l'ancienne version restait une date UTC avec 12 h de marge).
+
+### Bug trouvé par le smoke test navigateur
+La semaine en cours, incomplète, était jugée comme une semaine finie : un mercredi, 3 jours écoulés sur 7 déclenchaient « Adhérence insuffisante » malgré un logging parfait. Chaque utilisateur l'aurait vu du lundi au jeudi. Corrigé via `elapsedDays` — le diagnostic ne porte que sur des semaines complètes.
+
+### Vérification
+- Vitest ajouté — **56 tests**, dont la validation sur séries synthétiques à TDEE connu qui a révélé le bug principal.
+- `vite build` ✅
+- Smoke test Playwright sur build de production : TDEE mesuré **2551** sur données de vérité terrain 2550 ; recalibration 2000 → 2551 avec TRAIN 2751 / OFF 2351 (écart 400 préservé) ; les trois scénarios de diagnostic discriminent correctement (Progression / Plateau confirmé / Adhérence insuffisante) ; aucune erreur console.

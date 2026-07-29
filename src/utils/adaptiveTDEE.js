@@ -177,7 +177,8 @@ function findBestWindow(entries) {
 export function extractSignals(data) {
   const days = data?.days ?? {};
 
-  // Historique brut sur HISTORY_SCAN_DAYS jours (J-29 → J0)
+  // Historique brut sur HISTORY_SCAN_DAYS jours (J-29 → J0).
+  // toKey/addDays produisent une date locale, alignée sur les clés de saisie.
   const today = toKey(new Date());
   const rawEntries = [];
   for (let i = HISTORY_SCAN_DAYS - 1; i >= 0; i--) {
