@@ -12,11 +12,13 @@ export const INTAKE_MAX_KCAL = 8000;
 // jours : +2 kg en 3 jours est légitime, +2 kg en 1 jour est une erreur de saisie.
 export const MAX_DAILY_WEIGHT_JUMP_KG = 2;
 
-export const DEFAULT_TARGETS = {
-  train: { kcal: 2400, protein: 160, carbs: 280, fat: 70, label: 'TRAIN' },
-  off:   { kcal: 1900, protein: 160, carbs: 120, fat: 75, label: 'OFF' },
-  we:    { kcal: null, protein: 160, carbs: null, fat: null, label: 'WE' },
-};
+// --- Seuils absolus du protocole ---
+// DEFAULT_TARGETS vit dans presetUtils.js : il est DÉRIVÉ de DEFAULT_TDEE via
+// computePresetTargets(). Le définir ici créerait un cycle config → presetUtils.
+export const KCAL_FLOOR = 1600;    // plancher calorique, hors week-end
+export const PROTEIN_FLOOR = 160;  // plancher protéines, tous les jours
+export const MIN_BASE_TDEE = 1800; // = KCAL_FLOOR + 200 : garantit OFF ≥ plancher
+export const MIN_CYCLE_GAP = 400;  // écart nominal TRAIN − OFF du cyclage
 
 export const PRESETS = {
   maintenance: {

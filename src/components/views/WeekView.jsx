@@ -17,6 +17,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
   const {
     resolvedTargets, start, days, weekly, plannedTrain,
     waistSeries, avgWeight, weightDelta, weightSeries, macroTargets,
+    proteinFloor, daysUnderProtein, daysNotLogged,
   } = useWeekStats(dateKey, data, targets);
 
   const [copied, copy] = useClipboardCopy(2000);
@@ -30,7 +31,13 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
       </Card>
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} />
       <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} />
-      <AveragesCard weekly={weekly} macroTargets={macroTargets} />
+      <AveragesCard
+        weekly={weekly}
+        macroTargets={macroTargets}
+        proteinFloor={proteinFloor}
+        daysUnderProtein={daysUnderProtein}
+        daysNotLogged={daysNotLogged}
+      />
       <WaistCard waistSeries={waistSeries} />
       <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} />
       <ReminderCard presetId={data.presetId} netBalance={weekly.netBalance} recordedDays={weekly.recordedDays} />

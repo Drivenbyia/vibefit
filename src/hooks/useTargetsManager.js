@@ -1,6 +1,11 @@
-import { PRESETS, DEFAULT_TARGETS, DEFAULT_STEPS_TARGET } from '../constants/config.js';
+import { PRESETS, DEFAULT_STEPS_TARGET, MIN_BASE_TDEE } from '../constants/config.js';
 import { num } from '../utils/mathUtils.js';
-import { computePresetTargets, DEFAULT_TDEE } from '../utils/presetUtils.js';
+import {
+  computePresetTargets,
+  clampTargetField,
+  DEFAULT_TDEE,
+  DEFAULT_TARGETS,
+} from '../utils/presetUtils.js';
 import { useTransientValue } from './useTransientValue.js';
 
 /**
@@ -43,18 +48,19 @@ export function useTargetsManager(data, setData) {
   const updateField = (dayKey, field, value) => {
     let v = value === '' ? null : num(value);
 
-    // Plancher 1600 kcal — règle absolue sauf week-end (allowEmpty).
-    // Champ vidé sur un jour train/off : on conserve la valeur courante (pas de crash).
-    if (field === 'kcal' && dayKey !== 'we') {
-      if (v === null) return;
-      v = Math.max(1600, v);
-    }
+    // Champ kcal vidé sur un jour train/off : on conserve la valeur courante.
+    if (field === 'kcal' && dayKey !== 'we' && v === null) return;
+
+    // Planchers du protocole (calories hors week-end, protéines tous les jours)
+    v = clampTargetField(field, dayKey, v);
 
     // Maintenance kcal → recalcule le TDEE de base sans décrocher le preset.
     // TRAIN = TDEE + 200  →  TDEE = TRAIN - 200
     // OFF   = TDEE - 200  →  TDEE = OFF   + 200
+    // Plancher MIN_BASE_TDEE (et non 1400) : en deçà, OFF passait sous le
+    // plancher calorique et le cyclage s'effondrait à TRAIN = OFF.
     if (presetId === 'maintenance' && field === 'kcal' && (dayKey === 'train' || dayKey === 'off')) {
-      const newTDEE = Math.max(1400, dayKey === 'train' ? v - 200 : v + 200);
+      const newTDEE = Math.max(MIN_BASE_TDEE, dayKey === 'train' ? v - 200 : v + 200);
       setData((prev) => ({
         ...prev,
         baseTDEE: newTDEE,

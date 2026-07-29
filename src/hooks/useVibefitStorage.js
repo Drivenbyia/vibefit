@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { DEFAULT_TARGETS, DEFAULT_STEPS_TARGET, STORAGE_KEY } from '../constants/config.js';
-import { deriveBaseTDEE, DEFAULT_TDEE } from '../utils/presetUtils.js';
+import { DEFAULT_STEPS_TARGET, STORAGE_KEY } from '../constants/config.js';
+import { deriveBaseTDEE, DEFAULT_TDEE, DEFAULT_TARGETS } from '../utils/presetUtils.js';
 
 export function useVibefitStorage() {
   const [data, setData] = useState(() => {

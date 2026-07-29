@@ -1,11 +1,12 @@
-import { Zap, Beef, Wheat, Droplets } from 'lucide-react';
+import { Beef, Wheat, Droplets } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import Card from '../../ui/Card.jsx';
 import SectionLabel from '../../ui/SectionLabel.jsx';
 import MacroBar from './MacroBar.jsx';
 import ProteinBadge from './ProteinBadge.jsx';
+import KcalAverageRow from './KcalAverageRow.jsx';
 
-export default function AveragesCard({ weekly, macroTargets }) {
+export default function AveragesCard({ weekly, macroTargets, proteinFloor, daysUnderProtein, daysNotLogged }) {
   return (
     <Card>
       <SectionLabel>
@@ -30,7 +31,11 @@ export default function AveragesCard({ weekly, macroTargets }) {
             target={macroTargets.protein}
             color="#4CAF50"
           />
-          {weekly.avgProt < 160 && <ProteinBadge avgProt={weekly.avgProt} />}
+          <ProteinBadge
+            daysUnder={daysUnderProtein}
+            daysNotLogged={daysNotLogged}
+            floor={proteinFloor}
+          />
           <MacroBar
             label="Glucides"
             icon={Wheat}
@@ -45,27 +50,12 @@ export default function AveragesCard({ weekly, macroTargets }) {
             target={macroTargets.fat}
             color="#FF9800"
           />
-          <div style={{
-            marginTop: 12,
-            paddingTop: 10,
-            borderTop: `1px solid ${PALETTE.line}`,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Zap size={12} color={PALETTE.muted} strokeWidth={2.5} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.08em' }}>
-                KCAL MOY.
-              </span>
-            </div>
-            <div className="vf-tabular" style={{ fontSize: 16, fontWeight: 800, color: PALETTE.ink }}>
-              {Math.round(weekly.avgIntake)}
-              <span style={{ fontSize: 10, fontWeight: 500, color: PALETTE.muted, marginLeft: 4 }}>
-                kcal / {Math.round(weekly.avgKcalTarget)} cible
-              </span>
-            </div>
-          </div>
+          <KcalAverageRow
+            avgIntake={weekly.avgIntake}
+            avgIntakeComparable={weekly.avgIntakeComparable}
+            avgKcalTarget={weekly.avgKcalTarget}
+            comparableDays={weekly.comparableDays}
+          />
         </>
       )}
     </Card>

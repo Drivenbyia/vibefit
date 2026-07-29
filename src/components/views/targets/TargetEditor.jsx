@@ -3,7 +3,7 @@ import Card from '../../ui/Card.jsx';
 import NumberInput from '../../ui/NumberInput.jsx';
 import Label from '../../ui/Label.jsx';
 
-export default function TargetEditor({ title, subtitle, accent, target, onChange, allowEmpty }) {
+export default function TargetEditor({ title, subtitle, accent, target, onChange, allowEmpty, conflictKcal = 0 }) {
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
@@ -33,6 +33,16 @@ export default function TargetEditor({ title, subtitle, accent, target, onChange
           <NumberInput value={target.fat ?? ''} onChange={(v) => onChange('fat', v)} placeholder={allowEmpty ? '—' : '0'} suffix="g" />
         </div>
       </div>
+      {conflictKcal > 0 && (
+        <div style={{
+          marginTop: 10, padding: '7px 10px', borderRadius: 8,
+          background: '#FEF3C7', border: `1px solid ${PALETTE.warn}`,
+          fontSize: 11, fontWeight: 600, color: PALETTE.warn, lineHeight: 1.4,
+        }}>
+          ⚠ Protéines + lipides dépassent la cible de {conflictKcal} kcal — les glucides
+          sont à 0 et les macros ne totalisent plus la cible affichée.
+        </div>
+      )}
     </Card>
   );
 }
