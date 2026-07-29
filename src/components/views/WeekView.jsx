@@ -20,7 +20,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
   } = useWeekStats(dateKey, data, targets);
 
   const [copied, copy] = useClipboardCopy(2000);
-  const handleExport = useCallback(() => copy(getHistoricalWeeks(8)), [copy]);
+  const handleExport = useCallback(() => copy(getHistoricalWeeks(data, 8)), [copy, data]);
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>

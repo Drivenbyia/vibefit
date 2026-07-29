@@ -1,6 +1,17 @@
 export const DEFAULT_STEPS_TARGET = 8000;
 export const STORAGE_KEY = 'vibefit_v1';
 
+// --- Bornes de plausibilité du signal (rejet des erreurs de saisie) ---
+// Une valeur hors bornes est écartée (→ null) avant tout calcul : une typo
+// `78` → `780` kg se propagerait sinon dans l'interpolation, le lissage et le TDEE.
+export const WEIGHT_MIN_KG = 30;
+export const WEIGHT_MAX_KG = 300;
+export const INTAKE_MIN_KCAL = 500;
+export const INTAKE_MAX_KCAL = 8000;
+// Variation j/j physiologiquement impossible — mise à l'échelle par l'écart de
+// jours : +2 kg en 3 jours est légitime, +2 kg en 1 jour est une erreur de saisie.
+export const MAX_DAILY_WEIGHT_JUMP_KG = 2;
+
 export const DEFAULT_TARGETS = {
   train: { kcal: 2400, protein: 160, carbs: 280, fat: 70, label: 'TRAIN' },
   off:   { kcal: 1900, protein: 160, carbs: 120, fat: 75, label: 'OFF' },
