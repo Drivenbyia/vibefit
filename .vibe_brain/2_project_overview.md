@@ -1,40 +1,54 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-06-11
+last_updated: 2026-07-29
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🧱 V2 Phase B consolidée — refactoring 80 lignes complet (toutes les vues découpées, logique dans les hooks)**
-- Branche active : `claude/github-sync-status-MRUxV` (PRs #2–#4 mergées dans `main`)
-- Dernier commit : `93168da` — fix(audit): 5 correctifs de cohérence (+ refactoring 80 lignes en cours de commit)
-- Session 2026-06-11 : audit react-review (5 correctifs) puis découpage intégral — vues = orchestrateurs purs, 6 nouveaux hooks, 26 sous-composants, smoke test SSR 12/12 ✅, `vite build` ✅
+- **Phase : 🔬 Moteur de calcul corrigé et testé — TDEE adaptatif branché (opt-in), protocole anti-rationalisation implémenté**
+- Branche active : `claude/vibefit-calc-audit-wut56i`
+- Derniers commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
+- **Suite de tests : Vitest, 56 tests** — `npm test`
+
+### Session 2026-07-29 — Audit des calculs, 3 lots
+1. **Math TDEE** — bug principal : le déséquilibre journalier était divisé par 14 alors que l'écart de demi-moyennes couvre 7 jours ⇒ erreur systématique de **291 kcal/j** (TDEE réel 2550 → calculé 2259). Remplacé par une régression OLS sur poids interpolés. Rejet des aberrations, plus de propagation à plat, recouvrement poids × apport exigé, pénalité de récence.
+2. **Cohérence des cibles** — le TDEE adaptatif n'alimentait aucune cible (seul l'export le lisait). Branchement **opt-in** via `RecalibrateCard`. `DEFAULT_TARGETS` dérivé. Écart de cyclage préservé sous le plancher. Plancher protéines garanti. La séance loggée pilote le type de jour. Apport et cible comparés sur la même base.
+3. **Protocole anti-rationalisation** — `plateauProtocol.js`, diagnostic pur croisant TDEE / poids / adhérence. Porte d'adhérence prioritaire, garde-fou rétention d'eau. Aucune action automatisée (R2–R6 toujours gelées).
+
+Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur vérité terrain 2550, recalibration 2000 → 2551 (TRAIN 2751 / OFF 2351), diagnostics discriminants, zéro erreur console.
 
 ## Structure des fichiers (src/)
 
 ```
 src/
   constants/
-    config.js          — PALETTE, DEFAULT_TARGETS, PRESETS, STORAGE_KEY
+    config.js          — PALETTE, PRESETS, STORAGE_KEY, seuils (KCAL_FLOOR, PROTEIN_FLOOR,
+                         MIN_BASE_TDEE, MIN_CYCLE_GAP) et bornes de plausibilité du signal
   utils/
-    dateUtils.js       — toKey, dayTypeFromKey, fmtFr, shortFr, addDays, startOfWeek
-    mathUtils.js       — num, calculateWeeklyBalance
+    dateUtils.js       — toKey (date LOCALE), dayTypeFromKey, fmtFr, shortFr, addDays, startOfWeek
+    mathUtils.js       — num, calculateWeeklyBalance, calculateWeightStats, computeWeeklyHistory
     backupUtils.js     — exportBackup, importBackup
-    exportUtils.js     — getHistoricalWeeks(n) : export Markdown 8 semaines (AI Bridge V2 + header TDEE)
-    adaptiveTDEE.js    — extractSignals() : TDEE adaptatif Sliding Window (30j scan, fenêtre 14j optimale), lissage poids 7j, tendance, confidence, windowStart/windowEnd
+    exportUtils.js     — getHistoricalWeeks(data, n) : export Markdown 8 semaines (AI Bridge V2 + header)
+    adaptiveTDEE.js    — extractSignals(data) + olsSlope() : TDEE par régression OLS, Sliding Window
+                         (scan 30j, fenêtre 14j pénalisée par la récence), rejet des aberrations,
+                         recouvrement poids × apport, lissage 7j pour l'affichage seul
+    plateauProtocol.js — diagnose() : croisement TDEE / poids / adhérence. DIAGNOSTIC PUR, sans action
+    presetUtils.js     — computePresetTargets, clampTargetField, macroConflictKcal, deriveBaseTDEE,
+                         DEFAULT_TARGETS (dérivé de DEFAULT_TDEE — ici pour éviter un cycle d'import)
+    reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
+    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol (56 tests)
   models/
-    day.js             — emptyDay, dayType
+    day.js             — emptyDay, dayType (typeOverride > séance loggée > calendrier)
   hooks/
-    useVibefitStorage.js — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
-    useWeekStats.js      — dérivation hebdo complète (days, weekly, plannedTrain, séries, macros)
-    useDayMetrics.js     — métriques du jour (cibles, totaux, alertes)
-    useTargetsManager.js — logique presets/TDEE/updateField/reset
-    useBackupManager.js  — export/import/reset des données
-    useTransientValue.js — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
-  utils/ (suite)
-    presetUtils.js       — computePresetTargets(presetId, baseTDEE), deriveBaseTDEE() — formules TDEE-based
-    reminderUtils.js     — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
+    useVibefitStorage.js  — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
+    useWeekStats.js       — dérivation hebdo (days, weekly, séries, macros, plancher protéines en jours)
+    useDayMetrics.js      — métriques du jour (cibles, totaux, alertes)
+    useTargetsManager.js  — logique presets/TDEE/updateField/reset
+    useAdaptiveTargets.js — TDEE mesuré + recalibration OPT-IN des cibles
+    usePlateauDiagnosis.js— croisement TDEE / poids / adhérence pour WeekView
+    useBackupManager.js   — export/import/reset des données
+    useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
     ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill, Bar, Label, SectionLabel, FontStyles
     layout/            — Header, DayTypeSwitcher, BottomNav
