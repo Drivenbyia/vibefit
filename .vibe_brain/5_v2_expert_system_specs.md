@@ -22,8 +22,6 @@
 
 ### Contrat de sortie (objet retourné)
 
-| Champ | Type | Description |
-|---|---|---|
 > Signature : `extractSignals(data)` — le state est **injecté**, la fonction ne lit plus `localStorage` (testabilité).
 
 | Champ | Type | Description |
@@ -205,7 +203,8 @@ Toute règle du moteur doit respecter l'interface suivante :
 
 ## 7. Définition des Règles Métiers (Phase B — GEL)
 
-> ⚠️ Les règles R2 à R6 sont GELées jusqu'au backtesting complet. Seule R1 est éligible Phase A.
+> ⚠️ Les règles R2, R4, R5 et R6 restent GELées jusqu'au backtesting complet.
+> R1 et R3 sont implémentées, en mode **diagnostic seul** — aucune ne modifie de cible.
 
 ### R1 — DATA_QUALITY [Priority: 100]
 
@@ -222,10 +221,33 @@ Toute règle du moteur doit respecter l'interface suivante :
 - **Trigger :** `weightLossThisWeek > 800` (grammes)
 - **Action :** `macros_train_only` — +165 kcal / +30g glucides les jours d'entraînement.
 
-### R3 — NEAT_DRIFT [Priority: 6] — ⛔ GEL Phase B
+### R3 — NEAT_DRIFT [Priority: 6] — ✅ IMPLÉMENTÉE (`src/utils/neatDrift.js`)
 
-- **Trigger :** `stepsThisWeek < stepsLastWeek * 0.85`
-- **Action :** Alerte prioritaire "Augmente ton NEAT".
+Dégelée en priorité : sur le terrain, une chute de NEAT non signalée a coûté deux
+mois de diagnostic erroné (pas divisés par 2.6, dépense −698 kcal/j, aucune alerte).
+
+- **Trigger 1 — chute brutale :** `stepsThisWeek < stepsLastWeek × 0.85` (seuil d'origine),
+  **conditionné à être sous sa propre ligne de base**. Sans ce garde-fou, redescendre
+  à son niveau habituel après une semaine exceptionnelle déclenchait une fausse alerte.
+- **Trigger 2 — dérive installée :** `stepsThisWeek < moyenne(4 semaines précédentes) × 0.80`.
+  Le trigger d'origine ne voyait qu'une chute franche : une érosion de 12 %/semaine
+  (16 000 → 14 000 → 12 250 → 10 700) ne le déclenche jamais et finit à −33 %.
+- **Action :** diagnostic affiché (`NeatCard`), avec l'impact chiffré en kcal/j via
+  `KCAL_PER_STEP_PER_KG` (0.0005 kcal/pas/kg). **Aucune modification de cible.**
+- **Indépendant de la porte d'adhérence**, contrairement au protocole de plateau :
+  les pas viennent de la montre et restent disponibles quand le suivi alimentaire
+  décroche — c'est justement là que l'alerte est la plus utile.
+- **Garde-fou :** si la dernière semaine complète a moins de `NEAT_MIN_DAYS = 4`
+  jours de pas, le statut est `INSUFFICIENT_DATA`. Sans ça, l'app jugeait la semaine
+  précédente et affichait un statut rassurant sur des chiffres périmés.
+
+| Constante | Valeur |
+|---|---|
+| `NEAT_DROP_RATIO` | `0.85` |
+| `NEAT_DRIFT_RATIO` | `0.80` |
+| `NEAT_BASELINE_WEEKS` | `4` |
+| `NEAT_RECOVERY_RATIO` | `1.15` |
+| `NEAT_MIN_DAYS` | `4` |
 
 ### R4 — PLATEAU_STRICT [Priority: 5] — ⛔ GEL Phase B
 
@@ -248,6 +270,10 @@ Toute règle du moteur doit respecter l'interface suivante :
 
 ```
 R1 (100) → R6 (9) → R2 (8) → R3 (6) → R4 (5) → R5 (4)
+
+R3 est évaluée INDÉPENDAMMENT : elle repose sur les pas (montre), disponibles
+même quand le suivi alimentaire décroche. La bloquer derrière R1 la rendrait
+muette exactement dans le cas où elle est la plus utile.
 ```
 
 - Si R1 déclenche → R2–R6 non évaluées

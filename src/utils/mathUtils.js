@@ -91,6 +91,13 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
       .map(({ day }) => (day?.waist ? num(day.waist) : null))
       .filter((v) => v !== null);
 
+    // Les pas sont moyennés sur les jours où ils sont RÉELLEMENT renseignés,
+    // pas sur les jours « saisis » au sens alimentaire : la montre les remonte
+    // même les semaines où rien n'est loggé côté nutrition.
+    const steps = days
+      .map(({ day }) => num(day?.expenditure?.steps))
+      .filter((v) => v > 0);
+
     return {
       weekStart,
       elapsedDays,
@@ -98,6 +105,8 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
       avgIntake: weekly.recordedDays > 0 ? weekly.avgIntake : null,
       avgWeight,
       avgWaist: waists.length > 0 ? waists.reduce((a, b) => a + b, 0) / waists.length : null,
+      avgSteps: steps.length > 0 ? steps.reduce((a, b) => a + b, 0) / steps.length : null,
+      stepsDays: steps.length,
     };
   });
 };
