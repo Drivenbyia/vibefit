@@ -1,6 +1,9 @@
 export const DEFAULT_STEPS_TARGET = 8000;
 export const STORAGE_KEY = 'vibefit_v1';
 
+// 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
+export const KCAL_PER_KG = 7700;
+
 // --- Bornes de plausibilité du signal (rejet des erreurs de saisie) ---
 // Une valeur hors bornes est écartée (→ null) avant tout calcul : une typo
 // `78` → `780` kg se propagerait sinon dans l'interpolation, le lissage et le TDEE.
@@ -32,7 +35,7 @@ export const PRESETS = {
   },
   cut_light: {
     label: 'Sèche légère',
-    sub: '−200 kcal / jour — perte ~250 g/sem',
+    sub: 'Sèche progressive — glucides réduits les jours OFF',
     targets: {
       train: { kcal: 2200, protein: 160, carbs: 230, fat: 70, label: 'TRAIN' },
       off:   { kcal: 1700, protein: 160, carbs: 90, fat: 70, label: 'OFF' },
@@ -41,7 +44,7 @@ export const PRESETS = {
   },
   cut_strong: {
     label: 'Sèche forte',
-    sub: '−400 kcal / jour — perte ~500 g/sem',
+    sub: 'Sèche marquée — protéines relevées à 170 g',
     targets: {
       train: { kcal: 2000, protein: 170, carbs: 180, fat: 65, label: 'TRAIN' },
       off:   { kcal: 1500, protein: 170, carbs: 60, fat: 65, label: 'OFF' },
@@ -50,7 +53,7 @@ export const PRESETS = {
   },
   bulk: {
     label: 'Prise de masse',
-    sub: '+300 kcal / jour — gain ~300 g/sem',
+    sub: 'Surplus contrôlé — recharge les jours TRAIN',
     targets: {
       train: { kcal: 2700, protein: 160, carbs: 350, fat: 75, label: 'TRAIN' },
       off:   { kcal: 2200, protein: 160, carbs: 180, fat: 80, label: 'OFF' },

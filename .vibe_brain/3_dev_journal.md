@@ -375,3 +375,34 @@ La semaine en cours, incomplète, était jugée comme une semaine finie : un mer
 - Vitest ajouté — **56 tests**, dont la validation sur séries synthétiques à TDEE connu qui a révélé le bug principal.
 - `vite build` ✅
 - Smoke test Playwright sur build de production : TDEE mesuré **2551** sur données de vérité terrain 2550 ; recalibration 2000 → 2551 avec TRAIN 2751 / OFF 2351 (écart 400 préservé) ; les trois scénarios de diagnostic discriminent correctement (Progression / Plateau confirmé / Adhérence insuffisante) ; aucune erreur console.
+
+---
+
+## [2026-07-29] Taux des presets calculés dynamiquement + clarification règle CLAUDE.md
+
+### Contexte
+Point soulevé en fin d'audit : le preset par défaut ne correspond pas au protocole décrit (TRAIN 2000 / REST 1600 = `cut_strong` @ TDEE 2200, alors que l'app démarre sur `maintenance`). En vérifiant, un défaut plus large est apparu.
+
+### Libellés de presets faux d'un facteur ~2
+Les `sub` figés de `config.js` annonçaient des taux ignorant le week-end. Le WE n'ayant aucune cible (`kcal: null`), il est mangé au TDEE et dilue le déficit sur 2 jours sur 7 :
+
+| Preset | Annoncé | Réel (TDEE 2200) |
+|---|---|---|
+| Sèche légère | −200 kcal/j, ~250 g/sem | −114 kcal/j, 104 g/sem |
+| Sèche forte | −400 kcal/j, ~500 g/sem | −257 kcal/j, 234 g/sem |
+| Prise de masse | +300 kcal/j, ~300 g/sem | +243 kcal/j, 221 g/sem |
+
+Même racine que le bug `avgKcalTarget` corrigé plus tôt : **le trou du week-end**. Impact : croire perdre 500 g/sem quand on en perd 234, soit ~3 kg d'écart sur 3 mois — écart ensuite attribuable à tort à un « plateau métabolique ».
+
+### Correctif
+- `presetWeeklyRate(presetId, baseTDEE)` et `presetRateLabel()` dans `presetUtils.js` : taux calculé depuis les cibles effectives, les jours sans cible étant supposés mangés au TDEE.
+- Composition de la semaine **dérivée de `dayTypeFromKey`**, jamais re-codée — pas de troisième source de vérité pour le split.
+- Les `sub` de `config.js` deviennent purement qualitatifs ; les chiffres viennent du calcul.
+- `KCAL_PER_KG` centralisé dans `config.js` (était privé à `adaptiveTDEE.js`).
+- Seuil `RATE_NOISE_KCAL = 50` : en deçà, affiché comme « Maintien » — sous la résolution de toute estimation de TDEE.
+
+### Décision de process
+`CLAUDE.md` reformulé pour `2_project_overview.md` : la mention « sans auto-commit » entrait en conflit mécanique avec le hook de fin de session, et n'avait jamais été suivie (12 commits sur 36 touchent ce fichier). L'historique montre que l'intention réelle était « pas de commit séparé pour ce fichier », pas « ne jamais le commiter » — la règle dit désormais explicitement de le fondre dans le commit de travail de fin de session.
+
+### Vérification
+`npm test` 63/63 ✅ · `vite build` ✅ · Playwright sur build de production : les 5 taux affichés correspondent au calcul indépendant, zéro erreur console.

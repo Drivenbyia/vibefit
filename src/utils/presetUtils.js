@@ -1,6 +1,10 @@
-import { PRESETS, KCAL_FLOOR, PROTEIN_FLOOR } from '../constants/config.js';
+import { PRESETS, KCAL_FLOOR, PROTEIN_FLOOR, KCAL_PER_KG } from '../constants/config.js';
+import { toKey, addDays, startOfWeek, dayTypeFromKey } from './dateUtils.js';
 
 export const DEFAULT_TDEE = 2000;
+
+// En deçà, l'écart est sous la résolution de n'importe quelle estimation de TDEE.
+const RATE_NOISE_KCAL = 50;
 
 /**
  * Formules kcal de chaque preset, SANS plancher.
@@ -95,6 +99,48 @@ export function computePresetTargets(presetId, baseTDEE) {
  * sautaient silencieusement dès le premier changement de preset.
  */
 export const DEFAULT_TARGETS = computePresetTargets('maintenance', DEFAULT_TDEE);
+
+/** Composition nominale de la semaine, DÉRIVÉE du calendrier — jamais re-codée. */
+function nominalWeek() {
+  const start = startOfWeek(toKey(new Date()));
+  const counts = { train: 0, off: 0, we: 0 };
+  for (let i = 0; i < 7; i++) counts[dayTypeFromKey(addDays(start, i))] += 1;
+  return counts;
+}
+
+/**
+ * Taux réel d'un preset, calculé depuis ses cibles effectives.
+ *
+ * Les jours SANS cible (week-end à `kcal: null`) sont supposés mangés au TDEE :
+ * ils diluent le déficit sur 2 jours sur 7 et ne peuvent pas être ignorés. Les
+ * libellés figés de `config.js` les ignoraient et annonçaient donc des taux
+ * faux d'un facteur ~2 (« Sèche forte : perte ~500 g/sem » pour 234 g réels).
+ */
+export function presetWeeklyRate(presetId, baseTDEE) {
+  const targets = computePresetTargets(presetId, baseTDEE);
+  const week = nominalWeek();
+  const kcalFor = (k) => targets[k]?.kcal ?? baseTDEE; // pas de cible ⇒ au TDEE
+
+  const totalDays = week.train + week.off + week.we;
+  const weekly =
+    week.train * kcalFor('train') + week.off * kcalFor('off') + week.we * kcalFor('we');
+  const deltaWeek = weekly - baseTDEE * totalDays;
+
+  return {
+    kcalPerDay: Math.round(deltaWeek / totalDays),
+    gramsPerWeek: Math.round((deltaWeek / KCAL_PER_KG) * 1000),
+  };
+}
+
+/** Libellé lisible du taux réel — remplace les `sub` chiffrés figés. */
+export function presetRateLabel(presetId, baseTDEE) {
+  const { kcalPerDay, gramsPerWeek } = presetWeeklyRate(presetId, baseTDEE);
+  const sign = kcalPerDay >= 0 ? '+' : '−';
+  const abs = Math.abs(kcalPerDay);
+
+  if (abs < RATE_NOISE_KCAL) return `Maintien · ${sign}${abs} kcal/j`;
+  return `${sign}${abs} kcal/j · ${kcalPerDay > 0 ? 'gain' : 'perte'} ~${Math.abs(gramsPerWeek)} g/sem`;
+}
 
 /**
  * Retrouve le TDEE de base depuis les targets et le presetId stockés.

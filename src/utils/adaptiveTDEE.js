@@ -1,4 +1,5 @@
 import {
+  KCAL_PER_KG,
   WEIGHT_MIN_KG,
   WEIGHT_MAX_KG,
   INTAKE_MIN_KCAL,
@@ -7,8 +8,6 @@ import {
 } from '../constants/config.js';
 import { toKey, addDays } from './dateUtils.js';
 
-// 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
-const KCAL_PER_KG = 7700;
 const SMOOTHING_WINDOW = 7;
 const HISTORY_SCAN_DAYS = 30;  // horizon de scan pour la fenêtre glissante
 const WINDOW_SIZE = 14;        // taille cible de la sous-fenêtre TDEE

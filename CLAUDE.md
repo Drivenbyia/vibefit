@@ -5,7 +5,7 @@
 
 # Sécurité des fichiers .vibe_brain
 - 1_project_bible.md : LECTURE SEULE.
-- 2_project_overview.md : AUTO-SAVE & UPDATE (maintiens l'état du projet à jour ici sans auto-commit).
+- 2_project_overview.md : AUTO-SAVE & UPDATE (maintiens l'état du projet à jour ici ; inclus la mise à jour dans le commit de travail de fin de session, jamais dans un commit séparé).
 - 3_dev_journal.md : APPEND ONLY (ajoute tes notes de session uniquement à la fin du fichier).
 
 # Bypass Permissions

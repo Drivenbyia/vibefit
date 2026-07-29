@@ -3,6 +3,8 @@ import {
   computePresetTargets,
   clampTargetField,
   macroConflictKcal,
+  presetWeeklyRate,
+  presetRateLabel,
   deriveBaseTDEE,
   DEFAULT_TARGETS,
   DEFAULT_TDEE,
@@ -88,6 +90,48 @@ describe('macroConflictKcal', () => {
         expect(macroConflictKcal(t.off), `${id} off @ ${tdee}`).toBe(0);
       }
     }
+  });
+});
+
+describe('presetWeeklyRate — taux réel, week-end compris', () => {
+  it('tient compte des jours sans cible dans le déficit', () => {
+    // Les libellés figés annonçaient −400 kcal/j et ~500 g/sem pour cut_strong.
+    // Le week-end n'ayant pas de cible, il est mangé au TDEE et dilue le déficit.
+    const r = presetWeeklyRate('cut_strong', 2200);
+    expect(r.kcalPerDay).toBe(-257);
+    expect(r.gramsPerWeek).toBe(-234);
+  });
+
+  it('chiffre correctement la sèche légère', () => {
+    const r = presetWeeklyRate('cut_light', 2200);
+    expect(r.kcalPerDay).toBe(-114);
+    expect(r.gramsPerWeek).toBe(-104);
+  });
+
+  it('donne un taux nul à Diet Break', () => {
+    expect(presetWeeklyRate('diet_break', 2200)).toEqual({ kcalPerDay: 0, gramsPerWeek: 0 });
+  });
+
+  it('donne un signe positif à la prise de masse', () => {
+    expect(presetWeeklyRate('bulk', 2200).kcalPerDay).toBeGreaterThan(0);
+  });
+
+  it('reste cohérent avec les cibles effectivement calculées', () => {
+    // Sous plancher, les cibles remontent : le taux doit suivre, pas rester figé.
+    const low = presetWeeklyRate('cut_strong', 1700);
+    const high = presetWeeklyRate('cut_strong', 2600);
+    expect(low.kcalPerDay).toBeGreaterThan(high.kcalPerDay);
+  });
+});
+
+describe('presetRateLabel', () => {
+  it('annonce le taux réel, pas le taux nominal', () => {
+    expect(presetRateLabel('cut_strong', 2200)).toBe('−257 kcal/j · perte ~234 g/sem');
+  });
+
+  it('qualifie de maintien un écart sous le bruit de mesure', () => {
+    expect(presetRateLabel('maintenance', 2000)).toContain('Maintien');
+    expect(presetRateLabel('diet_break', 2200)).toContain('Maintien');
   });
 });
 
