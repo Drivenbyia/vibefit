@@ -1,3 +1,4 @@
+import { KCAL_FLOOR } from '../constants/config.js';
 import { num } from '../utils/mathUtils.js';
 import { dayType } from '../models/day.js';
 
@@ -25,6 +26,6 @@ export function useDayMetrics(dateKey, day, targets) {
     computedKcal,
     macroDelta,
     showMacroWarning: intake > 0 && computedKcal > 0 && macroDelta > 100,
-    showUndereatAlert: intake > 0 && intake < 1600,
+    showUndereatAlert: intake > 0 && intake < KCAL_FLOOR,
   };
 }

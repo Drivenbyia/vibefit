@@ -1,7 +1,15 @@
+/**
+ * Clé de jour au format YYYY-MM-DD, en date LOCALE.
+ *
+ * L'ancienne implémentation (`setHours(12)` puis `toISOString()`) restait une
+ * date UTC avec 12 h de marge : correcte en Europe, décalée d'un jour au-delà
+ * de UTC+12 où midi local tombe la veille en UTC.
+ */
 export const toKey = (d) => {
   const x = new Date(d);
-  x.setHours(12, 0, 0, 0);
-  return x.toISOString().slice(0, 10);
+  const mm = String(x.getMonth() + 1).padStart(2, '0');
+  const dd = String(x.getDate()).padStart(2, '0');
+  return `${x.getFullYear()}-${mm}-${dd}`;
 };
 
 export const dayTypeFromKey = (key) => {

@@ -1,5 +1,5 @@
-import { DEFAULT_TARGETS, DEFAULT_STEPS_TARGET } from '../constants/config.js';
-import { DEFAULT_TDEE } from '../utils/presetUtils.js';
+import { DEFAULT_STEPS_TARGET } from '../constants/config.js';
+import { DEFAULT_TDEE, DEFAULT_TARGETS } from '../utils/presetUtils.js';
 import { exportBackup, importBackup } from '../utils/backupUtils.js';
 import { useTransientValue } from './useTransientValue.js';
 

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { DEFAULT_TARGETS } from '../constants/config.js';
+import { PROTEIN_FLOOR } from '../constants/config.js';
+import { DEFAULT_TARGETS } from '../utils/presetUtils.js';
 import { addDays, startOfWeek } from '../utils/dateUtils.js';
 import { num, calculateWeeklyBalance, calculateWeightStats } from '../utils/mathUtils.js';
 import { dayType } from '../models/day.js';
@@ -34,10 +35,22 @@ export function useWeekStats(dateKey, data, targets) {
   const { avgWeight, weightDelta, weightSeries } = calculateWeightStats(days);
 
   const macroTargets = {
-    protein: resolvedTargets.train?.protein ?? 160,
+    protein: resolvedTargets.train?.protein ?? PROTEIN_FLOOR,
     carbs: ((resolvedTargets.train?.carbs ?? 280) + (resolvedTargets.off?.carbs ?? 120)) / 2,
     fat: ((resolvedTargets.train?.fat ?? 70) + (resolvedTargets.off?.fat ?? 75)) / 2,
   };
+
+  // Plancher protéines évalué sur les 7 jours CALENDAIRES, pas sur les jours
+  // saisis. Une moyenne divisée par les jours saisis récompensait le logging
+  // sélectif : 3 jours loggés à 180 g masquaient le badge malgré 4 jours vides.
+  // Et un plancher QUOTIDIEN ne se contrôle pas par une moyenne — 220 g puis
+  // 100 g font 160 de moyenne et deux jours hors protocole.
+  const proteinFloor = resolvedTargets.train?.protein ?? PROTEIN_FLOOR;
+  const daysNotLogged = days.filter(({ day }) => !day || num(day.intake?.kcal) === 0).length;
+  const daysUnderProtein = days.filter(
+    ({ day }) =>
+      day && num(day.intake?.kcal) > 0 && num(day.intake?.protein) < proteinFloor
+  ).length;
 
   return {
     resolvedTargets,
@@ -50,5 +63,8 @@ export function useWeekStats(dateKey, data, targets) {
     weightDelta,
     weightSeries,
     macroTargets,
+    proteinFloor,
+    daysUnderProtein,
+    daysNotLogged,
   };
 }

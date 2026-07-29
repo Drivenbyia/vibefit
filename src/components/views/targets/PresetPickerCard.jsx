@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { PALETTE, PRESETS } from '../../../constants/config.js';
+import { presetRateLabel } from '../../../utils/presetUtils.js';
 import Card from '../../ui/Card.jsx';
 
 export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApplyPreset }) {
@@ -51,7 +52,12 @@ export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApp
               }}
             >
               <span style={{ fontSize: 13, fontWeight: 700 }}>{p.label}</span>
-              <span style={{ fontSize: 10, opacity: 0.75, lineHeight: 1.3 }}>{p.sub}</span>
+              {/* Taux calculé depuis les cibles réelles — les jours sans cible
+                  (week-end) diluent le déficit et sont pris en compte. */}
+              <span className="vf-tabular" style={{ fontSize: 10, fontWeight: 700, opacity: 0.9 }}>
+                {presetRateLabel(id, baseTDEE)}
+              </span>
+              <span style={{ fontSize: 10, opacity: 0.7, lineHeight: 1.3 }}>{p.sub}</span>
             </button>
           );
         })}

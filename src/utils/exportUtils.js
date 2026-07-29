@@ -1,4 +1,3 @@
-import { STORAGE_KEY } from '../constants/config.js';
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 
@@ -29,36 +28,30 @@ function formatDay(key, day) {
   return `- **${label}** : ${parts.join(' | ')}`;
 }
 
-export function getHistoricalWeeks(n = 8) {
-  let stored = { days: {} };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) stored = JSON.parse(raw);
-  } catch (_) {
-    // localStorage indisponible ou JSON corrompu
-  }
-  const days = stored.days ?? {};
+export function getHistoricalWeeks(data, n = 8) {
+  const days = data?.days ?? {};
 
   // Date locale (cohérente avec les clés de saisie) — pas la date UTC
   const today = toKey(new Date());
   const currentWeekStart = startOfWeek(today);
 
-  const signals = extractSignals();
+  const signals = extractSignals(data);
   const tdeeStr = signals.adaptiveTDEE !== null
     ? `${signals.adaptiveTDEE} kcal`
-    : 'N/A (données < 14j)';
-  const trendStr = signals.weightTrend14d !== null
-    ? `${signals.weightTrend14d >= 0 ? '+' : ''}${signals.weightTrend14d} kg`
+    : 'N/A (recouvrement poids × apport insuffisant)';
+  const trendStr = signals.weightTrendPerWeek !== null
+    ? `${signals.weightTrendPerWeek >= 0 ? '+' : ''}${signals.weightTrendPerWeek} kg/sem`
     : 'N/A';
   const intakeStr = signals.avgIntake !== null ? `${signals.avgIntake} kcal` : 'N/A';
-  const confidenceStr = `${signals.confidence}%`;
+  const confidenceStr = `${signals.confidence}% (${signals.overlapDays} j croisés)`;
 
   const periodStr =
     signals.windowStart && signals.windowEnd
-      ? `${signals.windowStart} → ${signals.windowEnd}`
+      ? `${signals.windowStart} → ${signals.windowEnd}` +
+        (signals.windowAgeDays > 7 ? ` ⚠ fenêtre vieille de ${signals.windowAgeDays} j` : '')
       : 'N/A';
   const header =
-    `⚡ TDEE adaptatif : ${tdeeStr} | Tendance poids 14j : ${trendStr}` +
+    `⚡ TDEE adaptatif : ${tdeeStr} | Tendance poids : ${trendStr}` +
     ` | Confiance : ${confidenceStr} | Apport moyen : ${intakeStr}` +
     ` | Période : ${periodStr}`;
 

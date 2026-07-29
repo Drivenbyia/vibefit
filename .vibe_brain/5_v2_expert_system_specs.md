@@ -24,48 +24,76 @@
 
 | Champ | Type | Description |
 |---|---|---|
+> Signature : `extractSignals(data)` — le state est **injecté**, la fonction ne lit plus `localStorage` (testabilité).
+
+| Champ | Type | Description |
+|---|---|---|
 | `smoothedWeight` | `number \| null` | Poids lissé (moyenne mobile 7j sur les 7 derniers jours du scan 30j), kg, 2 décimales |
 | `adaptiveTDEE` | `number \| null` | TDEE calculé sur la fenêtre optimale (kcal/j). `null` si données insuffisantes |
-| `weightTrend14d` | `number \| null` | Variation de poids lissée sur la fenêtre optimale (kg). `null` si < 7j de données |
+| `weightTrendPerWeek` | `number \| null` | Pente de poids en **kg/semaine** (OLS). `null` si < 2 points |
 | `avgIntake` | `number \| null` | Apport moyen journalier sur la fenêtre optimale, jours saisis uniquement (kcal) |
-| `confidence` | `number` | Densité de données 0–100 % `(weightPoints + intakePoints) / (2 × size)` |
-| `hasEnoughData` | `boolean` | `true` si ≥ 7 entrées poids ET ≥ 7 jours d'apport sur la fenêtre |
+| `confidence` | `number` | Recouvrement poids × apport 0–100 % : `overlapDays / size` |
+| `hasEnoughData` | `boolean` | `true` si `overlapDays ≥ 10` sur la fenêtre |
+| `overlapDays` | `number` | Jours avec poids **ET** apport saisis sur la fenêtre |
+| `interpolatedCount` | `number` | Poids reconstruits par interpolation sur la fenêtre |
 | `windowStart` | `string \| null` | Date ISO de début de la fenêtre retenue (ex: `"2026-05-10"`) |
 | `windowEnd` | `string \| null` | Date ISO de fin de la fenêtre retenue (ex: `"2026-05-23"`) |
+| `windowAgeDays` | `number` | Ancienneté de `windowEnd` par rapport à aujourd'hui |
 
 ### Algorithme mathématique — Sliding Window
 
 ```
 1. Scan de l'historique sur HISTORY_SCAN_DAYS = 30 jours (J-29 → J0)
-2. Sélection de la fenêtre optimale par Data Quality Score :
-   - Pour chaque sous-fenêtre de 14j (N-14+1 candidats) :
-       score = count(jours où poids ≠ null ET intake ≠ null)
+2. Rejet des valeurs aberrantes :
+   - Bornes de plausibilité : poids ∈ [30, 300] kg, apport ∈ [500, 8000] kcal
+   - Saut j/j impossible : |Δpoids| > 2 kg × joursÉcoulés → rejeté
+   - Test BILATÉRAL : un point n'est écarté que s'il est en désaccord avec TOUS
+     ses voisins connus. Un vrai changement de palier reste cohérent avec son
+     successeur et survit ; un test unilatéral rejetterait en cascade.
+3. Sélection de la fenêtre optimale par Data Quality Score :
+   - Pour chaque sous-fenêtre de 14j : overlap = count(poids ≠ null ET intake ≠ null)
+   - score = overlap − ancienneté(jours) × 0.25   (pénalité de récence)
    - Retient le score maximum ; en cas d'égalité → fenêtre la plus récente
    - Dégradation gracieuse : si total < 14j → size = n réel (pas de crash)
-3. Interpolation des poids manquants (sur l'historique complet 30j) :
-   - Gap entre deux valeurs connues → interpolation linéaire
-   - Queue sans valeur connue → propagation de la dernière valeur connue
-   - Si aucune valeur → null (pas de signal)
-4. Moyenne mobile 7j (fenêtre centrée ±3j) sur la série interpolée 30j
-5. Poids lissé courant = moyenne des 7 derniers smoothed (J-6 → J0)
-6. Tendance sur la fenêtre optimale :
-   - Première moitié vs seconde moitié des entrées lissées de la fenêtre
-   - weightTrend14d = avgSecondHalf - avgFirstHalf
+4. Interpolation des poids manquants (sur l'historique complet 30j) :
+   - Gap ENTRE DEUX valeurs connues → interpolation linéaire
+   - Têtes et queues sans mesure → restent `null`. AUCUNE propagation à plat :
+     remplir à plat amortit la tendance et tire le TDEE vers l'apport moyen.
+5. Moyenne mobile 7j (fenêtre centrée ±3j) — sert UNIQUEMENT à `smoothedWeight`,
+   la valeur affichée. Poids lissé courant = moyenne des 7 derniers (J-6 → J0).
+6. Tendance sur la fenêtre optimale — régression des moindres carrés :
+   - olsSlope sur les poids INTERPOLÉS (pas lissés), x = index réel dans la fenêtre
+   - Pré-lisser avant de régresser biaise la pente : la moyenne mobile est tronquée
+     aux bords, aplatit les derniers points et sous-estime la pente de ~42 kcal/j.
+   - weightTrendPerWeek = slopeKgPerDay × 7
 7. TDEE adaptatif :
-   - dailyImbalance = (weightTrend14d × 7700) / size
-   - adaptiveTDEE = avgIntake - dailyImbalance
+   - adaptiveTDEE = avgIntake − slopeKgPerDay × 7700
+   - La pente est en kg/JOUR : aucune division par la taille de fenêtre.
    - 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes)
-8. Confidence = (weightPoints + intakePoints) / (2 × size) × 100
+8. Confidence = overlapDays / size × 100
 ```
+
+> ⚠️ **Régression historique à ne jamais réintroduire.** L'implémentation initiale
+> calculait la tendance par différence de demi-moyennes puis divisait par `size`
+> (14). L'écart entre les centroïdes des deux moitiés vaut `size / 2` = 7 jours :
+> le déséquilibre journalier était donc divisé par deux. Sur une série synthétique
+> à TDEE réel 2550 kcal/j, la formule retournait **2259** — une erreur systématique
+> de 291 kcal/j. Couvert par `src/utils/__tests__/adaptiveTDEE.test.js`.
 
 ### Seuils de fiabilité
 
 | Condition | Comportement |
 |---|---|
-| `weightPoints < 7` | `adaptiveTDEE = null`, `confidence < 50` |
-| `intakePoints < 7` | `adaptiveTDEE = null` |
-| `< 14j de données totales` | Fallback sur estimation de base — `hasEnoughData = false` |
-| Toutes valeurs nulles | `smoothedWeight = null`, `weightTrend14d = null` |
+| `overlapDays < 10` | `adaptiveTDEE = null`, `hasEnoughData = false` |
+| Aucune pesée à portée du lissage (±3j) | `smoothedWeight = null` |
+| `windowAgeDays > 7` | TDEE publié mais fenêtre signalée comme ancienne dans l'export |
+| Toutes valeurs nulles | Tous les signaux `null`, `confidence = 0`, aucune exception |
+
+> Le recouvrement remplace les deux compteurs indépendants de 7. L'équation de
+> bilan énergétique croise poids et apport : deux séries de 7 jours disjointes ne
+> valident rien, et extrapoler `avgIntake` (calculé sur les jours saisis) à toute
+> la fenêtre reproduit exactement le biais de sous-déclaration que le protocole
+> anti-rationalisation doit empêcher.
 
 ---
 
@@ -74,11 +102,12 @@
 La première ligne du Markdown exporté par `getHistoricalWeeks()` doit être :
 
 ```
-⚡ TDEE adaptatif : {tdee} kcal | Tendance poids 14j : {weightTrendChange} kg | Confiance : {confidence}% | Apport moyen : {avgIntake} kcal | Période : {windowStart} → {windowEnd}
+⚡ TDEE adaptatif : {tdee} kcal | Tendance poids : {weightTrendPerWeek} kg/sem | Confiance : {confidence}% ({overlapDays} j croisés) | Apport moyen : {avgIntake} kcal | Période : {windowStart} → {windowEnd}
 ```
 
-- Si `adaptiveTDEE` est `null` → afficher `N/A (données < 14j)`
-- Si `weightTrend14d` est `null` → afficher `N/A`
+- Si `adaptiveTDEE` est `null` → afficher `N/A (recouvrement poids × apport insuffisant)`
+- Si `weightTrendPerWeek` est `null` → afficher `N/A`
+- Si `windowAgeDays > 7` → suffixer la période par `⚠ fenêtre vieille de {n} j`
 - Si `windowStart`/`windowEnd` sont `null` → afficher `N/A`
 - Ligne vide après le header pour séparation visuelle
 
@@ -98,16 +127,30 @@ La première ligne du Markdown exporté par `getHistoricalWeeks()` doit être :
 
 ## 5. Moteur d'Objectifs Dynamiques
 
-> **Principe :** Les cibles caloriques ne sont plus des constantes absolues codées en dur. Elles sont calculées dynamiquement à partir de `signals.adaptiveTDEE` au moment où l'utilisateur sélectionne un preset.
+> **Principe :** Les cibles caloriques ne sont plus des constantes absolues codées en dur. Elles sont indexées sur `data.baseTDEE`, que l'utilisateur peut **recalibrer explicitement** sur `signals.adaptiveTDEE`.
 
-### 5.1 Fallback de Sécurité
+### 5.1 Branchement OPT-IN — `useAdaptiveTargets`
+
+Décision produit : le TDEE mesuré **n'écrase jamais les cibles automatiquement**.
+`RecalibrateCard` affiche le TDEE mesuré, sa confiance et sa fenêtre ; un bouton
+applique la recalibration (`baseTDEE ← adaptiveTDEE`, puis `computePresetTargets`).
+
+La recalibration est bloquée, avec motif affiché, si :
+
+| Condition | Motif |
+|---|---|
+| `!hasEnoughData` | Recouvrement poids × apport insuffisant |
+| `adaptiveTDEE === baseTDEE` | Cibles déjà alignées |
+| `\|delta\| > 600 kcal` | Écart invraisemblable — saisie douteuse plutôt que dérive métabolique |
 
 ```
-Si signals.adaptiveTDEE === null
-  → base = 2000  (kcal/j — fallback universel, utilisateur sans historique)
-Sinon
-  → base = signals.adaptiveTDEE
+base = data.baseTDEE            (DEFAULT_TDEE = 2000 au premier lancement)
+recalibrer() → base = signals.adaptiveTDEE
 ```
+
+> `DEFAULT_TARGETS` est **dérivé** de `DEFAULT_TDEE` via `computePresetTargets`, et
+> vit dans `presetUtils.js` (le placer dans `config.js` créerait un cycle d'import).
+> L'ancien littéral train 2400 / off 1900 n'était sur la courbe d'aucun TDEE unique.
 
 ### 5.2 Formules par Preset
 
@@ -125,11 +168,22 @@ Sinon
 
 ### 5.4 Seuils Absolus Non Négociables
 
-| Seuil | Valeur | Contexte |
-|---|---|---|
-| Plancher calorique | `1600 kcal` | Appliqué via `Math.max(1600, …)` dans Sèche Légère OFF |
-| Alerte sous-alimentation | `< 1600 kcal saisis` | Affichée dans `TodayView` si `intake > 0 && intake < 1600` |
-| Fallback TDEE manquant | `2000 kcal` | Activé si `signals.adaptiveTDEE === null` |
+Constantes centralisées dans `src/constants/config.js` — aucun littéral dispersé.
+
+| Seuil | Constante | Valeur | Contexte |
+|---|---|---|---|
+| Plancher calorique | `KCAL_FLOOR` | `1600` | Appliqué à OFF, **puis TRAIN relevé du même montant** pour préserver l'écart de cyclage |
+| Plancher protéines | `PROTEIN_FLOOR` | `160` | `clampTargetField` — TOUS les types de jour, week-end compris |
+| TDEE de base minimal | `MIN_BASE_TDEE` | `1800` | `= KCAL_FLOOR + 200`. Remplace l'ancien `1400`, injustifié |
+| Écart de cyclage | `MIN_CYCLE_GAP` | `400` | TRAIN − OFF ; `0` pour Diet Break uniquement |
+| Alerte sous-alimentation | `KCAL_FLOOR` | `1600` | `TodayView` si `intake > 0 && intake < KCAL_FLOOR` |
+| Fallback TDEE manquant | `DEFAULT_TDEE` | `2000` | Premier lancement, sans historique |
+
+> ⚠️ **Régression à ne jamais réintroduire.** Clamper TRAIN et OFF indépendamment
+> faisait s'effondrer le cyclage : un TDEE de 1400 donnait `TRAIN = OFF = 1600`,
+> supprimant la prémisse centrale du protocole sans aucun avertissement. Le
+> plancher s'applique à OFF, puis TRAIN est relevé pour conserver l'écart nominal
+> du preset. Couvert par `presetUtils.test.js` sur toute la plage 1000–3000 kcal.
 
 ---
 
@@ -221,6 +275,56 @@ notes.toLowerCase().includes("chantier")
 notes?.toLowerCase().includes("chantier") ?? false
 (notes ?? "").toLowerCase().includes("chantier")
 ```
+
+---
+
+## 11. Protocole Anti-Rationalisation — `src/utils/plateauProtocol.js`
+
+> **Périmètre strictement DIAGNOSTIQUE.** Ce module publie un statut et ne modifie
+> aucune cible. Les actions R2–R6 restent gelées jusqu'au backtesting (§9).
+
+`diagnose({ signals, weeklyHistory })` — fonction pure. `weeklyHistory` vient de
+`computeWeeklyHistory(data, targets, n)` (`mathUtils.js`), de la plus ancienne à
+la plus récente.
+
+### Ordre d'évaluation
+
+```
+1. Porte de DONNÉES     → INSUFFICIENT_DATA           (reprend R1, priorité 100)
+2. Porte d'ADHÉRENCE    → LOW_ADHERENCE
+3. Rétention d'eau      → WATER_RETENTION_SUSPECTED   (reprend R6, bloque le plateau)
+4. Croisement triple    → PLATEAU_CONFIRMED
+5. Sinon                → PROGRESSING
+```
+
+**La porte d'adhérence est le cœur du protocole** : un écart de saisie ne doit
+jamais pouvoir se présenter comme un plateau métabolique. Elle bloque avant tout
+diagnostic si `confidence < 70 %` ou si une semaine évaluée est sous 5 j saisis.
+
+Un plateau n'est confirmé que si les **trois** signaux sont stables simultanément :
+poids lissé, TDEE hebdomadaire implicite, et adhérence.
+
+### Seuils et justification
+
+| Constante | Valeur | Justification |
+|---|---|---|
+| `ADHERENCE_MIN_DAYS` | `5` j/7 | En deçà, la moyenne hebdo n'est plus représentative |
+| `ADHERENCE_MIN_CONFIDENCE` | `70` % | Recouvrement poids × apport sur la fenêtre TDEE |
+| `PLATEAU_MIN_WEEKS` | `3` | Durée minimale pour que les variations d'eau se moyennent |
+| `PLATEAU_WEIGHT_NOISE_KG` | `0.3` kg/sem | Bruit de rétention hydrique normal |
+| `PLATEAU_TDEE_DRIFT_KCAL` | `100` | Marge d'erreur résiduelle de l'OLS sur 14 points |
+| `WAIST_NOISE_CM` | `1` | Le tour de taille se mesure à ±0.5 cm près |
+
+> Remplace le trigger R4 `waistBlockedWeeks >= 3`, qui ne croisait que le tour de
+> taille, n'était calculé nulle part, n'était justifié par rien, et agissait
+> (−100 kcal) sans vérifier l'adhérence.
+
+### Semaine en cours
+
+`computeWeeklyHistory` expose `elapsedDays`. `diagnose` **écarte la semaine
+courante** (`elapsedDays < 7`). Sans cela, un mercredi (3 jours écoulés sur 7)
+déclenchait `LOW_ADHERENCE` malgré un logging parfait — visible du lundi au jeudi
+par tout utilisateur. Couvert par `plateauProtocol.test.js`.
 
 ---
 
