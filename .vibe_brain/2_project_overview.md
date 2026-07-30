@@ -6,34 +6,53 @@ last_updated: 2026-07-30
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🎨 Direction artistique figée — « Millimétré », persistée dans `DESIGN.md`**
+- **Phase : 🎨 Direction artistique figée — « Signal » (dark, glow, référence Whoop), persistée dans `DESIGN.md`**
 - Branche active : `claude/design-system-setup-shx5ot`
 - **Suite de tests : Vitest, 96 tests** — `npm test`
 
-### Session 2026-07-30 — Re-direction visuelle
-`DESIGN.md` à la racine est désormais la **mémoire de direction artistique** du
-repo : document prescriptif, à relire avant toute tâche UI sans redemander la
-direction. Détail de la décision dans `4_business_decisions.md`, récit de session
-dans `3_dev_journal.md`.
+### Session 2026-07-30 (suite) — Rejet de « Millimétré », re-direction « Signal »
+Premier rendu de « Millimétré » jugé « triste et froide » par le développeur,
+référence donnée : Whoop. `DESIGN.md` **réécrit en totalité** (pas complété) —
+c'est un vocabulaire visuel opposé, pas une variante de couleurs. Détail dans
+`4_business_decisions.md`, récit dans `3_dev_journal.md`.
+
+- **Palette** : presque noire (`bg #0A0B0D`, `surface #16181B`) + états saturés
+  qui **glowent** — `deep` vert `#2FEA7A` (dans la cible), `warn` amber
+  `#FFB020` (manque), `alert` rouge `#FF4D5E` (hors bornes), rampe catégorielle
+  blue/purple. Nouveau helper `glow(hex, size)` dans `config.js`.
+- **`PALETTE.ink`/`PALETTE.surface` inversent de luminance** par rapport à
+  l'ancienne palette (ink : quasi-noir → quasi-blanc). Les 9 sites qui
+  utilisaient `color: PALETTE.surface` comme raccourci « texte clair sur fond
+  sombre » ont été réaudités un par un (pas de sed global) et routés vers le
+  nouveau token `inkSoft` — un remplacement mécanique les aurait rendus
+  illisibles sans qu'aucun test ne le révèle.
+- **Signature** : la « règle graduée » (bouts droits, encoche gravée) devient
+  une **piste/anneau lumineux** à bouts ronds (`strokeLinecap: round`,
+  `borderRadius: 999`) qui glowe dans sa couleur d'état. `BalanceRing.jsx`
+  utilise un filtre SVG (`feGaussianBlur`) plutôt qu'un simple `box-shadow`
+  pour un glow net sur le tracé épais. Le **marqueur de cible** est la seule
+  pièce conservée de l'ancienne signature — propre à VibeFit (macros/calories
+  *contre* une cible), absent des cadrans Whoop (score continu sans cible).
+- **Layout** : rayons inversés — 0/2/3 (angles vifs) → 12–20px + 999 (rond
+  complet). Cartes remontées à 20px, contrôles à 12px.
+- Vérifié : 96/96 tests, build OK, contraste AA recalculé sur toute la
+  palette (dont les paires texte-sur-remplissage-saturé — piège identifié :
+  `ink` sur `alert` échoue à 2.94:1, d'où `inkSoft`), cibles tactiles ≥44px
+  reconfirmées, zéro erreur console (Playwright, 3 écrans).
+
+### Session 2026-07-30 — Re-direction visuelle « Millimétré » (superseded le jour même)
+`DESIGN.md` à la racine est devenu la **mémoire de direction artistique** du
+repo — ce principe survit au changement de direction ci-dessus, le contenu non.
 
 - **Deux interdits levés** : le fond crème `#F6F2EC` + accent orange `#FF5A1F`
   (pairing crème/terracotta refusé) et `Inter Tight` en police de corps.
-- **Palette** : gris froid (`paper #E8EBED`, `surface #F8FAFB`) + vert instrument
-  (`deep #0B6E4F`). `accent`/`accentDark` **supprimés**, leurs 37 sites routés
-  vers `deep`/`warn`/`alert`/`slate`/`ink`. Nouvelle règle à tenir : `warn` = un
-  **manque**, `alert` = **hors bornes** — un manque ordinaire n'est pas une alerte.
-  `tick` séparé de `line` (WCAG 1.4.11 : les graduations portent l'information).
-- **Typographie** : Archivo / IBM Plex Sans / IBM Plex Mono, **auto-hébergées**
-  (`public/fonts`, 8 woff2, 216 Ko, précachées par Workbox). Le `<link>` CDN et
-  les 2 règles `runtimeCaching` Google Fonts sont retirés — offline-first réel.
-- **Signature « règle graduée »** : plus aucune barre de progression remplie.
-  L'échelle court à 125 % de la cible, qui devient une **encoche** et non une fin
-  de course. `Bar.jsx` (linéaire) et `BalanceRing.jsx` (cadran). « Aujourd'hui »
-  est un cran `ink` lourd, pas une pastille colorée.
-- **Hygiène** : zéro `box-shadow` dans le projet, rayons ramenés à 0/2/3, zéro
-  couleur codée en dur hors `PALETTE`, cibles tactiles ≥ 44 px partout.
-- Vérifié : 96/96 tests, build OK, 19 paires de contraste conformes AA, 8 woff2
-  dans `sw.js`, zéro appel CDN dans le `dist`, zéro erreur console (Playwright).
+- `accent`/`accentDark` **supprimés** de `PALETTE`, leurs 37 sites routés
+  sémantiquement plutôt que remplacés en masse — ce réflexe (router site par
+  site plutôt que sed global dès qu'un token change de sens) a resservi
+  immédiatement à la session suivante.
+- Polices auto-hébergées (`public/fonts`, 8 woff2, 216 Ko, précachées par
+  Workbox) : ce choix n'a pas été remis en cause par le rejet de la palette et
+  reste en place tel quel.
 
 ### Session 2026-07-29 — Audit des calculs, 3 lots
 Commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
@@ -59,7 +78,7 @@ src/
   styles/
     fonts.css          — @font-face des 8 woff2 auto-hébergés (Archivo, IBM Plex Sans/Mono)
   constants/
-    config.js          — PALETTE (direction « Millimétré » — voir DESIGN.md), PRESETS,
+    config.js          — PALETTE (direction « Signal » — voir DESIGN.md), PRESETS,
                          STORAGE_KEY, seuils (KCAL_FLOOR, PROTEIN_FLOOR, MIN_BASE_TDEE,
                          MIN_CYCLE_GAP) et bornes de plausibilité du signal
   utils/
@@ -94,10 +113,10 @@ src/
   components/
     ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill,
                          Label, SectionLabel, FontStyles (affectation des 3 rôles typo),
-                         Bar (LA RÈGLE GRADUÉE — signature, échelle 125 % + encoche de cible)
+                         Bar (PISTE LUMINEUSE — signature, remplissage rond + glow + marqueur de cible)
     layout/            — Header, DayTypeSwitcher, BottomNav
     views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes
-      TodayView.jsx    + today/   (BalanceCard, BalanceRing = la règle refermée en cadran, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
+      TodayView.jsx    + today/   (BalanceCard, BalanceRing = la piste refermée en anneau lumineux, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
       WeekView.jsx     + week/    (WeekSummary, WeekCalendar, DiagnosisCard, NeatCard, NetBalanceCard, DayBar, KcalTrendCard, MacroBar, ProteinBadge, AveragesCard, KcalAverageRow, WaistCard, WeightCard, ReminderCard, ExportButton)
       TargetsView.jsx  + targets/ (PresetPickerCard, RecalibrateCard, StepsCard, TargetEditor, FooterCards)
       DataView.jsx     + data/    (BackupCard, DataInfoCards)

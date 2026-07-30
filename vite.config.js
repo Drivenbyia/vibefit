@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'VibeFit',
         short_name: 'VibeFit',
         description: 'Tracker quotidien de recomposition corporelle.',
-        theme_color: '#0F1419',
-        background_color: '#E8EBED',
+        theme_color: '#0A0B0D',
+        background_color: '#0A0B0D',
         display: 'standalone',
         start_url: '/',
         icons: [

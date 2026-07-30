@@ -21,7 +21,7 @@ export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApp
         {savedFlash && (
           <div className="vf-fadein" style={{
             fontSize: 11, fontWeight: 700, color: PALETTE.deep,
-            background: PALETTE.deepSoft, padding: '4px 8px', borderRadius: 3,
+            background: PALETTE.deepSoft, padding: '4px 8px', borderRadius: 12,
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
             <Check size={12} /> ENREGISTRÉ
@@ -44,10 +44,10 @@ export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApp
               className="vf-body"
               style={{
                 textAlign: 'left', padding: '12px',
-                background: active ? PALETTE.ink : PALETTE.paper,
-                color: active ? PALETTE.surface : PALETTE.ink,
+                background: active ? PALETTE.ink : PALETTE.bg,
+                color: active ? PALETTE.inkSoft : PALETTE.ink,
                 border: `1px solid ${active ? PALETTE.ink : PALETTE.line}`,
-                borderRadius: 3, cursor: 'pointer',
+                borderRadius: 12, cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', gap: 2,
               }}
             >

@@ -9,24 +9,23 @@ export default function Header({ dateKey, setDateKey, day, updateDay, targets })
   const today = toKey(new Date());
 
   const navButtonStyle = {
-    background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 3,
-    padding: 10, cursor: 'pointer', color: PALETTE.surface, display: 'flex',
+    background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 12,
+    padding: 10, cursor: 'pointer', color: PALETTE.ink, display: 'flex',
     minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center',
   };
 
   return (
     <div
       style={{
-        background: PALETTE.ink,
-        color: PALETTE.surface,
+        background: PALETTE.surface,
+        color: PALETTE.ink,
         padding: '20px 18px 16px',
-        borderRadius: 0,
-        borderBottom: `2px solid ${PALETTE.deep}`,
+        borderBottom: `1px solid ${PALETTE.line}`,
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
         <div className="vf-display" style={{ fontSize: 22, fontWeight: 900, letterSpacing: '-0.02em' }}>
-          VIBE<span style={{ color: PALETTE.deep }}>FIT</span>
+          VIBE<span style={{ color: PALETTE.deep, textShadow: `0 0 12px ${PALETTE.deep}88` }}>FIT</span>
         </div>
         <div className="vf-mono" style={{ fontSize: 11, opacity: 0.6 }}>
           {dateKey === today ? "AUJOURD'HUI" : 'JOURNAL'}
@@ -42,7 +41,7 @@ export default function Header({ dateKey, setDateKey, day, updateDay, targets })
           className="vf-body"
           style={{
             flex: 1, minHeight: 44, margin: '0 10px', background: 'transparent', border: 'none',
-            color: PALETTE.surface, fontSize: 15, fontWeight: 600, cursor: 'pointer',
+            color: PALETTE.ink, fontSize: 15, fontWeight: 600, cursor: 'pointer',
             textTransform: 'capitalize',
           }}
         >

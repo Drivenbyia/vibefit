@@ -582,3 +582,51 @@ données affiche l'échelle complète avec son encoche de cible et une valeur à
 zéro — l'instrument est calibré et en attente. L'échelle vide *est* le message.
 C'est documenté comme contrainte dans `DESIGN.md` pour éviter qu'une session
 future la remplace par un « aucune donnée » textuel.
+
+---
+
+## Session 2026-07-30 (suite) — Rejet de « Millimétré », re-direction « Signal » (Whoop)
+
+### Le retour
+Premier rendu de « Millimétré » montré au développeur : jugé « triste et
+froide », « aucun fun », pas une application moderne. Référence donnée :
+Whoop. Point notable — c'est le développeur lui-même qui avait orienté vers
+« Instrument de mesure » / palette froide au moment du choix de direction.
+Le retour n'était donc pas une incompréhension de brief mais un jugement porté
+sur le résultat *rendu*, que le round de questions textuelles en amont
+(3 directions décrites en préview markdown) n'avait pas permis d'anticiper.
+Leçon pour une prochaine fois : quand la preview d'une direction est du texte
+ASCII plutôt qu'un rendu réel, le risque de décalage entre l'intention validée
+et le résultat vécu reste entier tant que rien n'a tourné dans un navigateur.
+
+### Ce qui a été jeté et ce qui est resté
+`DESIGN.md` a été réécrit en totalité, pas complété — la nouvelle direction
+n'est pas une variante de couleurs de l'ancienne, c'est un vocabulaire visuel
+opposé point par point : bouts de tracé `butt` → `round`, rayons `0/2/3` →
+`12–20/999`, graduations physiques → glow, fond clair → presque noir. Un seul
+élément a survécu intact : le **marqueur de cible**. Ni Whoop ni aucun wearable
+de recovery n'en a besoin (leur anneau suit un score continu sans cible fixe),
+mais VibeFit suit des macros et des calories *contre* une cible — c'est ce qui
+rend l'app différente d'un clone Whoop plutôt qu'un décalque.
+
+### Le piège qu'un remplacement en masse aurait raté
+`PALETTE.ink` et `PALETTE.surface` changent de luminance entre les deux
+directions (ink : quasi-noir → quasi-blanc ; surface : quasi-blanc →
+quasi-sombre). Neuf sites utilisaient `color: PALETTE.surface` comme
+raccourci pour « texte clair sur fond sombre » dans l'ancienne palette
+(boutons pleins, cellule « aujourd'hui », pills actives). Un renommage
+mécanique aurait rendu ce texte illisible (texte sombre sur fond désormais
+sombre lui aussi) sans qu'aucun test ne le révèle — les tests ne couvrent ni
+couleur ni rendu. Chaque site a été réaudité individuellement et routé vers
+`inkSoft` (nouveau token : texte quasi-noir posé sur un remplissage saturé).
+
+### Vérification
+`npm test` 96/96 ✅ · `vite build` ✅ · contraste WCAG AA recalculé sur toute
+la nouvelle palette, y compris les paires texte-sur-remplissage-saturé
+(`inkSoft` sur `deep`/`warn`/`alert`/`slate` : 10 à 12.6:1 ; piège identifié et
+évité : `ink` — quasi-blanc — sur `alert` échoue à 2.94:1, d'où le choix
+d'`inkSoft` et non `ink` pour ce rôle) · cibles tactiles ≥44px reconfirmées
+après le passage aux nouveaux rayons · Playwright sur build de production,
+TodayView/WeekView/TargetsView : zéro erreur console, glow visible et
+cohérent avec l'état affiché (vert atteint, ambre sous la cible, rouge hors
+bornes) sur les trois écrans.

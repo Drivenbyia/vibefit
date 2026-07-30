@@ -16,11 +16,11 @@ body,
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Doit rester synchrone avec PALETTE.paper / PALETTE.ink (constants/config.js) :
+  /* Doit rester synchrone avec PALETTE.bg / PALETTE.ink (constants/config.js) :
      ces deux valeurs peignent le fond AVANT le montage de React, donc elles ne
      peuvent pas venir du token JS. */
-  background: #e8ebed;
-  color: #0f1419;
+  background: #0a0b0d;
+  color: #f2f4f6;
   font-family: 'IBM Plex Sans', sans-serif;
   text-rendering: optimizeLegibility;
   /* Empêche le bounce iOS */

@@ -15,8 +15,8 @@ export default function MacrosCard({ day, dt, intake, computedKcal, macroDelta, 
       <Bar label="LIPIDES" value={num(day.intake.fat)} target={dt.fat} color={PALETTE.umber} />
       {showMacroWarning && (
         <div style={{
-          marginTop: 8, padding: '8px 10px', background: PALETTE.highlight,
-          borderRadius: 3, display: 'flex', alignItems: 'center', gap: 8,
+          marginTop: 8, padding: '8px 10px', background: PALETTE.alertSoft,
+          borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8,
           fontSize: 12, color: PALETTE.alert,
         }}>
           <AlertCircle size={14} />

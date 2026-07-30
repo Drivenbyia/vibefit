@@ -35,8 +35,8 @@ export default function RecalibrateCard({ signals, delta, canRecalibrate, blocke
               className="vf-body"
               style={{
                 marginTop: 12, width: '100%', padding: '11px',
-                background: PALETTE.ink, color: PALETTE.surface, border: 'none',
-                borderRadius: 3, cursor: 'pointer',
+                background: PALETTE.ink, color: PALETTE.inkSoft, border: 'none',
+                borderRadius: 12, cursor: 'pointer',
                 fontSize: 12, fontWeight: 700, letterSpacing: '0.06em',
               }}
             >

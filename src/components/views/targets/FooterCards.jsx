@@ -11,7 +11,7 @@ export function ResetCard({ onReset }) {
           width: '100%', padding: '14px',
           background: 'transparent', color: PALETTE.muted,
           border: `1px solid ${PALETTE.line}`,
-          borderRadius: 3, fontWeight: 700, fontSize: 13,
+          borderRadius: 12, fontWeight: 700, fontSize: 13,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           cursor: 'pointer',
         }}
@@ -26,9 +26,9 @@ export function ResetCard({ onReset }) {
 
 export function HelpCard() {
   return (
-    <Card style={{ background: PALETTE.highlight, borderColor: PALETTE.warn }}>
+    <Card style={{ background: PALETTE.warnSoft, borderColor: PALETTE.warn }}>
       <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.warn, borderRadius: 0 }} />
+        <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.warn, borderRadius: 3 }} />
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.warn, letterSpacing: '0.04em', marginBottom: 6, textTransform: 'uppercase' }}>
             Comment ça marche

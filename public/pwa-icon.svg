@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="48" fill="#0F1419"/>
-  <!-- La règle graduée : signature VibeFit (voir DESIGN.md) -->
-  <g stroke="#C2CBD1" stroke-width="18" fill="none">
-    <path d="M72 348h368"/>
-    <path d="M72 348v-80M128 348v-48M176 348v-48M224 348v-48M272 348v-80M368 348v-48M416 348v-48"/>
-  </g>
-  <!-- L'encoche de cible : le cran lourd -->
-  <path d="M320 372V168" stroke="#0B6E4F" stroke-width="40" fill="none"/>
+  <rect width="512" height="512" rx="112" fill="#0A0B0D"/>
+  <!-- L'anneau lumineux : signature VibeFit (voir DESIGN.md) -->
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#1E2124" stroke-width="44"/>
+  <circle
+    cx="256" cy="256" r="150" fill="none"
+    stroke="#2FEA7A" stroke-width="44" stroke-linecap="round"
+    stroke-dasharray="720 943" transform="rotate(-90 256 256)"
+  />
 </svg>

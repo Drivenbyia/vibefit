@@ -20,7 +20,7 @@ export default function ProteinBadge({ daysUnder, daysNotLogged, floor }) {
       gap: 4,
       padding: '3px 8px',
       marginBottom: 6,
-      background: PALETTE.highlight,
+      background: PALETTE.warnSoft,
       border: `1px solid ${PALETTE.warn}`,
       borderRadius: 2,
       fontSize: 10,

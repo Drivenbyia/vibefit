@@ -1,8 +1,9 @@
-import { PALETTE } from '../../../constants/config.js';
+import { PALETTE, glow } from '../../../constants/config.js';
 
 export default function MacroBar({ label, icon: Icon, value, target, color }) {
   const pct = target > 0 ? Math.min((value / target) * 100, 120) : 0;
   const isOver = pct > 108;
+  const fillColor = isOver ? PALETTE.alert : color;
 
   return (
     <div style={{ marginBottom: 14 }}>
@@ -20,12 +21,13 @@ export default function MacroBar({ label, icon: Icon, value, target, color }) {
           </span>
         </span>
       </div>
-      <div style={{ height: 5, background: PALETTE.paper, overflow: 'hidden' }}>
+      <div style={{ height: 6, background: PALETTE.surfaceRaised, borderRadius: 999, overflow: 'hidden' }}>
         <div style={{
           height: '100%',
           width: `${Math.min(pct, 100)}%`,
-          background: isOver ? PALETTE.alert : color,
-          
+          background: fillColor,
+          borderRadius: 999,
+          boxShadow: pct > 0 ? glow(fillColor, 8) : 'none',
           transition: 'width 0.5s cubic-bezier(.4,0,.2,1)',
         }} />
       </div>

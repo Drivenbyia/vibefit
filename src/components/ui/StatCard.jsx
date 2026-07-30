@@ -7,7 +7,7 @@ export default function StatCard({ label, value, unit, sub, colSpan = 1 }) {
         gridColumn: colSpan === 2 ? 'span 2' : 'auto',
         background: PALETTE.surface,
         border: `1px solid ${PALETTE.line}`,
-        borderRadius: 3,
+        borderRadius: 16,
         padding: 14,
       }}
     >

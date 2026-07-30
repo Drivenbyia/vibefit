@@ -43,7 +43,7 @@ export default function DayBar({ day, dayKey, target, isToday, onPress }) {
           width: '100%',
           height: barH,
           background: barColor,
-          borderRadius: 0,
+          borderRadius: '4px 4px 0 0',
           opacity: hasData ? 1 : 0.35,
           outline: isToday ? `2px solid ${PALETTE.ink}` : 'none',
           outlineOffset: 1,

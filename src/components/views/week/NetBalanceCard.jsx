@@ -17,8 +17,8 @@ export default function NetBalanceCard({ weekly, plannedTrain }) {
           <div
             key={label}
             style={{
-              background: PALETTE.paper,
-              borderRadius: 3,
+              background: PALETTE.bg,
+              borderRadius: 12,
               padding: '10px 8px',
               textAlign: 'center',
             }}

@@ -36,7 +36,7 @@ export default function IntakeCard({ day, updateDay, intake, showUndereatAlert }
       {showUndereatAlert && (
         <div style={{
           marginTop: 10, padding: '10px 12px', background: PALETTE.alertSoft,
-          borderRadius: 3, display: 'flex', alignItems: 'center', gap: 8,
+          borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8,
           fontSize: 12, color: PALETTE.alert, border: `1px solid ${PALETTE.alert}`,
         }}>
           <AlertCircle size={14} />

@@ -16,16 +16,16 @@ export default function WeekCalendar({ days, dateKey, setDateKey }) {
             key={key}
             onClick={() => setDateKey(key)}
             style={{
-              background: isToday ? PALETTE.ink : PALETTE.paper,
+              background: isToday ? PALETTE.ink : PALETTE.bg,
               border: `2px solid ${isToday ? PALETTE.ink : 'transparent'}`,
-              borderRadius: 3,
+              borderRadius: 12,
               padding: '8px 4px',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 4,
-              color: isToday ? PALETTE.surface : PALETTE.ink,
+              color: isToday ? PALETTE.inkSoft : PALETTE.ink,
             }}
           >
             <span className="vf-body" style={{ fontSize: 9, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase' }}>
@@ -35,7 +35,7 @@ export default function WeekCalendar({ days, dateKey, setDateKey }) {
               {key.slice(8, 10)}
             </span>
             <span style={{
-              width: 6, height: 6, borderRadius: 0,
+              width: 6, height: 6, borderRadius: 999,
               background: recorded ? dotColor : 'transparent',
               border: `1.5px solid ${dotColor}`,
             }} />

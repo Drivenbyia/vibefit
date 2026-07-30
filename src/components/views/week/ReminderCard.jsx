@@ -8,7 +8,7 @@ export default function ReminderCard({ presetId, netBalance, recordedDays }) {
   return (
     <Card style={{ background: PALETTE.deepSoft, borderColor: PALETTE.deep }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.deep, borderRadius: 0 }} />
+        <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.deep, borderRadius: 3 }} />
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.deep, letterSpacing: '0.04em', marginBottom: 6, textTransform: 'uppercase' }}>
             Rappel hebdo
