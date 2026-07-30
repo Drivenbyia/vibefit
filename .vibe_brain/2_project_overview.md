@@ -6,9 +6,27 @@ last_updated: 2026-07-30
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/design-system-setup-shx5ot`
+- **Phase : 🔍 Audit et mise en conformité de « Los Santos Dusk » — lot 0 (audit) livré, en attente d'arbitrage avant le lot 1**
+- Branche active : `claude/los-santos-dusk-audit-4mb0zj`
 - **Suite de tests : Vitest, 96 tests** — `npm test`
+
+### Session 2026-07-30 (suite 4) — Audit design, lot 0 : le bug du lot 1 ne se pose pas tel que décrit
+Rapport complet dans `AUDIT-design.md` (racine). Point le plus important : le
+brief supposait une architecture CSS avec custom properties (`.glow` +
+`var(--c)`) — le repo n'en a pas. `glow()`/`sticker()` sont des helpers JS
+dans `config.js` qui produisent du hex 8 chiffres (`#RRGGBBAA`), syntaxe CSS
+valide ; le halo s'affiche déjà. Appliquer le lot 1 tel qu'écrit introduirait
+un système de tokens CSS parallèle à `PALETTE` pour corriger un bug qui n'a
+pas cours ici — arbitrage demandé au développeur avant de continuer.
+
+Autres constats de l'audit : centralisation des couleurs déjà bonne (4 sites
+hors `config.js`, tous documentés) ; zéro `:focus-visible` dans tout le repo
+et deux `outline: none` sans remplacement (`NumberInput.jsx`, `NotesCard.jsx`) ;
+aucun overlay (modale/toast/drawer) n'existe encore ; 19 valeurs de
+`fontSize` et 16 d'espacement en dur, aucune échelle ; assets PWA incomplets
+(une seule icône SVG en `any maskable` combiné, pas de splash, pas d'image
+OG). Détail exhaustif chemin+ligne dans `AUDIT-design.md`. Aucune ligne de
+code applicative modifiée à ce stade (lot 0 = audit seul).
 
 ### Session 2026-07-30 (suite 3) — Refonte typographique : 5 rôles, sortie d'IBM Plex
 Le développeur a validé la DA mais demandé d'aller beaucoup plus loin sur les
