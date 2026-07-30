@@ -39,8 +39,8 @@ export default function WeightCard({ avgWeight, weightDelta, weightSeries }) {
           {weightDelta !== null && (
             <div style={{
               marginTop: 10, padding: '8px 10px',
-              background: weightDelta < 0 ? PALETTE.deepSoft : weightDelta > 0 ? PALETTE.alertSoft : PALETTE.paper,
-              borderRadius: 3, display: 'flex', alignItems: 'center', gap: 6,
+              background: weightDelta < 0 ? PALETTE.deepSoft : weightDelta > 0 ? PALETTE.alertSoft : PALETTE.bg,
+              borderRadius: 12, display: 'flex', alignItems: 'center', gap: 6,
             }}>
               {weightDelta < 0
                 ? <TrendingDown size={14} color={PALETTE.deep} strokeWidth={2.5} />

@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-    <!-- = PALETTE.ink : la barre système prolonge l'encre, pas un accent -->
-    <meta name="theme-color" content="#0F1419" />
+    <!-- = PALETTE.bg : la barre système se fond dans l'app, presque noire -->
+    <meta name="theme-color" content="#150F1A" />
     <meta name="description" content="VibeFit — Tracker quotidien de recomposition corporelle." />
 
     <!-- iOS: add to home screen -->
@@ -12,16 +12,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="VibeFit" />
 
-    <!-- Favicon: la règle graduée, encoche de cible en vert instrument
-         (signature — voir DESIGN.md). Inline SVG, zéro requête. -->
+    <!-- Favicon: le soleil couchant de Los Santos (signature — voir DESIGN.md).
+         Inline SVG, zéro requête. -->
     <link
       rel="icon"
       type="image/svg+xml"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='6' fill='%230F1419'/%3E%3Cg stroke='%23C2CBD1' stroke-width='2.5' fill='none'%3E%3Cpath d='M9 43h46'/%3E%3Cpath d='M9 43v-10M15 43v-6M21 43v-6M27 43v-6M33 43v-10M46 43v-6M52 43v-6'/%3E%3C/g%3E%3Cpath d='M40 46V21' stroke='%230B6E4F' stroke-width='5' fill='none'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23FF2E9A'/%3E%3Cstop offset='55%25' stop-color='%23FF6B4A'/%3E%3Cstop offset='100%25' stop-color='%23FFB627'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23150F1A'/%3E%3Ccircle cx='32' cy='33' r='17' fill='url(%23s)'/%3E%3Crect x='0' y='47' width='64' height='17' fill='%23150F1A'/%3E%3C/svg%3E"
     />
     <link
       rel="apple-touch-icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='0' fill='%230F1419'/%3E%3Cg stroke='%23C2CBD1' stroke-width='2.5' fill='none'%3E%3Cpath d='M9 43h46'/%3E%3Cpath d='M9 43v-10M15 43v-6M21 43v-6M27 43v-6M33 43v-10M46 43v-6M52 43v-6'/%3E%3C/g%3E%3Cpath d='M40 46V21' stroke='%230B6E4F' stroke-width='5' fill='none'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23FF2E9A'/%3E%3Cstop offset='55%25' stop-color='%23FF6B4A'/%3E%3Cstop offset='100%25' stop-color='%23FFB627'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='0' fill='%23150F1A'/%3E%3Ccircle cx='32' cy='34' r='17.5' fill='url(%23s)'/%3E%3Crect x='0' y='47' width='64' height='17' fill='%23150F1A'/%3E%3Cg fill='%23150F1A' transform='translate(32 47)'%3E%3Cpath d='M-0.8 5 Q-1.1 1 -0.3 -2.8 Q0.6 1 0.5 5 Z'/%3E%3Cpath d='M-0.3 -2.5 Q-3.8 -3.8 -5.3 -6.5 Q-1.8 -5.5 -0.3 -2.5 Z'/%3E%3Cpath d='M-0.3 -2.5 Q-2.5 -5.8 -2.3 -9.5 Q0.3 -6.3 -0.3 -2.5 Z'/%3E%3Cpath d='M-0.3 -2.5 Q0 -6.3 0 -9.8 Q1.8 -6.3 -0.3 -2.5 Z'/%3E%3Cpath d='M-0.3 -2.5 Q2.5 -5.8 2.3 -9.5 Q-0.3 -6.3 -0.3 -2.5 Z'/%3E%3Cpath d='M-0.3 -2.5 Q3.8 -3.8 5.3 -6.5 Q1.8 -5.5 -0.3 -2.5 Z'/%3E%3C/g%3E%3C/svg%3E"
     />
 
     <title>VibeFit — Recomposition</title>

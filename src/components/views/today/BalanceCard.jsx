@@ -6,7 +6,7 @@ import EnergyStat from './EnergyStat.jsx';
 export default function BalanceCard({ intake, expenditure, target }) {
   return (
     <Card>
-      <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
+      <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
         BILAN DU JOUR
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>

@@ -5,7 +5,20 @@
 > Il n'est pas descriptif mais **prescriptif** : si une proposition le contredit,
 > c'est la proposition qui change.
 
-Direction retenue : **« Millimétré »** — registre *instrument de mesure*.
+Direction retenue : **« Los Santos Dusk »** — San Andreas / Californie 90s /
+hip-hop West Coast / ciné 80s / streetwear actuel, assumé et sourcé
+explicitement par le développeur (référence nommée : GTA San Andreas).
+
+> Historique : deux directions précédentes ont été livrées et remplacées le
+> même jour. (1) « Millimétré » — claire, gris froid, registre instrument de
+> labo — rejetée au premier rendu, jugée triste. (2) « Signal » — reprise en
+> dark-first façon wearable de performance (référence Whoop) — pas rejetée
+> techniquement, mais le développeur a ensuite donné une référence culturelle
+> beaucoup plus spécifique et personnelle (son univers, pas une catégorie de
+> produit) : GTA San Andreas. Cette section **remplace entièrement** la
+> précédente. Ce qui survit d'une direction à l'autre, à chaque fois : le
+> système de tokens centralisé et la distinction état/décoration — pas les
+> couleurs, pas la typo, pas la signature visuelle elle-même.
 
 ---
 
@@ -14,217 +27,262 @@ Direction retenue : **« Millimétré »** — registre *instrument de mesure*.
 Ces points ne sont pas des préférences, ce sont des refus. Aucune exception.
 
 - **Polices** : jamais Inter (ni Inter Tight), Roboto, Arial, Space Grotesk, ni
-  police système par défaut. `system-ui` n'apparaît dans aucune pile.
-- **Palette** : jamais fond crème (#F4F1EA et voisins) + accent terracotta
-  (#D97757 et voisins) ; jamais dégradé violet/bleu sur fond blanc.
-- **Effets** : jamais de glassmorphism, de `backdrop-filter`, de spark lines, de
-  bordure d'accent en biseau, ni de card à ombre portée générique.
-  **Zéro `box-shadow` dans le projet** — la séparation se fait au filet 1px.
-- **Layout** : jamais « hero + 3 feature cards + dégradé ».
-- **Numérotation** 01/02/03 seulement si le contenu est réellement une séquence.
-
-> Historique : VibeFit violait deux de ces points jusqu'au 2026-07-30 (fond
-> `#F6F2EC` + accent `#FF5A1F`, et `Inter Tight` en police de corps). La
-> re-direction a supprimé les deux.
+  police système par défaut.
+- **Jamais de police graffiti / tag / bombe dans l'UI.** Refus explicite du
+  développeur, pas une préférence de style : ça abîme l'UI et l'UX. Trois
+  raisons qui tiennent quel que soit l'univers visuel — c'est illisible en
+  français accentué, ça crie l'intention au point de faire déguisement plutôt
+  que direction, et ça dégrade la lecture des données, qui est la fonction
+  même de l'app. La culture rue passe par le **traitement** (blackletter
+  contenu, chrome, capitales larges, patch sérigraphié), jamais par des
+  lettres décoratives illisibles. Ne pas rouvrir ce point.
+- **Palette** : jamais fond crème + accent terracotta ; jamais gris papier
+  froid façon carnet de labo (direction 1) ; jamais noir neutre de wearable
+  générique (direction 2) — le fond est **presque noir mais chaud**, teinté
+  violet de crépuscule, pas un gris/noir neutre.
+- **Contenu** : le brief cite « pornographie » dans une liste de références
+  culturelles (GTA SA, hip-hop, ciné 80s, streetwear). VibeFit est un tracker
+  nutritionnel — aucun contenu sexuel explicite n'y a sa place, quel que soit
+  le thème visuel. Ce qui est retenu de l'univers GTA SA ici est son
+  esthétique (couleurs, architecture, lettrage, culture rue), pas son
+  contenu adulte.
+- **Effets** : jamais de glassmorphism ni de `backdrop-filter`. Le **glow**
+  et l'**ombre dure décalée façon sticker** (`sticker()` dans `config.js`)
+  sont la signature de cette direction — à ne pas confondre avec l'ombre
+  portée générique floue et grise, toujours interdite.
+- **Layout** : jamais « hero + 3 feature cards + dégradé » générique.
 
 ---
 
-## 1. Palette
+## 1. Palette — Grove Street la nuit
 
-Le concept impose un gris **froid** : le grain d'un carnet de labo, jamais celui
-du kraft ou du papier recyclé. Source de vérité unique :
+Presque noir, mais **chaud** : un ciel de Los Santos au crépuscule, pas un
+gris/noir neutre de dashboard. Source de vérité unique :
 `src/constants/config.js` → `PALETTE`.
 
 ### Fonds & encre
 
 | Token | Hex | Rôle |
 |---|---|---|
-| `paper` | `#E8EBED` | fond de l'app |
-| `surface` | `#F8FAFB` | feuille surélevée — bordure 1px, **sans ombre** |
-| `highlight` | `#DDE3E6` | encart consultatif — papier recessé |
-| `ink` | `#0F1419` | texte, chiffres, **cran « aujourd'hui »** |
-| `inkSoft` | `#1C232A` | fonds inversés |
-| `muted` | `#56616B` | marginalia, labels |
-| `line` | `#C2CBD1` | bordures de séparation — décoratives |
-| `tick` | `#7C868D` | **graduations de la règle** |
+| `bg` | `#150F1A` | fond de l'app — nuit violette |
+| `surface` | `#241A26` | feuille surélevée — stuc éclairé au néon |
+| `surfaceRaised` | `#2E212F` | niveau au-dessus — inputs, éléments imbriqués |
+| `ink` | `#F7F0E8` | texte, chiffres — blanc chaud |
+| `inkSoft` | `#150F1A` | texte sur remplissage saturé (boutons/pills actifs) |
+| `muted` | `#A091A3` | marginalia, labels |
+| `line` | `#3D2C40` | bordures de séparation — décoratives |
+| `tick` | `#8A7A8D` | réservé si une future jauge a besoin de graduations |
 
-`line` et `tick` sont séparés à dessein. Les graduations *portent* l'information
-d'échelle : elles tombent sous WCAG 1.4.11 (contraste non-textuel ≥ 3:1). Une
-bordure de card n'est pas le seul indice de la limite du composant et peut donc
-rester légère. Ne pas refusionner ces deux tokens.
+`ink` et `inkSoft` sont quasi opposés. Un bouton/pill **actif** prend un fond
+saturé (couleur d'état ou `ink`) : son texte doit être `inkSoft`, jamais
+`ink`, sinon il disparaît sur son propre fond.
 
-### États — une couleur signifie un état, jamais une décoration
+### États — des couleurs de gang détournées en couleurs d'état
 
-| Token | Hex | Signifie |
-|---|---|---|
-| `deep` | `#0B6E4F` | **dans la cible** / atteint / marque VibeFit |
-| `deepSoft` | `#DCE9E3` | fond de l'état atteint |
-| `warn` | `#8A5A0B` | **en dessous de la cible** (un manque) |
-| `alert` | `#C6321E` | **hors bornes** (dépassement, erreur, perte de données) |
-| `alertSoft` | `#F9EDEA` | fond de l'état hors bornes |
+| Token | Hex | Signifie | Référence |
+|---|---|---|---|
+| `deep` | `#3FC94F` | **dans la cible** / atteint / marque VibeFit | Grove Street green |
+| `deepSoft` | `#132918` | fond badge, texte `deep` dessus | |
+| `warn` | `#FFB627` | **en dessous de la cible** (un manque) | Vagos gold |
+| `warnSoft` | `#2B2008` | | |
+| `alert` | `#FF3D68` | **hors bornes** (dépassement, erreur, perte de données) | néon coucher de soleil |
+| `alertSoft` | `#2B121A` | | |
 
-La distinction `warn` / `alert` est la règle la plus facile à casser et la plus
-importante à tenir : **un manque ordinaire n'est pas une alerte.** Colorer en
-vermillon des pas en retard ou une séance non faite dilue `alert` jusqu'à lui
-retirer toute valeur de signal. `alert` doit rester rare.
+Coïncidence exploitée, pas forcée : Grove Street (vert) est la faction du
+joueur dans GTA SA, ce qui rend « vert = bon/chez soi » doublement juste, pour
+l'état de la donnée ET pour la référence. `warn`/`alert` restent la règle la
+plus facile à casser : **un manque ordinaire n'est pas une alerte.**
 
 ### Rampe catégorielle — distingue des natures, pas des états
 
-| Token | Hex | Rôle |
-|---|---|---|
-| `slate` | `#2E5E8A` | jour OFF / glucides |
-| `umber` | `#5F5348` | lipides |
-
-`umber` est volontairement **désaturé**. Un brun saturé (l'ancien `#8A5A2B`) se
-confondait avec `alert` sur un filet de 4 px : à l'écran, « lipides » et
-« glucides en dépassement » devenaient le même objet. L'écart de saturation
-(ΔS = 0.61) est ce qui lève la confusion — ne pas resaturer.
+| Token | Hex | Rôle | Référence |
+|---|---|---|---|
+| `slate` | `#FF2E9A` | jour OFF / glucides | magenta synthwave, ciné 80s |
+| `umber` | `#B27CE8` | lipides | Ballas purple |
 
 La couleur n'est jamais porteuse seule : label, valeur et cible sont toujours
-écrits à côté (cf. `Bar.jsx`, `MacroBar.jsx`). C'est ce qui rend la rampe
-acceptable en déficience de vision des couleurs.
+écrits à côté (cf. `Bar.jsx`, `MacroBar.jsx`).
+
+### Dégradé décoratif — SUNSET
+
+```js
+export const SUNSET = 'linear-gradient(180deg, #241645 0%, #7A2D6B 55%, #FF7A3D 100%)';
+```
+
+**Réservé aux surfaces décoratives** (header, splash, halo). Jamais sous du
+texte hors de la bande sombre du haut (`#241645`) : au milieu et en bas, le
+contraste texte échoue l'AA (vérifié — `ink` sur le stop du bas : 2.29:1).
+Le header place tout son texte dans la bande sombre et laisse le dégradé
+« ouvrir » vers le bas, en zone purement décorative (silhouette, pas de texte).
 
 ### Contraste
 
 Toutes les paires utilisées passent **WCAG AA** (contrainte non négociable du
-`1_project_bible.md`) : `ink`/`paper` 15.46:1, `muted`/`paper` 5.29:1,
-`deep`/`surface` 5.97:1, `warn`/`highlight` 4.57:1, `alert`/`alertSoft` 4.73:1,
-`tick`/`surface` 3.55:1. Toute nouvelle paire doit être vérifiée avant d'entrer.
+`1_project_bible.md`), y compris les textes sur remplissage saturé (`inkSoft`
+sur `deep`/`warn`/`alert`/`slate` : 5.5 à 10.7:1). `umber` (Ballas purple) a
+été éclairci jusqu'à `#B27CE8` précisément pour passer l'AA en texte — un
+violet plus proche du violet de gang réel dans le jeu échouait à 4.04:1.
+Toute nouvelle couleur d'état doit être vérifiée avant d'entrer.
 
 ---
 
-## 2. Typographie
+## 2. Typographie — le cœur de la direction
 
-Trois rôles, trois familles. Affectation dans
+**Cinq rôles.** C'est ici que l'ADN hip-hop LA se joue vraiment : une palette
+peut évoquer un univers, seul le lettrage l'incarne. Affectation dans
 `src/components/ui/FontStyles.jsx`, `@font-face` dans `src/styles/fonts.css`.
 
-| Classe | Famille | Rôle |
-|---|---|---|
-| `.vf-display` | **Archivo** 700/900 | chiffres-vedettes, titres de cadran |
-| `.vf-body` | **IBM Plex Sans** 400/600 | corps, labels, interface |
-| `.vf-mono` | **IBM Plex Mono** 500/600 | données, ratios, valeurs relevées |
+| Classe | Famille | Rôle | Référence |
+|---|---|---|---|
+| `.vf-gothic` | **UnifrakturCook** 700 | wordmark, nom de preset, date de semaine | blackletter LA — *The Chronic*, Cypress Hill, plaques lowrider, tatouage chicano |
+| `.vf-hero` | **Anton** 400 | gros chiffres | poster condensé — flyers, jaquettes West Coast |
+| `.vf-display` | **Archivo Black** 400 | capitales tracées (labels, titres de carte) | flocage de maillot, box logo streetwear |
+| `.vf-body` | **Barlow** 400/600/700 | tout le texte lisible | grotesque de signalétique, faible contraste |
+| `.vf-mono` | **Azeret Mono** var. | données tabulaires | mono brutaliste |
 
-`.vf-tabular` (`font-variant-numeric: tabular-nums`) est **obligatoire** sur
-toute valeur qui change dans le temps : sans elle les chiffres dansent d'un
-rendu à l'autre et l'app cesse de ressembler à un instrument.
+> **IBM Plex Sans/Mono ont été retirées.** C'était un reliquat de la première
+> direction (« instrument de labo ») qui avait survécu à deux re-directions :
+> la police corporate d'IBM composait encore tout le texte réellement lisible
+> d'une app d'ADN californien. C'est le plus gros écart qui restait entre la
+> palette et le lettrage.
 
-**Polices auto-hébergées.** Elles sont servies depuis `/fonts` (8 fichiers
-woff2, sous-ensembles latin + latin-ext, 216 Ko) et précachées par Workbox.
-Aucun appel CDN au chargement : un CDN laisserait l'app retomber sur la police
-système au premier lancement hors réseau, ce qui casse à la fois
-« offline-first » et l'interdit typographique. **Ne pas réintroduire de `<link>`
-Google Fonts dans `index.html`.**
+### Règles dures
 
-**Échelle en usage** (px) : 9 · 10 · 11 · 12 · 13 · 14 · 16 · 18 · 22 · 30 · 32.
-Le bas de l'échelle (9–11) est réservé aux labels capitales tracées ; le haut
-(22–32) aux chiffres-vedettes en `.vf-display`. Pas de taille intermédiaire
-nouvelle sans raison.
+- **Blackletter (`.vf-gothic`) : casse mixte, ≥16px, chaînes courtes.**
+  Jamais en capitales — « VIBEFIT » en textura est un mur illisible ; le
+  wordmark est donc « VibeFit ». Jamais en texte courant. **Trois
+  emplacements autorisés** : le wordmark, le nom de preset
+  (`PresetPickerCard`), la date de semaine (`WeekSummary`). En ajouter un
+  quatrième demande de vérifier la longueur — testé jusqu'à
+  « Diet Break (Vacances) » (21 caractères, 216 px à 25px, tient sur une
+  ligne).
+- **Anton et Archivo Black n'ont qu'une graisse réelle (400).** Ne jamais
+  leur passer un `fontWeight` inline : le navigateur synthétiserait un faux
+  gras par-dessus une fonte déjà noire, ce qui bave. Les deux classes forcent
+  `font-weight: 400`, et comme un style inline gagne toujours sur une classe,
+  la règle est de **ne pas écrire de `fontWeight`** sur un élément portant
+  `.vf-hero` ou `.vf-display`.
+- **Archivo Black est large.** Le remplacer sur un libellé existant peut le
+  faire déborder. Cas réel : la légende centrale de `BalanceRing`
+  (« SOUS LA CIBLE », le libellé le plus long possible) passait de 92 px de
+  passage libre à 101 px de texte et mordait sur l'arc — redimensionnée à
+  `fontSize: 9` / `letterSpacing: 0.05em` (82.9 px). Mesurer avant de
+  substituer.
+- **Pas de police graffiti/tag** — voir §0, c'est un refus ferme et non un
+  arbitrage typographique. Le blackletter porte la culture rue sans sacrifier
+  la lecture ; c'est le seul véhicule autorisé pour ça.
+- `.vf-tabular` reste obligatoire sur toute valeur qui change dans le temps.
+
+### Lettrage chromé — `.vf-chrome`
+
+Dégradé argent clippé sur le texte (`background-clip: text`), appliqué au
+« Vibe » du wordmark : le chrome sur coucher de soleil, c'est la plaque de
+club lowrider. « Fit » reste en vert Grove Street pour garder l'accent de
+marque.
+
+Le fallback compte : sans garde, un navigateur sans `background-clip: text`
+afficherait du texte transparent, donc **invisible**. La couleur pleine
+(`#EFE7DC`) est la valeur par défaut et n'est retirée que dans un
+`@supports`. Contraste vérifié sur la bande haute du header (`#241645`) :
+tous les stops du dégradé passent l'AA texte normal, le plus sombre
+(`#9C93A8`) à 5.61:1, et le fallback à 13.43:1.
+
+**Polices auto-hébergées** : 13 fichiers woff2, sous-ensembles latin +
+latin-ext, 276 Ko, précachées par Workbox. UnifrakturCook n'existe qu'en
+`latin` chez Google — suffisant, ce sous-ensemble couvre U+0000-00FF donc
+tous les accents français. **Ne pas réintroduire de `<link>` Google Fonts
+dans `index.html`.**
 
 ---
 
-## 3. Layout
+## 3. Layout & motifs
 
-**Concept en une phrase** : l'app est le relevé papier d'un instrument calibré —
-une pile de feuilles à filet, sur laquelle chaque mesure repose sur une échelle
-graduée partagée.
+**Concept en une phrase** : la jaquette du jeu, jamais le dashboard — un
+horizon de coucher de soleil en haut d'écran, un canvas de nuit violette
+en dessous, des données qui glowent comme des néons.
 
-Rayons : **0 / 2 / 3 uniquement**. Une card à `borderRadius: 14` est hors
-direction — elle ramène l'app vers le défaut mou générique.
+- **Header** (`Header.jsx`) : fond `SUNSET`, wordmark en blackletter chromé
+  (`.vf-gothic` + `.vf-chrome`, voir §2), et une **skyline** décorative
+  (silhouette d'immeubles bas + palmiers, composant `Skyline`) découpée sur la
+  bande basse du dégradé. C'est la pièce la plus identifiable de cette
+  direction — l'écho direct du loading screen GTA SA.
+- **Icône/favicon** (`public/pwa-icon.svg`, `index.html`) : même logique
+  condensée — un disque « soleil » en dégradé, un palmier en silhouette.
+- **Rayons** : cartes 16–20px, contrôles/pills 12px, chips 999px (rond
+  complet). Hérité de la direction précédente, conservé : l'arrondi généreux
+  reste juste pour ce registre aussi.
+- **Sticker** (`sticker(hex, offset)` dans `config.js`) : ombre dure décalée,
+  sans flou — le patch sérigraphié plutôt que la carte à ombre floue
+  (interdite). Utilisé sur les pills actives de `DayTypeSwitcher`, combiné au
+  glow. **Ne pas l'étendre aux grandes cards** : sur une grande surface
+  l'effet tourne au bruit visuel plutôt qu'à la signature — réservé aux
+  petits éléments d'accent.
+- **Grain** (`index.css`, `body::after`) : texture de bruit très légère
+  (opacité 0.035, `mix-blend-mode: overlay`) sur tout l'écran — la patine VHS
+  du ciné 80s. Volontairement discrète : présente au regard attentif,
+  invisible en usage courant. Ne pas monter l'opacité au-delà de ~0.05, ça
+  se transforme vite en bruit de compression plutôt qu'en grain de pellicule.
 
 ```
-TODAYVIEW (390 px)                    WEEKVIEW
-┌──────────────────────────┐          ┌──────────────────────────┐
-│ VIBE·FIT      AUJOURD'HUI│ ← ink    │ SEMAINE DU    SOLDE NET  │
-│  ‹   Jeudi 30 Juillet  › │          │ lundi 27 juillet  +1840  │
-│ [TRAIN] [ OFF ] [  WE  ] │          │ 1 / 7 jours saisis       │
-├══════════════════════════┤ ← deep   ├──────────────────────────┤
-│ BILAN DU JOUR            │          │ LUN MAR MER ┏JEU┓ VEN …  │
-│      ╭─┼─┼─┼─╮   APPORT  │          │  27  28  29 ┃ 30┃  31    │
-│    ╫─┤  -220 ├─  2180    │          │             ┗━━━┛ ↑ cran │
-│      ╰─┼─┼─┼─╯   kcal    │          ├──────────────────────────┤
-│       ↑ encoche de cible │          │ BILAN NET                │
-├──────────────────────────┤          │ [APPORT][DÉPENSE][SÉANCE]│
-│ MACRONUTRIMENTS          │          ├──────────────────────────┤
-│ PROTÉINES      148 / 160g│          │ TENDANCE CALORIQUE       │
-│ ├──┬──┬──┬──╫──┬──┬──┬──┤│          │ barres/jour, cran = jour │
-│ GLUCIDES       305 / 280g│          ├──────────────────────────┤
-│ ├──┬──┬──┬──╫━━┬──┬──┬──┤│ ← alert  │ MOYENNES / JOUR SAISI ÷ 1│
-│ LIPIDES         61 /  70g│          └──────────────────────────┘
-│ ├──┬──┬──┬──╫──┬──┬──┬──┤│
-├──────────────────────────┤          Chaque vue = orchestrateur
-│ APPORT · DÉPENSE · SÉANCE│          pur ≤ 50 lignes ;
-│ POIDS · TAILLE · SOMMEIL │          sous-composants ≤ 80.
+TODAYVIEW (390 px)
+┌──────────────────────────┐
+│ VIBE·FIT      AUJOURD'HUI│ ← SUNSET, bande sombre du haut
+│  ‹   Jeudi 30 Juillet  › │
+│ (TRAIN) ( OFF ) (  WE  ) │ ← sticker + glow sur l'actif
+│  🌆 skyline + palmiers   │ ← décoratif, découpe sur le bas du dégradé
 ├──────────────────────────┤
-│ Jour  Semaine  Cibles  … │ ← surface + filet supérieur
+│ BILAN DU JOUR             │
+│     ╭──────╮   APPORT     │
+│    ╱ -220  ╲  2180        │ ← anneau glow (gold = sous la cible)
+│    ╲ SOUS  ╱   kcal       │
+│     ╰CIBLE─╯               │
+├──────────────────────────┤
+│ MACRONUTRIMENTS            │
+│ PROTÉINES      148/160g   │
+│ ▓▓▓▓▓▓▓▓▓▓▓░░░░░░░ (green) │
+│ GLUCIDES       305/280g   │
+│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ (red, over)│
 └──────────────────────────┘
 ```
 
 ---
 
-## 4. Signature — LA RÈGLE GRADUÉE
+## 4. Signature — L'ANNEAU/LA PISTE LUMINEUSE (inchangée dans son mécanisme)
 
-**Le détail qui rend VibeFit reconnaissable.** Aucune barre de progression
-remplie nulle part. Chaque métrique repose sur une échelle physique graduée, et
-**la cible est une encoche, pas une fin de course**.
+Héritée de la direction précédente et **conservée telle quelle** : c'est un
+mécanisme, pas une couleur, et il sert toujours aussi bien ici. Chaque
+métrique est un remplissage plein, à bouts ronds, qui glowe dans sa couleur
+d'état, avec un **marqueur de cible** — le repère que ni un cadran GTA ni un
+cadran Whoop générique n'ont, parce qu'aucun des deux ne suit une valeur
+*contre une cible fixe*. Voir `Bar.jsx` et `BalanceRing.jsx`.
 
-```
-KCAL        1 840 / 2 400
-├──┬──┬──┬──┬──╫──┬──┬──┬──┤
-              ↑
-     ╫ = encoche de cible (cran lourd, ink, 2px)
-```
-
-Trois règles qui font tenir la signature :
-
-1. **L'échelle court jusqu'à 125 % de la cible** (`SCALE = 1.25`), ce qui place
-   l'encoche à 80 % de la largeur. Dépasser reste donc *lisible* au lieu de
-   saturer la barre — c'est tout l'intérêt par rapport à une barre classique.
-2. **Bouts droits, jamais arrondis.** `strokeLinecap: 'butt'`, aucun
-   `border-radius` sur les filets de valeur. Le bout arrondi est la mollesse
-   générique que la direction refuse.
-3. **L'arc de valeur ne recouvre jamais les graduations.** Sur le cadran
-   (`BalanceRing`) la règle est le cercle **extérieur** (`R_RULE = 64`) et la
-   valeur une bande **intérieure** (`R_ARC = 47`). Les faire coïncider annule la
-   signature : l'arc masque l'échelle et on retombe sur un donut ordinaire.
-
-Corollaire : **« aujourd'hui » est un cran, pas une couleur.** Le jour courant se
-marque en `ink` lourd (bloc inversé dans `WeekCalendar`, contour dans `DayBar`) —
-c'est le curseur sur le mètre-ruban, pas une pastille colorée.
-
-Implémentations de référence : `src/components/ui/Bar.jsx` (règle linéaire,
-primitive partagée par MacrosCard / ExpenditureCard) et
-`src/components/views/today/BalanceRing.jsx` (règle refermée en cadran).
+Ce qui change dans cette direction : la couleur (vert Grove Street / gold
+Vagos / rouge néon coucher-de-soleil au lieu du vert/ambre/rouge neutres) et
+le cadre autour (le header sunset + skyline qui encadre l'anneau au lieu d'un
+simple fond noir). Le mécanisme — échelle à 125 %, bouts ronds, glow qui suit
+l'état — n'a pas de raison de rechanger tant que la direction visuelle change
+de palette sans changer de nature (wearable-like → toujours wearable-like,
+juste habillé différemment).
 
 ---
 
 ## 5. Contraintes PWA
 
-- **Mobile-first.** Cadre de référence 390 px, `maxWidth: 720` centré au-delà,
-  encadré de filets 1px.
-- **Cibles tactiles ≥ 44 px.** Vérifié : zéro élément interactif sous 44 px.
-  Attention au piège corrigé dans `NumberInput` — le padding vertical doit vivre
-  sur l'`<input>`, pas sur son conteneur, sinon le champ *paraît* faire 45 px
-  alors que la zone réellement cliquable n'en fait que 25.
-- **États vides = du contenu.** L'écran sans données affiche la règle complète,
-  graduée, avec son encoche de cible et une valeur à zéro : l'instrument est
-  calibré et en attente. Ne jamais remplacer ça par un texte « aucune donnée »
-  seul — l'échelle vide *est* le message.
-- **Offline-first.** Polices précachées, aucune requête tierce au chargement.
-  `background_color` du manifest = `paper`, `theme_color` = `ink` (la barre
-  système prolonge l'encre, jamais un accent).
-- **Pas de dark mode.** Choix assumé : la direction est clair-first, et un
-  second thème doublerait la surface de dérive de la palette pour un gain faible
-  sur un usage majoritairement diurne. À rouvrir explicitement si besoin.
-- **Marque** : la règle graduée avec son encoche verte (favicon inline SVG dans
-  `index.html`, `public/pwa-icon.svg`). Plus d'haltère — c'était un registre
-  « coach », pas « instrument ».
+- **Mobile-first.** Cadre de référence 390 px, `maxWidth: 720` centré au-delà.
+- **Cibles tactiles ≥ 44 px.** Vérifié après chaque changement de direction —
+  piège connu dans `NumberInput` (padding vertical sur l'`<input>`, pas son
+  conteneur).
+- **États vides = du contenu.** L'anneau/la piste vides montrent l'échelle
+  complète avec son marqueur de cible : l'instrument est calibré et en
+  attente, pas cassé.
+- **Offline-first.** Polices et grain précachés, aucune requête tierce.
+  `background_color`/`theme_color` du manifest = `bg`.
+- **Dark uniquement.** Toujours pas de variante claire — encore plus vrai ici
+  (un coucher de soleil ne se lit pas sur fond blanc).
 
 ---
 
 ## 6. Reste à faire
 
-- `MacroBar.jsx` (WeekView) est aligné en couleur et en forme mais n'est pas
-  encore gradué : sa géométrie place la cible en fin de course, donc l'encoche
-  n'a pas de place. À reprendre avec la même échelle 125 % que `Bar.jsx`.
 - Reliquat hors direction, non traité ici : `NumberInput` ignore les props
   `step` / `inputMode` passées pour le poids.

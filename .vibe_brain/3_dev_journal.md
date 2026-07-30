@@ -582,3 +582,187 @@ données affiche l'échelle complète avec son encoche de cible et une valeur à
 zéro — l'instrument est calibré et en attente. L'échelle vide *est* le message.
 C'est documenté comme contrainte dans `DESIGN.md` pour éviter qu'une session
 future la remplace par un « aucune donnée » textuel.
+
+---
+
+## Session 2026-07-30 (suite) — Rejet de « Millimétré », re-direction « Signal » (Whoop)
+
+### Le retour
+Premier rendu de « Millimétré » montré au développeur : jugé « triste et
+froide », « aucun fun », pas une application moderne. Référence donnée :
+Whoop. Point notable — c'est le développeur lui-même qui avait orienté vers
+« Instrument de mesure » / palette froide au moment du choix de direction.
+Le retour n'était donc pas une incompréhension de brief mais un jugement porté
+sur le résultat *rendu*, que le round de questions textuelles en amont
+(3 directions décrites en préview markdown) n'avait pas permis d'anticiper.
+Leçon pour une prochaine fois : quand la preview d'une direction est du texte
+ASCII plutôt qu'un rendu réel, le risque de décalage entre l'intention validée
+et le résultat vécu reste entier tant que rien n'a tourné dans un navigateur.
+
+### Ce qui a été jeté et ce qui est resté
+`DESIGN.md` a été réécrit en totalité, pas complété — la nouvelle direction
+n'est pas une variante de couleurs de l'ancienne, c'est un vocabulaire visuel
+opposé point par point : bouts de tracé `butt` → `round`, rayons `0/2/3` →
+`12–20/999`, graduations physiques → glow, fond clair → presque noir. Un seul
+élément a survécu intact : le **marqueur de cible**. Ni Whoop ni aucun wearable
+de recovery n'en a besoin (leur anneau suit un score continu sans cible fixe),
+mais VibeFit suit des macros et des calories *contre* une cible — c'est ce qui
+rend l'app différente d'un clone Whoop plutôt qu'un décalque.
+
+### Le piège qu'un remplacement en masse aurait raté
+`PALETTE.ink` et `PALETTE.surface` changent de luminance entre les deux
+directions (ink : quasi-noir → quasi-blanc ; surface : quasi-blanc →
+quasi-sombre). Neuf sites utilisaient `color: PALETTE.surface` comme
+raccourci pour « texte clair sur fond sombre » dans l'ancienne palette
+(boutons pleins, cellule « aujourd'hui », pills actives). Un renommage
+mécanique aurait rendu ce texte illisible (texte sombre sur fond désormais
+sombre lui aussi) sans qu'aucun test ne le révèle — les tests ne couvrent ni
+couleur ni rendu. Chaque site a été réaudité individuellement et routé vers
+`inkSoft` (nouveau token : texte quasi-noir posé sur un remplissage saturé).
+
+### Vérification
+`npm test` 96/96 ✅ · `vite build` ✅ · contraste WCAG AA recalculé sur toute
+la nouvelle palette, y compris les paires texte-sur-remplissage-saturé
+(`inkSoft` sur `deep`/`warn`/`alert`/`slate` : 10 à 12.6:1 ; piège identifié et
+évité : `ink` — quasi-blanc — sur `alert` échoue à 2.94:1, d'où le choix
+d'`inkSoft` et non `ink` pour ce rôle) · cibles tactiles ≥44px reconfirmées
+après le passage aux nouveaux rayons · Playwright sur build de production,
+TodayView/WeekView/TargetsView : zéro erreur console, glow visible et
+cohérent avec l'état affiché (vert atteint, ambre sous la cible, rouge hors
+bornes) sur les trois écrans.
+
+---
+
+## Session 2026-07-30 (suite 2) — Troisième direction : « Los Santos Dusk »
+
+### Le brief
+Pas un rejet cette fois — le développeur a validé que l'app était un terrain
+de test pour voir jusqu'où la direction artistique peut aller, et a donné sa
+propre référence personnelle plutôt qu'une catégorie de produit : GTA San
+Andreas, la Californie des années 90, l'architecture, le hip-hop, les couleurs
+du cinéma 80s, le streetwear actuel. Un mot du brief (« pornographie ») ne
+correspondait à rien dans le reste de la demande ni dans le produit (un
+tracker nutritionnel) ; traité comme faisant partie de l'univers culturel
+évoqué en vrac plutôt que comme une demande de contenu littéral, et exclu
+explicitement dans `DESIGN.md` §0 pour que ce ne soit pas ambigu pour la
+prochaine session.
+
+### La traduction, pas la citation
+Le risque évident d'un brief aussi référencé (« GTA SA ») est de produire un
+décor plaqué sur l'app plutôt qu'un système qui reste un tracker. Le point de
+levier a été de repérer que les couleurs de gang du jeu mappent *sans forcer*
+sur la sémantique déjà en place : Grove Street (vert, la faction du joueur)
+= « dans la cible », Vagos (gold) = « manque », un rouge néon coucher-de-
+soleil = « hors bornes ». Rien n'a été sacrifié à la référence : le Ballas
+purple réel du jeu (`#9354D9`) échouait l'AA en texte (4.04:1) et a été
+éclairci à `#B27CE8` (6.22:1) — la fidélité culturelle s'arrête là où elle
+casserait l'accessibilité, et ce n'est pas négociable même sous un brief
+très expressif.
+
+### Ce qui ne s'est PAS reproduit
+Au tour précédent (« Millimétré » → « Signal »), renommer `PALETTE.paper` en
+`PALETTE.bg` et inverser la luminance de `ink`/`surface` avait forcé un audit
+ligne par ligne coûteux (9 sites où `color: PALETTE.surface` servait de
+raccourci sémantique qui a changé de sens). Cette fois, **tous les noms de
+tokens sont restés identiques** — seules les valeurs hex ont changé. Aucun
+audit de ce type n'a été nécessaire. Leçon appliquée directement : un système
+de tokens protège des changements de valeur, jamais des changements de sens
+d'un même nom.
+
+### Ce qui est nouveau structurellement (pas juste de la couleur)
+- `Header.jsx` gagne un composant `Skyline` (SVG inline, silhouette d'immeubles
+  + palmiers) et un fond en dégradé (`SUNSET`, nouveau token décoratif). Vérifié
+  au calcul de contraste que le dégradé échoue l'AA pour du texte passé sa
+  bande sombre du haut (2.29:1 sur le stop orange) — décision de layout prise
+  en conséquence : tout le texte du header reste dans la bande sombre, le
+  dégradé s'ouvre vers le bas en zone strictement décorative.
+- Nouvelle fonte auto-hébergée, Anton (poster condensé, 1 graisse), nouveau
+  rôle typographique `.vf-hero` réservé au wordmark et aux gros chiffres —
+  s'ajoute aux 3 rôles existants, n'en remplace aucun.
+- Nouveau helper `sticker(hex, offset)` — ombre dure décalée sans flou, la
+  technique du patch sérigraphié plutôt que la carte à ombre floue (toujours
+  interdite). Combiné au `glow()` existant sur les pills actives de
+  `DayTypeSwitcher` seulement — délibérément pas étendu aux grandes cards,
+  où l'effet tournerait au bruit visuel.
+- Grain VHS (`body::after`, `feTurbulence` en data URI, opacité 0.035,
+  `mix-blend-mode: overlay`) — texture ciné 80s, volontairement sous le seuil
+  de perception consciente.
+
+### Vérification
+`npm test` 96/96 ✅ · `vite build` ✅ (17 entrées précachées, +2 vs la session
+précédente pour les 2 fichiers Anton) · Anton confirmée chargée via
+`document.fonts.check` sur build de production · cibles tactiles ≥44px
+reconfirmées après l'ajout du sticker · zéro erreur console sur les 3 écrans
+(Playwright) · contraste AA vérifié sur toute la nouvelle palette, y compris
+le dégradé décoratif (d'où la contrainte de layout ci-dessus).
+
+---
+
+## Session 2026-07-30 (suite 3) — Refonte typographique : sortie d'IBM Plex, entrée du blackletter
+
+### Le retour, et ce que l'audit a confirmé
+Le développeur a validé la DA « Los Santos Dusk » mais estimé qu'on pouvait
+aller beaucoup plus loin sur les polices pour ressentir l'ADN hip-hop LA. Il
+avait raison, et de façon plus embarrassante que « on peut faire mieux » :
+`.vf-body` et `.vf-mono` étaient **encore IBM Plex**. Un reliquat de la
+première direction (« instrument de labo ») qui avait traversé DEUX
+re-directions complètes sans que je le voie. La police corporate d'IBM,
+dessinée pour des interfaces d'entreprise, composait tout le texte réellement
+lu de l'app. Anton habillait 20 % de l'écran (les gros chiffres) et je
+comptais ça comme « la typo est faite ».
+
+Leçon : quand on change de direction, on audite les *rôles* typographiques un
+par un comme on auditerait des tokens de couleur. Un rôle qui n'a pas été
+touché depuis deux directions est suspect par défaut, pas neutre par défaut.
+
+### Ce que j'ai refusé
+Pas de police graffiti/tag. C'est l'option évidente sur un brief « hip-hop
+LA » et c'est un piège : illisible en français accentué, et surtout ça crie
+l'intention — ça fait déguisement plutôt que direction artistique. Le
+blackletter porte la même culture (tatouage chicano, plaques de clubs, *The
+Chronic*) avec une vraie histoire typographique derrière, et il reste lisible
+si on le contient. Dit au développeur avant de commencer, pas après.
+
+### Le découpage en 5 rôles, et pourquoi c'est ce qui rend le blackletter viable
+Le blackletter n'est utilisable QUE si quelque chose d'autre porte la lecture.
+D'où 5 rôles au lieu de 4 : `.vf-gothic` (UnifrakturCook) reste cérémoniel —
+trois emplacements, casse mixte, ≥16px — pendant que Barlow prend tout le
+texte courant. En capitales le blackletter est un mur (« VIBEFIT » en textura
+est illisible), donc le wordmark est devenu « VibeFit » en casse mixte, ce qui
+est de toute façon plus fidèle au lettrage d'album et de tatouage.
+
+### Deux pièges techniques qui ne se voient ni au build ni aux tests
+1. **Faux gras synthétique.** Anton et Archivo Black n'ont qu'une graisse
+   réelle (400). Les 11 sites convertis portaient un `fontWeight: 900` inline
+   — et un style inline gagne sur la classe, donc le navigateur aurait
+   synthétisé un gras par-dessus une fonte déjà noire (ça bave). Il a fallu
+   retirer chaque `fontWeight` explicitement, pas juste poser la classe. Un
+   `sed` a raté un site (`fontWeight: 900 }}` sans virgule finale là où les
+   autres avaient `fontWeight: 900,`) — rattrapé par un grep de contrôle,
+   qui est la seule raison pour laquelle je l'ai vu.
+2. **Débordement par changement de largeur.** Archivo Black est nettement plus
+   large qu'IBM Plex. La légende centrale de `BalanceRing` (« SOUS LA CIBLE »,
+   le libellé le plus long possible) est passée à 101 px pour 92 px de passage
+   libre au centre de l'anneau, et mordait sur l'arc — visible seulement à la
+   capture. Mesurée au `getBBox()` dans le navigateur plutôt qu'estimée, puis
+   redimensionnée à 82.9 px. Substituer une fonte display, c'est changer les
+   métriques de tous les libellés contraints : il faut mesurer, pas supposer.
+
+### Le chrome
+`.vf-chrome` = dégradé argent clippé sur le texte, appliqué au « Vibe » du
+wordmark. Le chrome sur coucher de soleil, c'est la plaque de club lowrider.
+Piège évité : `color: transparent` + `background-clip: text` non supporté =
+wordmark **invisible**. Encadré par un `@supports`, couleur pleine en défaut.
+Contraste vérifié sur les 4 stops du dégradé contre la bande haute du header,
+le plus sombre passe à 5.61:1 (au-delà du seuil gros-texte requis) et le
+fallback à 13.43:1.
+
+### Vérification
+`npm test` 96/96 ✅ · `vite build` ✅ (20 entrées précachées, 13 woff2, 276 Ko
+pour 5 familles — +8 Ko seulement vs 4 familles, en sortant Plex et Archivo
+variable) · les 5 familles confirmées chargées via `document.fonts.check` et
+`getComputedStyle(body).fontFamily === 'Barlow, sans-serif'` · pire cas
+blackletter mesuré (« Diet Break (Vacances) », 216 px, tient sur une ligne) ·
+zéro erreur console · cibles tactiles ≥44px reconfirmées · garde-fous ajoutés
+au passage : grep sur `fontWeight` posé sur `.vf-hero`/`.vf-display`, et grep
+sur `uppercase` posé sur `.vf-gothic`.

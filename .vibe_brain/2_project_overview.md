@@ -6,34 +6,116 @@ last_updated: 2026-07-30
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🎨 Direction artistique figée — « Millimétré », persistée dans `DESIGN.md`**
+- **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/design-system-setup-shx5ot`
 - **Suite de tests : Vitest, 96 tests** — `npm test`
 
-### Session 2026-07-30 — Re-direction visuelle
-`DESIGN.md` à la racine est désormais la **mémoire de direction artistique** du
-repo : document prescriptif, à relire avant toute tâche UI sans redemander la
-direction. Détail de la décision dans `4_business_decisions.md`, récit de session
-dans `3_dev_journal.md`.
+### Session 2026-07-30 (suite 3) — Refonte typographique : 5 rôles, sortie d'IBM Plex
+Le développeur a validé la DA mais demandé d'aller beaucoup plus loin sur les
+polices pour ressentir l'ADN hip-hop LA. L'audit lui a donné raison de façon
+concrète : `.vf-body` et `.vf-mono` étaient **encore IBM Plex**, reliquat de la
+1re direction ayant survécu à deux re-directions — la police corporate d'IBM
+composait 80 % du texte réellement lu. Détail dans `4_business_decisions.md`,
+récit dans `3_dev_journal.md`.
+
+- **5 rôles** au lieu de 4 : `.vf-gothic` **UnifrakturCook** (blackletter — ADN
+  LA : *The Chronic*, plaques lowrider, tatouage chicano) · `.vf-hero`
+  **Anton** (gros chiffres) · `.vf-display` **Archivo Black** (capitales
+  tracées, flocage de maillot) · `.vf-body` **Barlow** (grotesque de
+  signalétique) · `.vf-mono` **Azeret Mono**. IBM Plex Sans/Mono et Archivo
+  variable supprimées.
+- **Poids** : 13 woff2 / 276 Ko pour 5 familles, contre 11 / 268 Ko pour 4 —
+  +8 Ko seulement (Plex et Archivo variable sortis, Barlow limité à 400/600/700).
+- **`.vf-chrome`** : dégradé argent clippé sur le texte pour le « Vibe » du
+  wordmark (plaque de club lowrider). Encadré par un `@supports` — sans ça,
+  `color: transparent` sur un navigateur sans `background-clip: text` rendrait
+  le wordmark invisible.
+- **Deux règles dures nouvelles**, avec garde-fous grep : (1) jamais de
+  `fontWeight` inline sur `.vf-hero`/`.vf-display` — Anton et Archivo Black
+  n'ont qu'une graisse réelle, un style inline gagne sur la classe et produit
+  un faux gras baveux ; (2) blackletter en casse mixte uniquement, ≥16px, 3
+  emplacements autorisés — en capitales c'est illisible.
+- **Régression attrapée au rendu seulement** : Archivo Black étant plus large,
+  « SOUS LA CIBLE » dans `BalanceRing` passait à 101 px pour 92 px de passage
+  libre et mordait sur l'arc. Mesurée au `getBBox()`, redimensionnée à 82.9 px.
+  Ni les tests ni le build ne pouvaient la voir.
+- Refus explicite : **pas de police graffiti/tag** — illisible en français
+  accentué et effet « déguisement » qui décrédibilise la direction.
+- Vérifié : 96/96 tests, build OK (20 précaches), les 5 familles confirmées
+  chargées, pire cas blackletter mesuré, zéro erreur console, ≥44px OK.
+
+### Session 2026-07-30 (suite 2) — Troisième direction : « Los Santos Dusk »
+Le développeur a demandé d'aller plus loin sur l'app comme test de direction
+artistique, avec sa propre référence : GTA San Andreas / Californie 90s /
+hip-hop / ciné 80s / streetwear. `DESIGN.md` réécrit une 3e fois. Détail dans
+`4_business_decisions.md`, récit dans `3_dev_journal.md`.
+
+- **Palette** : couleurs de gang du jeu détournées en couleurs d'état — vert
+  Grove Street `#3FC94F` (dans la cible), gold Vagos `#FFB627` (manque), néon
+  coucher-de-soleil `#FF3D68` (hors bornes), purple Ballas `#B27CE8` (lipides,
+  éclairci depuis la teinte réelle du jeu pour passer l'AA en texte). Fond
+  presque noir mais **chaud** (`#150F1A`, violet de crépuscule), pas neutre.
+- **Leçon appliquée du tour précédent** : tous les noms de tokens `PALETTE`
+  restent identiques à la direction « Signal » — seules les valeurs hex
+  changent. Aucun audit ligne-à-ligne nécessaire cette fois (contrairement au
+  tour d'avant où `paper`→`bg` et l'inversion de luminance `ink`/`surface`
+  avaient forcé un audit de 9 sites).
+- **Nouveau** : `Header.jsx` gagne un fond dégradé (`SUNSET`, nouveau token
+  décoratif) + un composant `Skyline` (silhouette immeubles/palmiers en SVG) ;
+  nouvelle fonte auto-hébergée Anton (poster condensé) et rôle typo `.vf-hero`
+  pour le wordmark et les gros chiffres ; helper `sticker(hex, offset)` (ombre
+  dure décalée, patch sérigraphié) combiné au `glow()` existant sur les pills
+  actives ; grain VHS très discret (`body::after`, opacité 0.035).
+- Un mot du brief (« pornographie ») ne correspondait à rien dans le reste de
+  la demande ni dans le produit — exclu explicitement dans `DESIGN.md` §0.
+- Vérifié : 96/96 tests, build OK (17 précaches, +2 pour Anton), Anton
+  confirmée chargée, cibles tactiles ≥44px reconfirmées, zéro erreur console
+  sur les 3 écrans, contraste AA revérifié y compris sur le dégradé
+  décoratif (texte confiné à sa bande sombre du haut, seul endroit qui passe).
+
+### Session 2026-07-30 (suite) — Rejet de « Millimétré », re-direction « Signal »
+Premier rendu de « Millimétré » jugé « triste et froide » par le développeur,
+référence donnée : Whoop. `DESIGN.md` **réécrit en totalité** (pas complété) —
+c'est un vocabulaire visuel opposé, pas une variante de couleurs. Détail dans
+`4_business_decisions.md`, récit dans `3_dev_journal.md`.
+
+- **Palette** : presque noire (`bg #0A0B0D`, `surface #16181B`) + états saturés
+  qui **glowent** — `deep` vert `#2FEA7A` (dans la cible), `warn` amber
+  `#FFB020` (manque), `alert` rouge `#FF4D5E` (hors bornes), rampe catégorielle
+  blue/purple. Nouveau helper `glow(hex, size)` dans `config.js`.
+- **`PALETTE.ink`/`PALETTE.surface` inversent de luminance** par rapport à
+  l'ancienne palette (ink : quasi-noir → quasi-blanc). Les 9 sites qui
+  utilisaient `color: PALETTE.surface` comme raccourci « texte clair sur fond
+  sombre » ont été réaudités un par un (pas de sed global) et routés vers le
+  nouveau token `inkSoft` — un remplacement mécanique les aurait rendus
+  illisibles sans qu'aucun test ne le révèle.
+- **Signature** : la « règle graduée » (bouts droits, encoche gravée) devient
+  une **piste/anneau lumineux** à bouts ronds (`strokeLinecap: round`,
+  `borderRadius: 999`) qui glowe dans sa couleur d'état. `BalanceRing.jsx`
+  utilise un filtre SVG (`feGaussianBlur`) plutôt qu'un simple `box-shadow`
+  pour un glow net sur le tracé épais. Le **marqueur de cible** est la seule
+  pièce conservée de l'ancienne signature — propre à VibeFit (macros/calories
+  *contre* une cible), absent des cadrans Whoop (score continu sans cible).
+- **Layout** : rayons inversés — 0/2/3 (angles vifs) → 12–20px + 999 (rond
+  complet). Cartes remontées à 20px, contrôles à 12px.
+- Vérifié : 96/96 tests, build OK, contraste AA recalculé sur toute la
+  palette (dont les paires texte-sur-remplissage-saturé — piège identifié :
+  `ink` sur `alert` échoue à 2.94:1, d'où `inkSoft`), cibles tactiles ≥44px
+  reconfirmées, zéro erreur console (Playwright, 3 écrans).
+
+### Session 2026-07-30 — Re-direction visuelle « Millimétré » (superseded le jour même)
+`DESIGN.md` à la racine est devenu la **mémoire de direction artistique** du
+repo — ce principe survit au changement de direction ci-dessus, le contenu non.
 
 - **Deux interdits levés** : le fond crème `#F6F2EC` + accent orange `#FF5A1F`
   (pairing crème/terracotta refusé) et `Inter Tight` en police de corps.
-- **Palette** : gris froid (`paper #E8EBED`, `surface #F8FAFB`) + vert instrument
-  (`deep #0B6E4F`). `accent`/`accentDark` **supprimés**, leurs 37 sites routés
-  vers `deep`/`warn`/`alert`/`slate`/`ink`. Nouvelle règle à tenir : `warn` = un
-  **manque**, `alert` = **hors bornes** — un manque ordinaire n'est pas une alerte.
-  `tick` séparé de `line` (WCAG 1.4.11 : les graduations portent l'information).
-- **Typographie** : Archivo / IBM Plex Sans / IBM Plex Mono, **auto-hébergées**
-  (`public/fonts`, 8 woff2, 216 Ko, précachées par Workbox). Le `<link>` CDN et
-  les 2 règles `runtimeCaching` Google Fonts sont retirés — offline-first réel.
-- **Signature « règle graduée »** : plus aucune barre de progression remplie.
-  L'échelle court à 125 % de la cible, qui devient une **encoche** et non une fin
-  de course. `Bar.jsx` (linéaire) et `BalanceRing.jsx` (cadran). « Aujourd'hui »
-  est un cran `ink` lourd, pas une pastille colorée.
-- **Hygiène** : zéro `box-shadow` dans le projet, rayons ramenés à 0/2/3, zéro
-  couleur codée en dur hors `PALETTE`, cibles tactiles ≥ 44 px partout.
-- Vérifié : 96/96 tests, build OK, 19 paires de contraste conformes AA, 8 woff2
-  dans `sw.js`, zéro appel CDN dans le `dist`, zéro erreur console (Playwright).
+- `accent`/`accentDark` **supprimés** de `PALETTE`, leurs 37 sites routés
+  sémantiquement plutôt que remplacés en masse — ce réflexe (router site par
+  site plutôt que sed global dès qu'un token change de sens) a resservi
+  immédiatement à la session suivante.
+- Polices auto-hébergées (`public/fonts`, 8 woff2, 216 Ko, précachées par
+  Workbox) : ce choix n'a pas été remis en cause par le rejet de la palette et
+  reste en place tel quel.
 
 ### Session 2026-07-29 — Audit des calculs, 3 lots
 Commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
@@ -57,9 +139,10 @@ Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur véri
 ```
 src/
   styles/
-    fonts.css          — @font-face des 8 woff2 auto-hébergés (Archivo, IBM Plex Sans/Mono)
+    fonts.css          — @font-face des 13 woff2 auto-hébergés (UnifrakturCook, Anton,
+                         Archivo Black, Barlow, Azeret Mono) — voir DESIGN.md §2
   constants/
-    config.js          — PALETTE (direction « Millimétré » — voir DESIGN.md), PRESETS,
+    config.js          — PALETTE (direction « Los Santos Dusk » — voir DESIGN.md), PRESETS,
                          STORAGE_KEY, seuils (KCAL_FLOOR, PROTEIN_FLOOR, MIN_BASE_TDEE,
                          MIN_CYCLE_GAP) et bornes de plausibilité du signal
   utils/
@@ -93,11 +176,11 @@ src/
     useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
     ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill,
-                         Label, SectionLabel, FontStyles (affectation des 3 rôles typo),
-                         Bar (LA RÈGLE GRADUÉE — signature, échelle 125 % + encoche de cible)
+                         Label, SectionLabel, FontStyles (affectation des 5 rôles typo + .vf-chrome),
+                         Bar (PISTE LUMINEUSE — signature, remplissage rond + glow + marqueur de cible)
     layout/            — Header, DayTypeSwitcher, BottomNav
     views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes
-      TodayView.jsx    + today/   (BalanceCard, BalanceRing = la règle refermée en cadran, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
+      TodayView.jsx    + today/   (BalanceCard, BalanceRing = la piste refermée en anneau lumineux, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
       WeekView.jsx     + week/    (WeekSummary, WeekCalendar, DiagnosisCard, NeatCard, NetBalanceCard, DayBar, KcalTrendCard, MacroBar, ProteinBadge, AveragesCard, KcalAverageRow, WaistCard, WeightCard, ReminderCard, ExportButton)
       TargetsView.jsx  + targets/ (PresetPickerCard, RecalibrateCard, StepsCard, TargetEditor, FooterCards)
       DataView.jsx     + data/    (BackupCard, DataInfoCards)

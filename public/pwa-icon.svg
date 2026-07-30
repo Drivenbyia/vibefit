@@ -1,10 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="48" fill="#0F1419"/>
-  <!-- La règle graduée : signature VibeFit (voir DESIGN.md) -->
-  <g stroke="#C2CBD1" stroke-width="18" fill="none">
-    <path d="M72 348h368"/>
-    <path d="M72 348v-80M128 348v-48M176 348v-48M224 348v-48M272 348v-80M368 348v-48M416 348v-48"/>
+  <defs>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF2E9A"/>
+      <stop offset="55%" stop-color="#FF6B4A"/>
+      <stop offset="100%" stop-color="#FFB627"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#150F1A"/>
+  <circle cx="256" cy="270" r="140" fill="url(#sun)"/>
+  <!-- Horizon + palmier : voir DESIGN.md §3 -->
+  <rect x="0" y="378" width="512" height="134" fill="#150F1A"/>
+  <g fill="#150F1A" transform="translate(256 378)">
+    <path d="M-6 40 Q-9 8 -2 -22 Q5 8 4 40 Z"/>
+    <path d="M-2 -20 Q-30 -30 -42 -52 Q-14 -44 -2 -20 Z"/>
+    <path d="M-2 -20 Q-20 -46 -18 -76 Q2 -50 -2 -20 Z"/>
+    <path d="M-2 -20 Q0 -50 0 -78 Q14 -50 -2 -20 Z"/>
+    <path d="M-2 -20 Q20 -46 18 -76 Q-2 -50 -2 -20 Z"/>
+    <path d="M-2 -20 Q30 -30 42 -52 Q14 -44 -2 -20 Z"/>
   </g>
-  <!-- L'encoche de cible : le cran lourd -->
-  <path d="M320 372V168" stroke="#0B6E4F" stroke-width="40" fill="none"/>
 </svg>

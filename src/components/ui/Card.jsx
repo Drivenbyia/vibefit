@@ -7,7 +7,7 @@ export default function Card({ children, style = {}, className = '' }) {
       style={{
         background: PALETTE.surface,
         border: `1px solid ${PALETTE.line}`,
-        borderRadius: 3,
+        borderRadius: 20,
         padding: 16,
         ...style,
       }}

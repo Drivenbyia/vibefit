@@ -36,10 +36,10 @@ export default function VibeFit() {
 
   if (!loaded) {
     return (
-      <div className="vf-app vf-body" style={{ minHeight: '100vh', background: PALETTE.paper, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="vf-app vf-body" style={{ minHeight: '100vh', background: PALETTE.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <FontStyles />
-        <div className="vf-pulse vf-display" style={{ fontSize: 24, fontWeight: 900, color: PALETTE.ink }}>
-          VIBE<span style={{ color: PALETTE.deep }}>FIT</span>
+        <div className="vf-pulse vf-gothic" style={{ fontSize: 34, color: PALETTE.ink, lineHeight: 1 }}>
+          Vibe<span style={{ color: PALETTE.deep, textShadow: `0 0 16px ${PALETTE.deep}` }}>Fit</span>
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ export default function VibeFit() {
       className="vf-app vf-body"
       style={{
         minHeight: '100vh',
-        background: PALETTE.paper,
+        background: PALETTE.bg,
         color: PALETTE.ink,
         maxWidth: 720,
         margin: '0 auto',

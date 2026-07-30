@@ -41,7 +41,7 @@ export default function KcalTrendCard({ days, dateKey, setDateKey, resolvedTarge
       }}>
         {LEGEND.map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 0, background: color }} />
+            <div style={{ width: 8, height: 8, borderRadius: 999, background: color }} />
             <span style={{ fontSize: 10, color: PALETTE.muted }}>{label}</span>
           </div>
         ))}

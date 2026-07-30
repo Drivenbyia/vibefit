@@ -2,11 +2,10 @@ import { PALETTE } from '../../constants/config.js';
 
 export default function SectionLabel({ children }) {
   return (
-    <div style={{
+    <div className="vf-display" style={{
       fontSize: 10,
-      fontWeight: 700,
       color: PALETTE.muted,
-      letterSpacing: '0.12em',
+      letterSpacing: '0.14em',
       textTransform: 'uppercase',
       marginBottom: 12,
     }}>

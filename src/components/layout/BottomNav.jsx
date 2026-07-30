@@ -28,8 +28,10 @@ export default function BottomNav({ tab, setTab }) {
               flex: 1, padding: '8px 4px',
               background: 'transparent', border: 'none',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-              color: active ? PALETTE.ink : PALETTE.muted,
+              color: active ? PALETTE.deep : PALETTE.muted,
+              filter: active ? `drop-shadow(0 0 6px ${PALETTE.deep}99)` : 'none',
               cursor: 'pointer',
+              transition: 'all 150ms ease',
             }}
           >
             <Icon size={22} strokeWidth={active ? 2.4 : 1.8} />
