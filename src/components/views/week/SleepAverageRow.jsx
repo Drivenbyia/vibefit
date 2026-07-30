@@ -11,7 +11,7 @@ export default function SleepAverageRow({ sleep }) {
     parts.push(`${Math.floor(t / 60)}h${String(t % 60).padStart(2, '0')}`);
   }
   if (sleep.score !== null) parts.push(`score ${Math.round(sleep.score)}`);
-  if (sleep.hrv !== null) parts.push(`HRV ${Math.round(sleep.hrv)} ms`);
+  if (sleep.hrv !== null) parts.push(`VFC ${Math.round(sleep.hrv)} ms`);
 
   return (
     <div style={{

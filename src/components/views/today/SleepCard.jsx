@@ -38,7 +38,9 @@ export default function SleepCard({ day, updateDay }) {
           <NumberInput value={sleep.score ?? ''} onChange={(v) => patch({ score: v })} placeholder="ex. 85" suffix="/100" />
         </div>
         <div>
-          <Label>HRV</Label>
+          {/* Libellé aligné sur la montre (Statut VFC). La clé de stockage reste
+              `hrv`, terme standard côté code. */}
+          <Label>VFC</Label>
           <NumberInput value={sleep.hrv ?? ''} onChange={(v) => patch({ hrv: v })} placeholder="ex. 42" suffix="ms" />
         </div>
         <div>

@@ -10,7 +10,7 @@ export function formatSleep(sleep) {
     const t = parseInt(sleep.durationMin, 10);
     if (!isNaN(t) && t > 0) bits.push(`${Math.floor(t / 60)}h${String(t % 60).padStart(2, '0')}`);
   }
-  if (sleep.hrv) bits.push(`HRV ${sleep.hrv} ms`);
+  if (sleep.hrv) bits.push(`VFC ${sleep.hrv} ms`);
   return bits.join(' · ');
 }
 

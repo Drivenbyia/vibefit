@@ -5,9 +5,16 @@ import { emptyDay } from '../../models/day.js';
 
 describe('formatSleep — export', () => {
   it('formate un relevé complet', () => {
-    // Écran Garmin : score 85, 6h 55m, HRV 42 ms
+    // Écran Garmin : score 85, 6h 55m, VFC 42 ms
     expect(formatSleep({ score: '85', durationMin: '415', hrv: '42' }))
-      .toBe('score 85 · 6h55 · HRV 42 ms');
+      .toBe('score 85 · 6h55 · VFC 42 ms');
+  });
+
+  it('reste complet sans VFC — le score et la durée suffisent', () => {
+    // La VFC est sur un autre écran Garmin : le champ doit pouvoir rester vide
+    // sans jamais apparaître ni dans l'export ni dans les moyennes.
+    expect(formatSleep({ score: '85', durationMin: '415', hrv: '' }))
+      .toBe('score 85 · 6h55');
   });
 
   it('pade les minutes sous 10', () => {
