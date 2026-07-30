@@ -924,3 +924,34 @@ plat en maintenance et en pente en `cut_strong` · ligne de mesure sur 1 ligne
 partout · zéro erreur console · garde-fous grep du projet repassés (aucun
 `fontWeight` sur `.vf-hero`/`.vf-display`, aucune capitale sur `.vf-gothic`,
 aucune ombre floue générique).
+
+---
+
+## Session 2026-07-30 (suite 6) — Signalement utilisateur : `ProteinBadge` fait tache
+
+Capture d'écran annotée d'un cercle rouge à main levée autour du badge
+d'alerte protéines dans `WeekView`. Le développeur a l'œil : c'était réellement
+le composant le plus incohérent de l'app, indépendamment de tout le travail
+sur la bande d'état.
+
+Trois défauts cumulés, aucun caché :
+1. `borderRadius: 2` — hors des trois paliers actuels du projet (12/16-20/999).
+   En creusant, c'est un fossile de la toute première direction, rejetée le
+   jour même où elle a été proposée (« Millimétré », bords vifs et encoche
+   gravée). Le composant n'avait jamais été retouché depuis, alors que trois
+   redirections DA sont passées dessus.
+2. `⚠` en caractère Unicode brut — seul endroit de l'app à ne pas utiliser une
+   icône Lucide. Rendu dans l'emoji coloré par défaut du système au lieu de
+   `PALETTE.warn`, et ne peut recevoir aucun glow.
+3. Layout qui ne correspond à aucun de ses deux voisins directs
+   (`showUndereatAlert`, `showMacroWarning`), qui partagent pourtant le même
+   patron entre eux.
+
+Correctif : alignement sur ce patron partagé — `AlertTriangle`, rayon 12px,
+fond `warnSoft`/bordure `warn`. La couleur `warn` était déjà la bonne
+sémantique (sous plancher = manque, pas dépassement) et n'a pas changé.
+
+Vérifié au rendu sur le cas exact de la capture (1 jour loggé sur 7,
+protéines à 137/160g, 6 jours non loggés) : le badge s'intègre maintenant à la
+carte au lieu de trancher dessus. 111/111 tests, build inchangé, zéro erreur
+console.

@@ -53,6 +53,13 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
   - 5 tests ajoutés (111 au total).
 - **Réversibilité** : Facile. `Sparkline` est une primitive `ui/` autonome et paramétrée (`minSpan`, `guide` optionnel) ; la retirer de la bande est une suppression de bloc JSX.
 
+### 2026-07-30 — `ProteinBadge` : fossile visuel corrigé sur signalement utilisateur
+- **Décision** : Réaligner `week/ProteinBadge.jsx` sur le patron des deux autres alertes inline de l'app (`showUndereatAlert` dans `IntakeCard`, `showMacroWarning` dans `MacrosCard`).
+- **Contexte** : Capture d'écran annotée par le développeur — le badge « Protéines · 1 j < 160 g · 6 j non loggés » « fait tache » dans la carte Moyennes. Diagnostic confirmé sur trois points cumulés : `borderRadius: 2` (aucun palier de DESIGN.md §3 — cartes 16–20 / contrôles 12 / chips 999 — un fossile de la toute première direction rejetée, « Millimétré », bords vifs) ; un `⚠` emoji brut au lieu d'une icône Lucide (seul endroit de l'app dans ce cas — hors palette, sans glow, rendu dépendant de l'OS) ; un layout divergent de ses deux voisins directs.
+- **Correctif** : `borderRadius: 12`, icône `AlertTriangle` (déjà utilisée pour `LOW_ADHERENCE` dans `DiagnosisCard`), fond `warnSoft` + bordure `warn` pleine — la couleur elle-même était correcte et conservée : « sous le plancher » est sémantiquement un manque (`warn`), pas un dépassement (`alert`).
+- **Impact** : 1 fichier, aucune API changée (mêmes props). 111/111 tests inchangés, build inchangé. Vérifié au rendu sur le cas exact de la capture (1 jour loggé, 6 non loggés, protéines sous plancher).
+- **Réversibilité** : Triviale.
+
 ### 2026-05-04 — Pas de state manager externe
 - **Décision** : Utiliser uniquement `useState`, `useReducer` et le Context API natif de React.
 - **Contexte** : Application de taille modeste (tracker personnel), surcharge cognitive d'une librairie externe non justifiée à ce stade.

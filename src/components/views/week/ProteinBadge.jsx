@@ -1,3 +1,4 @@
+import { AlertTriangle } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 
 /**
@@ -6,6 +7,13 @@ import { PALETTE } from '../../../constants/config.js';
  * L'ancienne version comparait une moyenne divisée par les jours saisis :
  * logger 3 jours à 180 g masquait le badge malgré 4 jours vides. Un plancher
  * quotidien ne se contrôle pas par une moyenne.
+ *
+ * Style aligné sur les deux autres alertes inline de l'app (`showUndereatAlert`
+ * dans IntakeCard, `showMacroWarning` dans MacrosCard) : icône Lucide, fond
+ * `*Soft` + bordure pleine, rayon 12px. La version précédente avait dérivé de ce
+ * patron — bordure carrée à 2px (un rayon d'aucun palier de DESIGN.md §3,
+ * fossile de la toute première direction rejetée) et un `⚠` emoji brut au lieu
+ * d'une icône, donc hors palette et sans glow.
  */
 export default function ProteinBadge({ daysUnder, daysNotLogged, floor }) {
   const parts = [];
@@ -15,20 +23,21 @@ export default function ProteinBadge({ daysUnder, daysNotLogged, floor }) {
 
   return (
     <div style={{
-      display: 'inline-flex',
+      display: 'flex',
       alignItems: 'center',
-      gap: 4,
-      padding: '3px 8px',
-      marginBottom: 6,
+      gap: 8,
+      padding: '8px 10px',
+      marginBottom: 12,
       background: PALETTE.warnSoft,
       border: `1px solid ${PALETTE.warn}`,
-      borderRadius: 2,
-      fontSize: 10,
-      fontWeight: 700,
+      borderRadius: 12,
+      fontSize: 12,
       color: PALETTE.warn,
-      letterSpacing: '0.06em',
     }}>
-      ⚠ Protéines · {parts.join(' · ')}
+      <AlertTriangle size={14} strokeWidth={2.5} style={{ flexShrink: 0 }} />
+      <span>
+        <strong>Protéines</strong> · {parts.join(' · ')}
+      </span>
     </div>
   );
 }
