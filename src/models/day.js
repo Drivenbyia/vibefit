@@ -7,6 +7,10 @@ export const emptyDay = () => ({
   workout: null,
   waist: '',
   weight: '',
+  // Sommeil saisi depuis la montre. `durationMin` est la valeur canonique en
+  // minutes — l'UI présente des heures/minutes, l'analyse a besoin d'un scalaire.
+  // Les jours antérieurs à ce champ le reçoivent via le spread d'emptyDay().
+  sleep: { score: '', durationMin: '', hrv: '', rhr: '' },
   notes: '',
 });
 

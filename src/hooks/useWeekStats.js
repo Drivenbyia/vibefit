@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { PROTEIN_FLOOR } from '../constants/config.js';
 import { DEFAULT_TARGETS } from '../utils/presetUtils.js';
 import { addDays, startOfWeek } from '../utils/dateUtils.js';
-import { num, calculateWeeklyBalance, calculateWeightStats } from '../utils/mathUtils.js';
+import { num, calculateWeeklyBalance, calculateWeightStats, aggregateSleep } from '../utils/mathUtils.js';
 import { dayType } from '../models/day.js';
 
 /**
@@ -56,6 +56,8 @@ export function useWeekStats(dateKey, data, targets) {
   // sélectif : 3 jours loggés à 180 g masquaient le badge malgré 4 jours vides.
   // Et un plancher QUOTIDIEN ne se contrôle pas par une moyenne — 220 g puis
   // 100 g font 160 de moyenne et deux jours hors protocole.
+  const sleep = aggregateSleep(days);
+
   const proteinFloor = resolvedTargets.train?.protein ?? PROTEIN_FLOOR;
   const daysNotLogged = days.filter(({ day }) => !day || num(day.intake?.kcal) === 0).length;
   const daysUnderProtein = days.filter(
@@ -74,6 +76,7 @@ export function useWeekStats(dateKey, data, targets) {
     weightDelta,
     weightSeries,
     macroTargets,
+    sleep,
     proteinFloor,
     daysUnderProtein,
     daysNotLogged,

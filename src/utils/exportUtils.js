@@ -1,10 +1,25 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 
+/** Résumé lisible du sommeil saisi — chaîne vide si rien n'est renseigné. */
+export function formatSleep(sleep) {
+  if (!sleep) return '';
+  const bits = [];
+  if (sleep.score) bits.push(`score ${sleep.score}`);
+  if (sleep.durationMin) {
+    const t = parseInt(sleep.durationMin, 10);
+    if (!isNaN(t) && t > 0) bits.push(`${Math.floor(t / 60)}h${String(t % 60).padStart(2, '0')}`);
+  }
+  if (sleep.hrv) bits.push(`VFC ${sleep.hrv} ms`);
+  if (sleep.rhr) bits.push(`FC repos ${sleep.rhr} bpm`);
+  return bits.join(' · ');
+}
+
 function formatDay(key, day) {
   const label = fmtFr(key);
+  const sleepStr = formatSleep(day?.sleep);
   const hasData = day && (
-    day.intake?.kcal || day.workout || day.expenditure?.steps || day.weight || day.waist
+    day.intake?.kcal || day.workout || day.expenditure?.steps || day.weight || day.waist || sleepStr
   );
 
   if (!hasData) return `- **${label}** : Aucune donnée saisie`;
@@ -23,6 +38,7 @@ function formatDay(key, day) {
   if (day.workout) parts.push(`Séance: ${day.workout === 'none' ? 'aucune (repos déclaré)' : day.workout}`);
   if (day.weight) parts.push(`Poids: ${day.weight} kg`);
   if (day.waist) parts.push(`Tour de taille: ${day.waist} cm`);
+  if (sleepStr) parts.push(`Sommeil: ${sleepStr}`);
   if (day.notes) parts.push(`Notes: ${day.notes}`);
 
   return `- **${label}** : ${parts.join(' | ')}`;

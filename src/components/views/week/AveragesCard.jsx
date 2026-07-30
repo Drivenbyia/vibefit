@@ -5,8 +5,11 @@ import SectionLabel from '../../ui/SectionLabel.jsx';
 import MacroBar from './MacroBar.jsx';
 import ProteinBadge from './ProteinBadge.jsx';
 import KcalAverageRow from './KcalAverageRow.jsx';
+import SleepAverageRow from './SleepAverageRow.jsx';
 
-export default function AveragesCard({ weekly, macroTargets, proteinFloor, daysUnderProtein, daysNotLogged }) {
+export default function AveragesCard({ weekly, macroTargets, sleep, proteinFloor, daysUnderProtein, daysNotLogged }) {
+  const hasSleep = (sleep?.nights ?? 0) > 0;
+
   return (
     <Card>
       <SectionLabel>
@@ -18,11 +21,13 @@ export default function AveragesCard({ weekly, macroTargets, proteinFloor, daysU
         )}
       </SectionLabel>
 
-      {weekly.recordedDays === 0 ? (
+      {weekly.recordedDays === 0 && !hasSleep && (
         <div style={{ fontSize: 13, color: PALETTE.muted, padding: '4px 0 8px' }}>
           Aucun jour saisi cette semaine.
         </div>
-      ) : (
+      )}
+
+      {weekly.recordedDays > 0 && (
         <>
           <MacroBar
             label="Protéines"
@@ -58,6 +63,11 @@ export default function AveragesCard({ weekly, macroTargets, proteinFloor, daysU
           />
         </>
       )}
+
+      {/* Hors du bloc nutrition : le sommeil se saisit souvent avant le premier
+          repas de la journée. Le masquer tant qu'aucune calorie n'est loggée
+          reviendrait à cacher une métrique le matin même où elle est relevée. */}
+      <SleepAverageRow sleep={sleep} />
     </Card>
   );
 }
