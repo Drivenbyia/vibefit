@@ -1,9 +1,14 @@
 export default function FontStyles() {
   return (
     <style>{`
-      /* Les 3 rôles typographiques de la direction — voir DESIGN.md.
+      /* Les rôles typographiques de la direction — voir DESIGN.md §2.
          Les @font-face vivent dans src/styles/fonts.css (auto-hébergés) : ici
-         on ne déclare que l'affectation des rôles. */
+         on ne déclare que l'affectation des rôles.
+         .vf-hero (Anton) est réservé aux GROS chiffres et au wordmark : une
+         fonte poster condensée à 800% de graisse perçue, illisible passé
+         3-4 mots. .vf-display (Archivo) reste le display courant — titres de
+         carte, labels d'écran — là où Anton casserait la lecture. */
+      .vf-hero { font-family: 'Anton', sans-serif; text-transform: uppercase; letter-spacing: 0.01em; }
       .vf-display { font-family: 'Archivo', sans-serif; letter-spacing: -0.02em; }
       .vf-body { font-family: 'IBM Plex Sans', sans-serif; }
       .vf-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }

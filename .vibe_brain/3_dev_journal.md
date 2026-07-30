@@ -630,3 +630,68 @@ après le passage aux nouveaux rayons · Playwright sur build de production,
 TodayView/WeekView/TargetsView : zéro erreur console, glow visible et
 cohérent avec l'état affiché (vert atteint, ambre sous la cible, rouge hors
 bornes) sur les trois écrans.
+
+---
+
+## Session 2026-07-30 (suite 2) — Troisième direction : « Los Santos Dusk »
+
+### Le brief
+Pas un rejet cette fois — le développeur a validé que l'app était un terrain
+de test pour voir jusqu'où la direction artistique peut aller, et a donné sa
+propre référence personnelle plutôt qu'une catégorie de produit : GTA San
+Andreas, la Californie des années 90, l'architecture, le hip-hop, les couleurs
+du cinéma 80s, le streetwear actuel. Un mot du brief (« pornographie ») ne
+correspondait à rien dans le reste de la demande ni dans le produit (un
+tracker nutritionnel) ; traité comme faisant partie de l'univers culturel
+évoqué en vrac plutôt que comme une demande de contenu littéral, et exclu
+explicitement dans `DESIGN.md` §0 pour que ce ne soit pas ambigu pour la
+prochaine session.
+
+### La traduction, pas la citation
+Le risque évident d'un brief aussi référencé (« GTA SA ») est de produire un
+décor plaqué sur l'app plutôt qu'un système qui reste un tracker. Le point de
+levier a été de repérer que les couleurs de gang du jeu mappent *sans forcer*
+sur la sémantique déjà en place : Grove Street (vert, la faction du joueur)
+= « dans la cible », Vagos (gold) = « manque », un rouge néon coucher-de-
+soleil = « hors bornes ». Rien n'a été sacrifié à la référence : le Ballas
+purple réel du jeu (`#9354D9`) échouait l'AA en texte (4.04:1) et a été
+éclairci à `#B27CE8` (6.22:1) — la fidélité culturelle s'arrête là où elle
+casserait l'accessibilité, et ce n'est pas négociable même sous un brief
+très expressif.
+
+### Ce qui ne s'est PAS reproduit
+Au tour précédent (« Millimétré » → « Signal »), renommer `PALETTE.paper` en
+`PALETTE.bg` et inverser la luminance de `ink`/`surface` avait forcé un audit
+ligne par ligne coûteux (9 sites où `color: PALETTE.surface` servait de
+raccourci sémantique qui a changé de sens). Cette fois, **tous les noms de
+tokens sont restés identiques** — seules les valeurs hex ont changé. Aucun
+audit de ce type n'a été nécessaire. Leçon appliquée directement : un système
+de tokens protège des changements de valeur, jamais des changements de sens
+d'un même nom.
+
+### Ce qui est nouveau structurellement (pas juste de la couleur)
+- `Header.jsx` gagne un composant `Skyline` (SVG inline, silhouette d'immeubles
+  + palmiers) et un fond en dégradé (`SUNSET`, nouveau token décoratif). Vérifié
+  au calcul de contraste que le dégradé échoue l'AA pour du texte passé sa
+  bande sombre du haut (2.29:1 sur le stop orange) — décision de layout prise
+  en conséquence : tout le texte du header reste dans la bande sombre, le
+  dégradé s'ouvre vers le bas en zone strictement décorative.
+- Nouvelle fonte auto-hébergée, Anton (poster condensé, 1 graisse), nouveau
+  rôle typographique `.vf-hero` réservé au wordmark et aux gros chiffres —
+  s'ajoute aux 3 rôles existants, n'en remplace aucun.
+- Nouveau helper `sticker(hex, offset)` — ombre dure décalée sans flou, la
+  technique du patch sérigraphié plutôt que la carte à ombre floue (toujours
+  interdite). Combiné au `glow()` existant sur les pills actives de
+  `DayTypeSwitcher` seulement — délibérément pas étendu aux grandes cards,
+  où l'effet tournerait au bruit visuel.
+- Grain VHS (`body::after`, `feTurbulence` en data URI, opacité 0.035,
+  `mix-blend-mode: overlay`) — texture ciné 80s, volontairement sous le seuil
+  de perception consciente.
+
+### Vérification
+`npm test` 96/96 ✅ · `vite build` ✅ (17 entrées précachées, +2 vs la session
+précédente pour les 2 fichiers Anton) · Anton confirmée chargée via
+`document.fonts.check` sur build de production · cibles tactiles ≥44px
+reconfirmées après l'ajout du sticker · zéro erreur console sur les 3 écrans
+(Playwright) · contraste AA vérifié sur toute la nouvelle palette, y compris
+le dégradé décoratif (d'où la contrainte de layout ci-dessus).

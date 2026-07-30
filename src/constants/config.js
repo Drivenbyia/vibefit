@@ -77,48 +77,60 @@ export const PRESETS = {
   },
 };
 
-// --- Direction artistique « Signal » — voir DESIGN.md ---
-// Registre wearable de performance (Whoop) : dark-first, presque noir, où les
-// couleurs d'état PORTENT une charge lumineuse — glow, pas décor. L'app se lit
-// dans une salle de sport ou au lit à côté du téléphone, jamais en plein jour
-// sur une feuille de papier.
+// --- Direction artistique « Los Santos Dusk » — voir DESIGN.md ---
+// Grove Street la nuit : San Andreas / Californie 90s / hip-hop West Coast /
+// ciné 80s / streetwear actuel. Presque noir mais CHAUD (violet de crépuscule,
+// pas un gris neutre), couleurs de gang détournées en couleurs d'état,
+// dégradé coucher de soleil réservé aux surfaces décoratives.
 //
 // Règle de couleur : une couleur signifie un ÉTAT, jamais une décoration.
-//   green  → dans la cible / atteint / marque VibeFit
-//   amber  → EN DESSOUS de la cible (un manque : pas, séances, apport)
-//   red    → HORS BORNES (dépassement, erreur de saisie, perte de données)
-// `red` reste rare par construction : le diluer sur des manques ordinaires lui
+//   green (Grove Street) → dans la cible / atteint / marque VibeFit
+//   gold  (Vagos)         → EN DESSOUS de la cible (un manque)
+//   coral (néon coucher de soleil) → HORS BORNES (dépassement, erreur, perte de données)
+// `alert` reste rare par construction : le diluer sur des manques ordinaires lui
 // ferait perdre sa valeur de signal.
 export const PALETTE = {
-  // Fonds & encre — presque noir, jamais gris papier
-  bg: '#0A0B0D',            // fond de l'app
-  surface: '#16181B',       // feuille surélevée
-  surfaceRaised: '#1E2124', // niveau au-dessus (inputs, éléments imbriqués)
-  ink: '#F2F4F6',           // texte, chiffres, cran « aujourd'hui »
-  inkSoft: '#0A0B0D',       // texte sur remplissage saturé (boutons actifs)
-  muted: '#8B929A',         // marginalia, labels — AA sur bg et surface
-  line: '#24282D',          // bordures de séparation — décoratives, non porteuses
+  // Fonds & encre — presque noir, mais chaud : violet de nuit, pas gris neutre
+  bg: '#150F1A',            // fond de l'app — ciel de Los Santos à la nuit tombée
+  surface: '#241A26',       // feuille surélevée — stuc éclairé au néon
+  surfaceRaised: '#2E212F', // niveau au-dessus (inputs, éléments imbriqués)
+  ink: '#F7F0E8',           // texte, chiffres — blanc chaud, pas clinique
+  inkSoft: '#150F1A',       // texte sur remplissage saturé (boutons actifs)
+  muted: '#A091A3',         // marginalia, labels — AA sur bg et surface
+  line: '#3D2C40',          // bordures de séparation — décoratives, non porteuses
   // `tick` est distinct de `line` à dessein : les graduations de l'anneau
   // PORTENT l'information d'échelle, elles tombent donc sous WCAG 1.4.11
   // (contraste non-textuel ≥ 3:1). Une bordure de card peut rester plus discrète.
-  tick: '#6B7076',          // graduations — 3.56:1 sur surface, 3.94:1 sur bg
+  tick: '#8A7A8D',          // graduations — 4.20:1 sur surface, 4.71:1 sur bg
 
-  // États — couleurs saturées, faites pour glower (voir `glow()` ci-dessous)
-  deep: '#2FEA7A',      // green — signal : dans la cible
-  deepSoft: '#132A1E',  // fond badge/encart, texte `deep` dessus
-  warn: '#FFB020',      // amber — en dessous de la cible
+  // États — couleurs de gang détournées, saturées pour glower (voir `glow()`)
+  deep: '#3FC94F',      // Grove Street green — signal : dans la cible
+  deepSoft: '#132918',  // fond badge/encart, texte `deep` dessus
+  warn: '#FFB627',      // Vagos gold — en dessous de la cible
   warnSoft: '#2B2008',
-  alert: '#FF4D5E',     // red — hors bornes
-  alertSoft: '#2B1216',
+  alert: '#FF3D68',     // néon coucher de soleil — hors bornes
+  alertSoft: '#2B121A',
 
   // Rampe catégorielle — distingue des natures, pas des états.
   // La couleur n'y est jamais porteuse seule : label, valeur et cible sont
   // toujours écrits à côté (cf. Bar.jsx, MacroBar.jsx).
-  slate: '#29C4FF',   // blue — jour OFF / glucides
-  umber: '#A78BFA',   // purple — lipides
+  slate: '#FF2E9A',   // magenta synthwave — jour OFF / glucides
+  umber: '#B27CE8',   // Ballas purple — lipides
 };
+
+// Dégradé coucher de soleil San Andreas — RÉSERVÉ aux surfaces décoratives
+// (header, splash, halo derrière l'anneau). Jamais sous du texte hors de la
+// bande sombre du haut : au milieu/bas, le contraste texte ne passe plus AA
+// (vérifié — voir DESIGN.md). Le texte du header reste dans la bande #241645.
+export const SUNSET = 'linear-gradient(180deg, #241645 0%, #7A2D6B 55%, #FF7A3D 100%)';
 
 // Rayon de flou du glow d'accent (halo coloré derrière un état actif — anneau,
 // pill sélectionnée). Différent d'une ombre portée générique : la couleur suit
 // TOUJOURS l'état affiché, jamais un gris neutre décoratif.
 export const glow = (hex, size = 18) => `0 0 ${size}px ${hex}66, 0 0 ${Math.round(size / 3)}px ${hex}99`;
+
+// Ombre dure décalée, sans flou — le patch/sticker sérigraphié plutôt que la
+// carte à ombre portée générique (interdite, voir DESIGN.md §0). Réservé aux
+// petits éléments d'accent (pills, badges) : sur une grande card, l'effet
+// tourne au bruit visuel plutôt qu'à la signature.
+export const sticker = (hex, offset = 3) => `${offset}px ${offset}px 0 0 ${hex}`;

@@ -6,9 +6,38 @@ last_updated: 2026-07-30
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🎨 Direction artistique figée — « Signal » (dark, glow, référence Whoop), persistée dans `DESIGN.md`**
+- **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/design-system-setup-shx5ot`
 - **Suite de tests : Vitest, 96 tests** — `npm test`
+
+### Session 2026-07-30 (suite 2) — Troisième direction : « Los Santos Dusk »
+Le développeur a demandé d'aller plus loin sur l'app comme test de direction
+artistique, avec sa propre référence : GTA San Andreas / Californie 90s /
+hip-hop / ciné 80s / streetwear. `DESIGN.md` réécrit une 3e fois. Détail dans
+`4_business_decisions.md`, récit dans `3_dev_journal.md`.
+
+- **Palette** : couleurs de gang du jeu détournées en couleurs d'état — vert
+  Grove Street `#3FC94F` (dans la cible), gold Vagos `#FFB627` (manque), néon
+  coucher-de-soleil `#FF3D68` (hors bornes), purple Ballas `#B27CE8` (lipides,
+  éclairci depuis la teinte réelle du jeu pour passer l'AA en texte). Fond
+  presque noir mais **chaud** (`#150F1A`, violet de crépuscule), pas neutre.
+- **Leçon appliquée du tour précédent** : tous les noms de tokens `PALETTE`
+  restent identiques à la direction « Signal » — seules les valeurs hex
+  changent. Aucun audit ligne-à-ligne nécessaire cette fois (contrairement au
+  tour d'avant où `paper`→`bg` et l'inversion de luminance `ink`/`surface`
+  avaient forcé un audit de 9 sites).
+- **Nouveau** : `Header.jsx` gagne un fond dégradé (`SUNSET`, nouveau token
+  décoratif) + un composant `Skyline` (silhouette immeubles/palmiers en SVG) ;
+  nouvelle fonte auto-hébergée Anton (poster condensé) et rôle typo `.vf-hero`
+  pour le wordmark et les gros chiffres ; helper `sticker(hex, offset)` (ombre
+  dure décalée, patch sérigraphié) combiné au `glow()` existant sur les pills
+  actives ; grain VHS très discret (`body::after`, opacité 0.035).
+- Un mot du brief (« pornographie ») ne correspondait à rien dans le reste de
+  la demande ni dans le produit — exclu explicitement dans `DESIGN.md` §0.
+- Vérifié : 96/96 tests, build OK (17 précaches, +2 pour Anton), Anton
+  confirmée chargée, cibles tactiles ≥44px reconfirmées, zéro erreur console
+  sur les 3 écrans, contraste AA revérifié y compris sur le dégradé
+  décoratif (texte confiné à sa bande sombre du haut, seul endroit qui passe).
 
 ### Session 2026-07-30 (suite) — Rejet de « Millimétré », re-direction « Signal »
 Premier rendu de « Millimétré » jugé « triste et froide » par le développeur,
@@ -76,9 +105,9 @@ Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur véri
 ```
 src/
   styles/
-    fonts.css          — @font-face des 8 woff2 auto-hébergés (Archivo, IBM Plex Sans/Mono)
+    fonts.css          — @font-face des 10 woff2 auto-hébergés (Anton, Archivo, IBM Plex Sans/Mono)
   constants/
-    config.js          — PALETTE (direction « Signal » — voir DESIGN.md), PRESETS,
+    config.js          — PALETTE (direction « Los Santos Dusk » — voir DESIGN.md), PRESETS,
                          STORAGE_KEY, seuils (KCAL_FLOOR, PROTEIN_FLOOR, MIN_BASE_TDEE,
                          MIN_CYCLE_GAP) et bornes de plausibilité du signal
   utils/

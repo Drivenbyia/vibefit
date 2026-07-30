@@ -1,4 +1,4 @@
-import { PALETTE, glow } from '../../constants/config.js';
+import { PALETTE, glow, sticker } from '../../constants/config.js';
 
 const COLOR_MAP = { train: PALETTE.deep, off: PALETTE.slate, we: PALETTE.muted };
 
@@ -21,8 +21,10 @@ export default function DayTypeSwitcher({ activeType, targets, onToggle }) {
               minHeight: 44,
               borderRadius: 12,
               border: 'none',
-              background: active ? color : 'rgba(255,255,255,0.06)',
-              boxShadow: active ? glow(color, 14) : 'none',
+              background: active ? color : 'rgba(255,255,255,0.1)',
+              // Patch sérigraphié + halo : la signature « Los Santos Dusk »
+              // combine l'ombre dure (sticker) et le glow — voir DESIGN.md §4.
+              boxShadow: active ? `${sticker(PALETTE.bg)}, ${glow(color, 14)}` : 'none',
               color: active ? PALETTE.inkSoft : PALETTE.ink,
               fontWeight: 700,
               fontSize: 11,

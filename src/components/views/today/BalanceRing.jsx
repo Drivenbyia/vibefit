@@ -71,11 +71,11 @@ export default function BalanceRing({ intake, target }) {
       )}
 
       <text
-        x={CX} y="76"
+        x={CX} y="78"
         textAnchor="middle"
         dominantBaseline="central"
-        className="vf-display vf-tabular"
-        style={{ fontSize: 34, fontWeight: 900, fill: PALETTE.ink }}
+        className="vf-hero vf-tabular"
+        style={{ fontSize: 36, fill: PALETTE.ink }}
       >
         {label}
       </text>

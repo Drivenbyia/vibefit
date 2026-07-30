@@ -19,12 +19,26 @@ body {
   /* Doit rester synchrone avec PALETTE.bg / PALETTE.ink (constants/config.js) :
      ces deux valeurs peignent le fond AVANT le montage de React, donc elles ne
      peuvent pas venir du token JS. */
-  background: #0a0b0d;
-  color: #f2f4f6;
+  background: #150f1a;
+  color: #f7f0e8;
   font-family: 'IBM Plex Sans', sans-serif;
   text-rendering: optimizeLegibility;
   /* Empêche le bounce iOS */
   overscroll-behavior-y: none;
+  position: relative;
+}
+
+/* Grain VHS — texture ciné 80s, voir DESIGN.md §3. Overlay fixe, opacité très
+   basse : présent au regard attentif, invisible en usage courant. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 button {
