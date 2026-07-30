@@ -111,6 +111,25 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
   });
 };
 
+/**
+ * Moyennes de sommeil sur les nuits renseignées — descriptif pur, aucun seuil.
+ * `nights` compte les nuits ayant au moins un score ou une durée.
+ */
+export const aggregateSleep = (daysData) => {
+  const field = (f) => daysData.map(({ day }) => num(day?.sleep?.[f])).filter((v) => v > 0);
+  const mean = (xs) => (xs.length > 0 ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+
+  const scores = field('score');
+  const durations = field('durationMin');
+
+  return {
+    score: mean(scores),
+    durationMin: mean(durations),
+    hrv: mean(field('hrv')),
+    nights: Math.max(scores.length, durations.length),
+  };
+};
+
 export const calculateWeightStats = (daysData) => {
   const series = daysData
     .map(({ key, day }) => ({ key, w: day?.weight ? num(day.weight) : null }))

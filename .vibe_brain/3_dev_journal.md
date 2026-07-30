@@ -469,3 +469,27 @@ Le champ reste effaçable : un jour sans cible est alors exclu **des deux côté
 
 ### Décision : gel du moteur
 Fin des développements sur le moteur expert. La contrainte n'est plus le code mais la donnée : 3 jours d'apport en historique, 0 semaine exploitable pour le backtesting exigé par la spec §9 (8 semaines minimum, 80 % de déclenchements pertinents). R2, R4, R5 et R6 restent gelées jusqu'à disposer de vraies données.
+
+---
+
+## [2026-07-30] Saisie structurée du sommeil
+
+### Contexte
+Les scores de sommeil étaient notés en texte libre dans `notes`, sous des formats variables : « Nuit de 7h00 score 71 », « 6h49 score de sommeil 84 / svf 41 », « Score sommeil 70 7h09 », « 8h16 score 88 ». Ordre, libellés et présence du HRV changeaient d'une entrée à l'autre.
+
+Cette donnée est loin d'être anecdotique : elle explique une partie du bruit de la série de poids. Les notes de mai annotent explicitement les deux points les plus hauts (« ventre très ballonné », « pas allé à la selle depuis 3 jours, tour de taille lié à inflammation »). Sans elles, ces points ressembleraient à une prise de gras.
+
+### Périmètre — capture, pas inférence
+**Le gel du moteur est respecté** : on structure une saisie, on n'ajoute aucune règle, aucun seuil, aucun jugement. R2, R4, R5 et R6 restent gelées.
+
+- `models/day.js` — `sleep: { score, durationMin, hrv }`. `durationMin` est la valeur canonique ; l'UI présente heures/minutes, l'analyse a besoin d'un scalaire.
+- `today/SleepCard.jsx` — 4 champs (score, HRV, heures, minutes). Les champs de durée sont en mode `onBlur` : en mode immédiat, taper « 55 » minutes passait par « 5 » puis « 55 » et faisait sauter visuellement le champ heures.
+- `exportUtils.formatSleep()` — le sommeil part dans l'export Markdown, exploitable par un LLM.
+- `mathUtils.aggregateSleep()` — moyennes hebdo, extraites du hook pour rester testables et garder `useWeekStats` sous les 85 lignes.
+- `week/SleepAverageRow.jsx` — affichage dans la carte Moyennes. Une métrique saisie mais jamais affichée finit par ne plus être saisie.
+
+### Rétrocompatibilité
+Aucune migration. `updateDay` fusionne `{ ...emptyDay(), ...jourStocké, ...patch }` : les jours antérieurs récupèrent le champ par défaut via le spread. Vérifié en conditions réelles avec un jour à l'ancien format — zéro erreur.
+
+### Vérification
+`npm test` 93/93 ✅ · `vite build` ✅ · Playwright sur build de production : saisie 6h + 55min → `durationMin: "415"`, affichage hebdo « 6h55 · score 85 · HRV 42 ms · 1 nuit renseignée », zéro erreur console.

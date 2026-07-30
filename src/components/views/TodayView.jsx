@@ -5,6 +5,7 @@ import IntakeCard from './today/IntakeCard.jsx';
 import ExpenditureCard from './today/ExpenditureCard.jsx';
 import WorkoutCard from './today/WorkoutCard.jsx';
 import { WeightCard, WaistCard } from './today/BodyCards.jsx';
+import SleepCard from './today/SleepCard.jsx';
 import NotesCard from './today/NotesCard.jsx';
 
 export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget }) {
@@ -29,6 +30,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
       <WorkoutCard day={day} updateDay={updateDay} />
       <WeightCard day={day} updateDay={updateDay} />
       {(isMonday || day.waist) && <WaistCard day={day} updateDay={updateDay} isMonday={isMonday} />}
+      <SleepCard day={day} updateDay={updateDay} />
       <NotesCard day={day} updateDay={updateDay} />
     </div>
   );

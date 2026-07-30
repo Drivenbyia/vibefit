@@ -9,7 +9,7 @@ last_updated: 2026-07-29
 - **Phase : 🔬 Moteur de calcul corrigé et testé — TDEE adaptatif branché (opt-in), protocole anti-rationalisation implémenté**
 - Branche active : `claude/vibefit-calc-audit-wut56i`
 - Derniers commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
-- **Suite de tests : Vitest, 79 tests** — `npm test`
+- **Suite de tests : Vitest, 93 tests** — `npm test`
 
 ### Session 2026-07-29 — Audit des calculs, 3 lots
 1. **Math TDEE** — bug principal : le déséquilibre journalier était divisé par 14 alors que l'écart de demi-moyennes couvre 7 jours ⇒ erreur systématique de **291 kcal/j** (TDEE réel 2550 → calculé 2259). Remplacé par une régression OLS sur poids interpolés. Rejet des aberrations, plus de propagation à plat, recouvrement poids × apport exigé, pénalité de récence.
@@ -22,6 +22,8 @@ last_updated: 2026-07-29
 
 6. **Cible week-end dérivée** — cause racine du trou dont les lots 4 et 5 ne corrigeaient que les symptômes. Le WE reçoit la moyenne pondérée des jours de semaine au lieu de `kcal: null`, et reste effaçable à la main. **Moteur gelé ensuite** : la contrainte est la donnée (0 semaine exploitable pour le backtesting §9), plus le code.
 
+7. **Saisie structurée du sommeil** — score / durée / HRV sortis du texte libre des notes. Capture uniquement : aucune règle, aucun seuil. Rétrocompatible sans migration.
+
 Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur vérité terrain 2550, recalibration 2000 → 2551 (TRAIN 2751 / OFF 2351), diagnostics discriminants, taux de presets exacts, zéro erreur console.
 
 ## Structure des fichiers (src/)
@@ -33,7 +35,8 @@ src/
                          MIN_BASE_TDEE, MIN_CYCLE_GAP) et bornes de plausibilité du signal
   utils/
     dateUtils.js       — toKey (date LOCALE), dayTypeFromKey, fmtFr, shortFr, addDays, startOfWeek
-    mathUtils.js       — num, calculateWeeklyBalance, calculateWeightStats, computeWeeklyHistory
+    mathUtils.js       — num, calculateWeeklyBalance, calculateWeightStats, computeWeeklyHistory,
+                         aggregateSleep
     backupUtils.js     — exportBackup, importBackup
     exportUtils.js     — getHistoricalWeeks(data, n) : export Markdown 8 semaines (AI Bridge V2 + header)
     adaptiveTDEE.js    — extractSignals(data) + olsSlope() : TDEE par régression OLS, Sliding Window
@@ -45,9 +48,10 @@ src/
     presetUtils.js     — computePresetTargets, clampTargetField, macroConflictKcal, deriveBaseTDEE,
                          DEFAULT_TARGETS (dérivé de DEFAULT_TDEE — ici pour éviter un cycle d'import)
     reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
-    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift (79 tests)
+    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift, sleep (93 tests)
   models/
-    day.js             — emptyDay, dayType (typeOverride > séance loggée > calendrier)
+    day.js             — emptyDay (dont sleep: score/durationMin/hrv), dayType
+                         (typeOverride > séance loggée > calendrier)
   hooks/
     useVibefitStorage.js  — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
     useWeekStats.js       — dérivation hebdo (days, weekly, séries, macros, plancher protéines en jours)

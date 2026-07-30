@@ -21,7 +21,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
   const {
     resolvedTargets, start, days, weekly, plannedTrain,
     waistSeries, avgWeight, weightDelta, weightSeries, macroTargets,
-    proteinFloor, daysUnderProtein, daysNotLogged,
+    proteinFloor, daysUnderProtein, daysNotLogged, sleep,
   } = useWeekStats(dateKey, data, targets);
 
   const diagnosis = usePlateauDiagnosis(data, resolvedTargets);
@@ -53,6 +53,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
       <AveragesCard
         weekly={weekly}
         macroTargets={macroTargets}
+        sleep={sleep}
         proteinFloor={proteinFloor}
         daysUnderProtein={daysUnderProtein}
         daysNotLogged={daysNotLogged}

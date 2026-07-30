@@ -5,8 +5,9 @@ import SectionLabel from '../../ui/SectionLabel.jsx';
 import MacroBar from './MacroBar.jsx';
 import ProteinBadge from './ProteinBadge.jsx';
 import KcalAverageRow from './KcalAverageRow.jsx';
+import SleepAverageRow from './SleepAverageRow.jsx';
 
-export default function AveragesCard({ weekly, macroTargets, proteinFloor, daysUnderProtein, daysNotLogged }) {
+export default function AveragesCard({ weekly, macroTargets, sleep, proteinFloor, daysUnderProtein, daysNotLogged }) {
   return (
     <Card>
       <SectionLabel>
@@ -56,6 +57,7 @@ export default function AveragesCard({ weekly, macroTargets, proteinFloor, daysU
             avgKcalTarget={weekly.avgKcalTarget}
             comparableDays={weekly.comparableDays}
           />
+          <SleepAverageRow sleep={sleep} />
         </>
       )}
     </Card>
