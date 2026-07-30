@@ -9,14 +9,16 @@ last_updated: 2026-07-29
 - **Phase : 🔬 Moteur de calcul corrigé et testé — TDEE adaptatif branché (opt-in), protocole anti-rationalisation implémenté**
 - Branche active : `claude/vibefit-calc-audit-wut56i`
 - Derniers commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
-- **Suite de tests : Vitest, 63 tests** — `npm test`
+- **Suite de tests : Vitest, 75 tests** — `npm test`
 
 ### Session 2026-07-29 — Audit des calculs, 3 lots
 1. **Math TDEE** — bug principal : le déséquilibre journalier était divisé par 14 alors que l'écart de demi-moyennes couvre 7 jours ⇒ erreur systématique de **291 kcal/j** (TDEE réel 2550 → calculé 2259). Remplacé par une régression OLS sur poids interpolés. Rejet des aberrations, plus de propagation à plat, recouvrement poids × apport exigé, pénalité de récence.
 2. **Cohérence des cibles** — le TDEE adaptatif n'alimentait aucune cible (seul l'export le lisait). Branchement **opt-in** via `RecalibrateCard`. `DEFAULT_TARGETS` dérivé. Écart de cyclage préservé sous le plancher. Plancher protéines garanti. La séance loggée pilote le type de jour. Apport et cible comparés sur la même base.
-3. **Protocole anti-rationalisation** — `plateauProtocol.js`, diagnostic pur croisant TDEE / poids / adhérence. Porte d'adhérence prioritaire, garde-fou rétention d'eau. Aucune action automatisée (R2–R6 toujours gelées).
+3. **Protocole anti-rationalisation** — `plateauProtocol.js`, diagnostic pur croisant TDEE / poids / adhérence. Porte d'adhérence prioritaire, garde-fou rétention d'eau. Aucune action automatisée.
 
 4. **Libellés des presets** — les `sub` figés de `config.js` annonçaient des taux faux d'un facteur ~2 : ils ignoraient le week-end, qui n'a aucune cible et dilue le déficit sur 2 jours sur 7. « Sèche forte : perte ~500 g/sem » délivrait en réalité **234 g/sem**. Remplacés par `presetRateLabel()`, calculé depuis les cibles effectives et la composition de semaine dérivée du calendrier.
+
+5. **R3 NEAT_DRIFT dégelée** — `neatDrift.js` : détection de l'effondrement de l'activité, déclenchée par un cas terrain où les pas ont chuté de 62 % (−698 kcal/j de dépense) sans que l'app ne signale quoi que ce soit pendant deux mois.
 
 Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur vérité terrain 2550, recalibration 2000 → 2551 (TRAIN 2751 / OFF 2351), diagnostics discriminants, taux de presets exacts, zéro erreur console.
 
@@ -36,10 +38,12 @@ src/
                          (scan 30j, fenêtre 14j pénalisée par la récence), rejet des aberrations,
                          recouvrement poids × apport, lissage 7j pour l'affichage seul
     plateauProtocol.js — diagnose() : croisement TDEE / poids / adhérence. DIAGNOSTIC PUR, sans action
+    neatDrift.js       — diagnoseNeat() : R3 NEAT_DRIFT, chute brutale + dérive installée des pas.
+                         Indépendant de la porte d'adhérence (les pas survivent au décrochage du suivi)
     presetUtils.js     — computePresetTargets, clampTargetField, macroConflictKcal, deriveBaseTDEE,
                          DEFAULT_TARGETS (dérivé de DEFAULT_TDEE — ici pour éviter un cycle d'import)
     reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
-    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol (56 tests)
+    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift (75 tests)
   models/
     day.js             — emptyDay, dayType (typeOverride > séance loggée > calendrier)
   hooks/
@@ -49,6 +53,7 @@ src/
     useTargetsManager.js  — logique presets/TDEE/updateField/reset
     useAdaptiveTargets.js — TDEE mesuré + recalibration OPT-IN des cibles
     usePlateauDiagnosis.js— croisement TDEE / poids / adhérence pour WeekView
+    useNeatDrift.js       — surveillance de l'effondrement du NEAT pour WeekView
     useBackupManager.js   — export/import/reset des données
     useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
@@ -56,8 +61,8 @@ src/
     layout/            — Header, DayTypeSwitcher, BottomNav
     views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes
       TodayView.jsx    + today/   (BalanceCard, BalanceRing, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
-      WeekView.jsx     + week/    (WeekSummary, WeekCalendar, NetBalanceCard, DayBar, KcalTrendCard, MacroBar, ProteinBadge, AveragesCard, WaistCard, WeightCard, ReminderCard, ExportButton)
-      TargetsView.jsx  + targets/ (PresetPickerCard, StepsCard, TargetEditor, FooterCards)
+      WeekView.jsx     + week/    (WeekSummary, WeekCalendar, DiagnosisCard, NeatCard, NetBalanceCard, DayBar, KcalTrendCard, MacroBar, ProteinBadge, AveragesCard, KcalAverageRow, WaistCard, WeightCard, ReminderCard, ExportButton)
+      TargetsView.jsx  + targets/ (PresetPickerCard, RecalibrateCard, StepsCard, TargetEditor, FooterCards)
       DataView.jsx     + data/    (BackupCard, DataInfoCards)
   App.jsx              — Orchestrateur pur (69 lignes)
 ```
@@ -85,7 +90,8 @@ src/
 - [x] **Fix UX saisie** — `NumberInput` : état local interne, mode différé `onBlur` pour les kcal (fini les recalculs à chaque frappe), plancher 1600 kcal au blur, garde vide (pas de crash)
 
 ### Phase C (gelée — backtesting requis)
-- [ ] R2 PERTE_RAPIDE, R3 NEAT_DRIFT, R4 PLATEAU_STRICT, R5 WEEKEND_FAILURE, R6 CORTISOL_SPIKE
+- [x] **R3 NEAT_DRIFT** — dégelée et implémentée (diagnostic seul) : chute brutale + dérive installée des pas
+- [ ] R2 PERTE_RAPIDE, R4 PLATEAU_STRICT, R5 WEEKEND_FAILURE, R6 CORTISOL_SPIKE
 
 ## Backlog
 - [ ] Historique graphique multi-semaines

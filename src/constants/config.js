@@ -4,6 +4,12 @@ export const STORAGE_KEY = 'vibefit_v1';
 // 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
 export const KCAL_PER_KG = 7700;
 
+// --- NEAT (dépense d'activité non sportive) ---
+// ~0.0005 kcal par pas et par kg : 10 000 pas ≈ 400 kcal pour 80 kg.
+// Estimation volontairement conservatrice — attribuer aux pas l'intégralité
+// d'une baisse de dépense Garmin surestimerait leur part (les séances y entrent).
+export const KCAL_PER_STEP_PER_KG = 0.0005;
+
 // --- Bornes de plausibilité du signal (rejet des erreurs de saisie) ---
 // Une valeur hors bornes est écartée (→ null) avant tout calcul : une typo
 // `78` → `780` kg se propagerait sinon dans l'interpolation, le lissage et le TDEE.

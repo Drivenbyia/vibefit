@@ -406,3 +406,33 @@ Même racine que le bug `avgKcalTarget` corrigé plus tôt : **le trou du week-e
 
 ### Vérification
 `npm test` 63/63 ✅ · `vite build` ✅ · Playwright sur build de production : les 5 taux affichés correspondent au calcul indépendant, zéro erreur console.
+
+---
+
+## [2026-07-29] R3 NEAT_DRIFT dégelée et implémentée
+
+### Contexte
+Analyse d'un export terrain couvrant juin–juillet 2026, après ~2 mois sans suivi. Le diagnostic posé à l'époque — « TDEE de base erroné car aucune perte de poids » — ne tenait pas : seuls **3 jours d'apport** avaient été saisis sur toute la période, et la série de poids comportait un −1.5 kg en 24 h (bruit hydrique).
+
+L'explication réelle était dans les données de montre :
+
+| | Juin | Juillet | Écart |
+|---|---|---|---|
+| Pas / jour | 16 097 | 6 080 | −62 % |
+| Dépense Garmin | 2 856 kcal/j | 2 158 kcal/j | −698 kcal/j |
+
+Apport moyen 2 128 vs dépense 2 158 = **−30 kcal/j**. Aucune perte de poids n'était mathématiquement attendue. Le tour de taille (87.5 → 90 cm) confirmait une lente prise de gras, pas un plateau métabolique. L'app n'a rien signalé alors que R3 était spécifiée pour exactement ça.
+
+### Implémentation
+- `src/utils/neatDrift.js` — module pur, même forme que `plateauProtocol.js`. Diagnostic seul, aucune modification de cible.
+- **Deux détections** au lieu d'une : le trigger d'origine (chute semaine à semaine < 85 %) ne voit pas une érosion lente. Ajout d'une comparaison à une ligne de base de 4 semaines (< 80 %).
+- **Indépendant de la porte d'adhérence** : les pas viennent de la montre et restent disponibles quand le suivi alimentaire décroche. Vérifié en conditions réelles — l'alerte NEAT s'affiche pendant que le diagnostic de plateau annonce « 0 jour croisant poids et apport ».
+- Impact chiffré en kcal/j via `KCAL_PER_STEP_PER_KG` (0.0005 kcal/pas/kg, conservateur). Non chiffré si le poids est inconnu, plutôt qu'estimé au hasard.
+- `computeWeeklyHistory` expose `avgSteps` / `stepsDays`, moyennés sur les jours où les pas sont réellement renseignés.
+
+### Deux défauts trouvés par les tests
+1. **Fausse alerte après une semaine exceptionnelle.** Redescendre de 18 000 à 14 000 pas déclenchait « chute d'activité » alors qu'on est à son niveau habituel. La détection brutale est désormais conditionnée à être sous sa propre ligne de base.
+2. **Statut périmé.** Si la dernière semaine complète manquait de données de montre, le code jugeait silencieusement la semaine d'avant et affichait « Activité stable » sur des chiffres obsolètes. Un contrôle explicite renvoie maintenant `INSUFFICIENT_DATA`.
+
+### Vérification
+`npm test` 75/75 ✅ · `vite build` ✅ · Playwright sur build de production, schéma terrain rejoué : *« Activité en baisse installée — 6 229 pas/j contre 14 554 en moyenne sur les 4 semaines précédentes (−57 %). Soit environ 331 kcal/j de dépense en moins. »*
