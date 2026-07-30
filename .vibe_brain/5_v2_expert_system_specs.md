@@ -3,7 +3,8 @@
 > **Statut :** V2 Phase A — DÉPLOIEMENT STAGING
 > **Auteur :** Généré via Claude Code — 2026-06-01
 > **Scope Phase A :** `extractSignals()` + TDEE Adaptatif + AI Bridge V2 Header + Badge Protéines
-> **Gel Phase A :** R2, R3, R4, R5, R6 — non implémentées (backtesting requis en amont)
+> **Gel :** R2, R4, R5, R6 — non implémentées (backtesting requis en amont)
+> **Implémentées, en diagnostic seul :** R1, R3 — aucune ne modifie de cible
 
 ---
 
@@ -115,11 +116,18 @@ La première ligne du Markdown exporté par `getHistoricalWeeks()` doit être :
 
 ### Fichier : `src/components/views/WeekView.jsx`
 
-- **Condition :** `weekly.avgProt < 160 && weekly.recordedDays > 0`
-- **Seuil :** 160 g/j (fixe, correspond à `resolvedTargets.train.protein`)
-- **Style :** Pill discret, couleur `PALETTE.warn`, visible uniquement si condition vraie
-- **Texte :** `Protéines < 160 g` (+ valeur actuelle optionnelle)
-- **Contrainte :** N'altère pas le hotfix 1600 kcal ni la logique TRAIN/OFF
+- **Condition :** `daysUnderProtein > 0 || daysNotLogged > 0`, comptés sur les **7 jours
+  calendaires** de la semaine — pas sur les jours saisis.
+- **Seuil :** `PROTEIN_FLOOR` = 160 g/j, appliqué TOUS les jours (week-end compris) via
+  `clampTargetField`.
+- **Texte :** `⚠ Protéines · 3 j < 160 g · 2 j non loggés`
+- **Style :** Pill discret, couleur `PALETTE.warn`
+
+> ⚠️ **Régression à ne jamais réintroduire.** La version initiale comparait
+> `weekly.avgProt` (moyenne divisée par les jours SAISIS) au seuil. Logger 3 jours à
+> 180 g et oublier les 4 autres masquait le badge — le système récompensait le
+> logging sélectif. Et un plancher QUOTIDIEN ne se contrôle pas par une moyenne :
+> 220 g puis 100 g font 160 de moyenne et deux jours hors protocole.
 
 ---
 
@@ -163,6 +171,32 @@ recalibrer() → base = signals.adaptiveTDEE
 - Le choix d'un preset **résout nativement le bug de désélection** : la cible est recalculée à chaque sélection depuis `signals.adaptiveTDEE` courant, sans stocker de valeur absolue persistante en dur.
 - Si `adaptiveTDEE` évolue (nouvelles données), il suffit de re-sélectionner le preset pour recalculer les cibles — aucune migration requise.
 - Les protéines cibles restent fixes par preset (non indexées sur le TDEE) : voir `src/constants/config.js`.
+
+### 5.3bis Cible du week-end — DÉRIVÉE, plus jamais nulle
+
+Le week-end recevait `kcal: null`. Il était donc mangé au TDEE et diluait le
+déficit sur 2 jours sur 7, ce qui :
+
+- rendait les taux annoncés des presets faux d'un facteur ~2 (« Sèche forte :
+  perte ~500 g/sem » pour 234 g réels) ;
+- faussait la comparaison apport/cible (l'apport du week-end était confronté à
+  une moyenne de cibles qui l'excluait) ;
+- laissait 29 % de la semaine sans repère.
+
+```
+WE.kcal = max(KCAL_FLOOR, moyenne pondérée des jours de semaine)
+        = (nTrain × TRAIN + nOff × OFF) / (nTrain + nOff)
+WE.fat  = même moyenne pondérée
+WE.carbs = résidu calorique
+```
+
+La pondération vient de `nominalWeek()`, **dérivée de `dayTypeFromKey`** — jamais
+re-codée. Le week-end se place ainsi entre TRAIN et OFF : plus souple qu'un jour
+de repos, sans sortir du protocole.
+
+Le champ reste **effaçable à la main** (`allowEmpty` sur l'éditeur WE). Un jour
+dont la cible est vidée est alors exclu **des deux côtés** de la comparaison
+apport/cible, ce qui préserve la correction d'origine.
 
 ### 5.4 Seuils Absolus Non Négociables
 

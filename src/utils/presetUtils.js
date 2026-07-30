@@ -72,21 +72,33 @@ export function macroConflictKcal(target) {
  */
 export function computePresetTargets(presetId, baseTDEE) {
   const configPreset = PRESETS[presetId] ?? PRESETS.maintenance;
-  const { train: ct, off: co, we } = configPreset.targets;
+  const { train: ct, off: co, we: cw } = configPreset.targets;
   const { train: trainKcal, off: offKcal } = presetKcal(presetId, baseTDEE);
 
+  // Le week-end reçoit la moyenne pondérée des jours de semaine : ni le haut des
+  // jours TRAIN, ni le bas des jours OFF. Sans cible, il était mangé au TDEE et
+  // diluait le déficit sur 2 jours sur 7 — c'est ce qui rendait les taux annoncés
+  // des presets faux d'un facteur ~2, et faussait la comparaison apport/cible.
+  // Le champ reste effaçable à la main pour un week-end volontairement libre.
+  const { train: nTrain, off: nOff } = nominalWeek();
+  const weekdays = nTrain + nOff;
+  const weKcal = Math.max(
+    KCAL_FLOOR,
+    Math.round((nTrain * trainKcal + nOff * offKcal) / weekdays)
+  );
+  const weFat = Math.round((nTrain * ct.fat + nOff * co.fat) / weekdays);
+
+  const withCarbs = (base, kcal, fat) => ({
+    ...base,
+    kcal,
+    fat,
+    carbs: Math.max(0, Math.round((kcal - base.protein * 4 - fat * 9) / 4)),
+  });
+
   return {
-    train: {
-      ...ct,
-      kcal: trainKcal,
-      carbs: Math.max(0, Math.round((trainKcal - ct.protein * 4 - ct.fat * 9) / 4)),
-    },
-    off: {
-      ...co,
-      kcal: offKcal,
-      carbs: Math.max(0, Math.round((offKcal - co.protein * 4 - co.fat * 9) / 4)),
-    },
-    we,
+    train: withCarbs(ct, trainKcal, ct.fat),
+    off: withCarbs(co, offKcal, co.fat),
+    we: withCarbs(cw, weKcal, weFat),
   };
 }
 

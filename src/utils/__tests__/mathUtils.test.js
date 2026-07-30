@@ -37,22 +37,26 @@ describe('dayType — priorité séance > calendrier', () => {
 });
 
 describe('calculateWeeklyBalance — comparaison apport vs cible', () => {
-  it('moyenne apport et cible sur exactement le même nombre de jours', () => {
-    // 5 jours de semaine + 2 jours de week-end saisis. Les cibles WE sont nulles :
-    // l'apport du week-end ne doit pas être comparé à une cible qui l'exclut.
+  it('couvre les 7 jours depuis que le week-end a une cible', () => {
     const w = calculateWeeklyBalance(week(() => meal(2000)), DEFAULT_TARGETS);
     expect(w.recordedDays).toBe(7);
-    expect(w.comparableDays).toBe(5);
-    expect(w.avgKcalTarget).not.toBeNull();
+    expect(w.comparableDays).toBe(7);
     expect(w.avgIntakeComparable).toBe(2000);
+    expect(w.avgKcalTarget).not.toBeNull();
   });
 
-  it('ne gonfle plus l’apport moyen comparé avec les jours sans cible', () => {
-    // Adhérent en semaine (2000), excès le week-end (3500).
+  it('exclut des DEUX côtés un jour dont la cible a été vidée', () => {
+    // Le week-end reste effaçable à la main. Dans ce cas, son apport ne doit pas
+    // être confronté à une moyenne de cibles qui l'exclut — le biais d'origine.
+    const libre = {
+      ...DEFAULT_TARGETS,
+      we: { ...DEFAULT_TARGETS.we, kcal: null },
+    };
     const w = calculateWeeklyBalance(
       week((i) => (i >= 5 ? meal(3500) : meal(2000))),
-      DEFAULT_TARGETS
+      libre
     );
+    expect(w.comparableDays).toBe(5);           // week-end écarté
     expect(w.avgIntakeComparable).toBe(2000);   // semaine seule
     expect(w.avgIntake).toBeGreaterThan(2000);  // moyenne brute, week-end inclus
     expect(w.avgIntakeComparable).toBeLessThanOrEqual(w.avgKcalTarget);
