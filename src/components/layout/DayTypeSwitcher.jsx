@@ -1,6 +1,6 @@
 import { PALETTE } from '../../constants/config.js';
 
-const COLOR_MAP = { train: PALETTE.deep, off: PALETTE.accent, we: '#888' };
+const COLOR_MAP = { train: PALETTE.deep, off: PALETTE.slate, we: PALETTE.muted };
 
 export default function DayTypeSwitcher({ activeType, targets, onToggle }) {
   const dt = targets[activeType];
@@ -17,10 +17,11 @@ export default function DayTypeSwitcher({ activeType, targets, onToggle }) {
             style={{
               flex: 1,
               padding: '8px 10px',
-              borderRadius: 8,
+              minHeight: 44,
+              borderRadius: 3,
               border: 'none',
               background: active ? COLOR_MAP[t2] : 'rgba(255,255,255,0.08)',
-              color: '#fff',
+              color: PALETTE.surface,
               fontWeight: 700,
               fontSize: 11,
               letterSpacing: '0.08em',

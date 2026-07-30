@@ -7,7 +7,7 @@ export default function TargetEditor({ title, subtitle, accent, target, onChange
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <div style={{ width: 4, height: 28, background: accent, borderRadius: 2 }} />
+        <div style={{ width: 4, height: 28, background: accent, borderRadius: 0 }} />
         <div>
           <div className="vf-body" style={{ fontSize: 13, fontWeight: 800, color: PALETTE.ink, letterSpacing: '0.04em' }}>
             {title}
@@ -35,8 +35,8 @@ export default function TargetEditor({ title, subtitle, accent, target, onChange
       </div>
       {conflictKcal > 0 && (
         <div style={{
-          marginTop: 10, padding: '7px 10px', borderRadius: 8,
-          background: '#FEF3C7', border: `1px solid ${PALETTE.warn}`,
+          marginTop: 10, padding: '7px 10px', borderRadius: 3,
+          background: PALETTE.highlight, border: `1px solid ${PALETTE.warn}`,
           fontSize: 11, fontWeight: 600, color: PALETTE.warn, lineHeight: 1.4,
         }}>
           ⚠ Protéines + lipides dépassent la cible de {conflictKcal} kcal — les glucides

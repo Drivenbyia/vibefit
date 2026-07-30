@@ -43,8 +43,11 @@ export default function NumberInput({ value, onChange, onBlur: onBlurProp, place
         alignItems: 'center',
         background: PALETTE.paper,
         border: `1px solid ${PALETTE.line}`,
-        borderRadius: 10,
-        padding: '10px 12px',
+        borderRadius: 3,
+        // Le padding vertical vit sur l'<input>, pas ici : sinon le champ
+        // PARAÎT faire 45 px alors que la cible tactile réelle n'en fait que 25,
+        // et taper la marge ne focalise rien. Cf. contrainte ≥44px (DESIGN.md).
+        padding: '0 12px',
         gap: 6,
       }}
     >
@@ -63,6 +66,8 @@ export default function NumberInput({ value, onChange, onBlur: onBlurProp, place
           background: 'transparent',
           border: 'none',
           outline: 'none',
+          padding: '11px 0',
+          minHeight: 44,
           fontSize: 18,
           fontWeight: 600,
           color: PALETTE.ink,

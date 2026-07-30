@@ -9,7 +9,7 @@ export default function DayBar({ day, dayKey, target, isToday, onPress }) {
   const isOver = pct > 110;
   const isLow = hasData && pct < 80;
   const barColor = !hasData ? PALETTE.line
-    : isOver ? PALETTE.accent
+    : isOver ? PALETTE.alert
     : isLow ? PALETTE.warn
     : PALETTE.deep;
   const barH = hasData ? Math.max((pct / 130) * 52, 6) : 3;
@@ -32,7 +32,7 @@ export default function DayBar({ day, dayKey, target, isToday, onPress }) {
       <div style={{
         fontSize: 9,
         fontWeight: 700,
-        color: isToday ? PALETTE.accent : PALETTE.muted,
+        color: isToday ? PALETTE.ink : PALETTE.muted,
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
       }}>
@@ -43,9 +43,9 @@ export default function DayBar({ day, dayKey, target, isToday, onPress }) {
           width: '100%',
           height: barH,
           background: barColor,
-          borderRadius: '3px 3px 0 0',
+          borderRadius: 0,
           opacity: hasData ? 1 : 0.35,
-          outline: isToday ? `2px solid ${PALETTE.accent}` : 'none',
+          outline: isToday ? `2px solid ${PALETTE.ink}` : 'none',
           outlineOffset: 1,
         }} />
       </div>

@@ -15,7 +15,7 @@ export default function AveragesCard({ weekly, macroTargets, sleep, proteinFloor
       <SectionLabel>
         Moyennes / jour saisi
         {weekly.recordedDays > 0 && (
-          <span style={{ color: PALETTE.accent, marginLeft: 6 }}>
+          <span style={{ color: PALETTE.deep, marginLeft: 6 }}>
             ÷ {weekly.recordedDays}
           </span>
         )}
@@ -34,7 +34,7 @@ export default function AveragesCard({ weekly, macroTargets, sleep, proteinFloor
             icon={Beef}
             value={weekly.avgProt}
             target={macroTargets.protein}
-            color="#4CAF50"
+            color={PALETTE.deep}
           />
           <ProteinBadge
             daysUnder={daysUnderProtein}
@@ -46,14 +46,14 @@ export default function AveragesCard({ weekly, macroTargets, sleep, proteinFloor
             icon={Wheat}
             value={weekly.avgCarbs}
             target={macroTargets.carbs}
-            color="#2196F3"
+            color={PALETTE.slate}
           />
           <MacroBar
             label="Lipides"
             icon={Droplets}
             value={weekly.avgFat}
             target={macroTargets.fat}
-            color="#FF9800"
+            color={PALETTE.umber}
           />
           <KcalAverageRow
             avgIntake={weekly.avgIntake}

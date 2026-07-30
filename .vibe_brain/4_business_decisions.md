@@ -74,4 +74,18 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
   - Le backlog post-RUN est documenté dans `2_project_overview.md`.
 - **Réversibilité** : Facile (décision de process, non technique — peut être levée à tout moment par décision explicite).
 
+### 2026-07-30 — Direction artistique « Millimétré » & DESIGN.md
+- **Décision** : Figer une direction visuelle propre à VibeFit, registre *instrument de mesure*, et la persister dans `DESIGN.md` à la racine — document **prescriptif**, relu avant toute tâche UI. Palette gris froid + vert instrument, typographie Archivo / IBM Plex Sans / IBM Plex Mono auto-hébergée, signature « règle graduée ».
+- **Contexte** : Le système visuel V1 violait deux interdits explicites du développeur — fond crème `#F6F2EC` + accent orange `#FF5A1F` (le pairing crème/terracotta refusé), et `Inter Tight` comme police de corps (Inter est banni). Il n'existait aucun document de direction : la charte se redonnait à chaque session.
+- **Alternatives considérées** : (A) « Millimétré » clair et froid, signature = règle graduée ; (B) « Console » sombre, signature = trace OLS brute sur nuage de points ; (C) « Fiche clinique » typographique, signature = chiffre géant + marginalia. Également considéré : ne produire que `DESIGN.md` sans toucher au code, et un re-skin complet des 4 vues.
+- **Raison du choix** : (A) tient WCAG AA le plus facilement, reste clair-first pour un usage diurne, et sa signature est la plus ancrée dans le sujet (mesurer un corps dans le temps) donc la moins générique. (B) était la plus distinctive mais aussi la plus proche du cliché « dashboard terminal ». (C) est fragile sur des écrans très denses.
+- **Impact** :
+  - `PALETTE` reste la source de vérité unique. Les clés `accent` / `accentDark` sont **supprimées** : leur sémantique était ambiguë (à la fois emphase décorative et « hors cible »). Leurs 37 sites d'appel ont été routés explicitement vers `deep` / `warn` / `alert` / `slate` / `ink`.
+  - Nouvelle règle de couleur, à tenir : `deep` = dans la cible, `warn` = **manque**, `alert` = **hors bornes**. Un manque ordinaire n'est pas une alerte — diluer `alert` lui retire sa valeur de signal.
+  - `tick` est séparé de `line` (WCAG 1.4.11 : les graduations portent l'information, ≥ 3:1 requis).
+  - Polices auto-hébergées dans `public/fonts` : les 2 règles `runtimeCaching` Google Fonts de `vite.config.js` et le `<link>` CDN d'`index.html` sont retirés, devenus morts.
+  - Zéro `box-shadow` dans le projet ; rayons ramenés à 0 / 2 / 3.
+  - Cibles tactiles portées à ≥ 44 px partout (`NumberInput`, `Pill`, chrome du header).
+- **Réversibilité** : Moyenne. Changer de palette ou de typo reste peu coûteux (tokens centralisés, 3 classes typographiques). Revenir sur la signature « règle graduée » demanderait de réécrire `Bar.jsx` et `BalanceRing.jsx`.
+
 ---

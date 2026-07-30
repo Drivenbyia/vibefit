@@ -15,8 +15,8 @@ export default function BackupCard({ onExport, onFileChange, importStatus }) {
         onClick={onExport}
         style={{
           width: '100%', padding: '14px',
-          background: PALETTE.ink, color: '#fff', border: 'none',
-          borderRadius: 10, fontWeight: 700, fontSize: 14,
+          background: PALETTE.ink, color: PALETTE.surface, border: 'none',
+          borderRadius: 3, fontWeight: 700, fontSize: 14,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           cursor: 'pointer', marginBottom: 8, minHeight: 44,
         }}
@@ -32,7 +32,7 @@ export default function BackupCard({ onExport, onFileChange, importStatus }) {
           width: '100%', padding: '14px',
           background: PALETTE.paper, color: PALETTE.ink,
           border: `1px solid ${PALETTE.line}`,
-          borderRadius: 10, fontWeight: 700, fontSize: 14,
+          borderRadius: 3, fontWeight: 700, fontSize: 14,
           cursor: 'pointer', minHeight: 44,
         }}
         className="vf-body"
@@ -50,9 +50,9 @@ export default function BackupCard({ onExport, onFileChange, importStatus }) {
       {importStatus && (
         <div
           style={{
-            marginTop: 10, padding: 10, borderRadius: 8,
-            background: importStatus.ok ? PALETTE.deepSoft : PALETTE.highlight,
-            color: importStatus.ok ? PALETTE.deep : PALETTE.accentDark,
+            marginTop: 10, padding: 10, borderRadius: 3,
+            background: importStatus.ok ? PALETTE.deepSoft : PALETTE.alertSoft,
+            color: importStatus.ok ? PALETTE.deep : PALETTE.alert,
             fontSize: 12, display: 'flex', gap: 8, alignItems: 'center',
           }}
         >

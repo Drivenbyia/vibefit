@@ -14,7 +14,7 @@ export default function ExportButton({ copied, onExport }) {
         padding: '12px 16px',
         background: 'transparent',
         border: `1.5px solid ${PALETTE.line}`,
-        borderRadius: 12,
+        borderRadius: 3,
         cursor: 'pointer',
         color: copied ? PALETTE.deep : PALETTE.muted,
         fontSize: 13,

@@ -5,7 +5,7 @@ import Card from '../../ui/Card.jsx';
 
 const STYLES = {
   [NEAT.INSUFFICIENT_DATA]: { icon: Footprints, color: PALETTE.muted },
-  [NEAT.SUSTAINED_DRIFT]: { icon: TrendingDown, color: PALETTE.accentDark },
+  [NEAT.SUSTAINED_DRIFT]: { icon: TrendingDown, color: PALETTE.alert },
   [NEAT.ACUTE_DROP]: { icon: TrendingDown, color: PALETTE.warn },
   [NEAT.IMPROVING]: { icon: TrendingUp, color: PALETTE.deep },
   [NEAT.STABLE]: { icon: Minus, color: PALETTE.muted },
@@ -16,7 +16,7 @@ export default function NeatCard({ status, label, detail, currentSteps, baseline
   const alert = status === NEAT.SUSTAINED_DRIFT || status === NEAT.ACUTE_DROP;
 
   return (
-    <Card style={alert ? { background: '#FEF3C7', borderColor: color } : undefined}>
+    <Card style={alert ? { background: PALETTE.highlight, borderColor: color } : undefined}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
         <Icon size={16} color={color} strokeWidth={2.5} />
         <div className="vf-body" style={{ fontSize: 13, fontWeight: 800, color, letterSpacing: '0.03em' }}>

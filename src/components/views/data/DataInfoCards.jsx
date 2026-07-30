@@ -28,9 +28,9 @@ export function DangerCard({ onReset }) {
         onClick={onReset}
         style={{
           width: '100%', padding: '14px',
-          background: 'transparent', color: PALETTE.accentDark,
-          border: `1px solid ${PALETTE.accentDark}`,
-          borderRadius: 10, fontWeight: 700, fontSize: 14,
+          background: 'transparent', color: PALETTE.alert,
+          border: `1px solid ${PALETTE.alert}`,
+          borderRadius: 3, fontWeight: 700, fontSize: 14,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
           cursor: 'pointer',
         }}
@@ -45,16 +45,16 @@ export function DangerCard({ onReset }) {
 
 export function BackupHintCard() {
   return (
-    <Card style={{ background: PALETTE.highlight, borderColor: PALETTE.accent }}>
+    <Card style={{ background: PALETTE.highlight, borderColor: PALETTE.warn }}>
       <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.accent, borderRadius: 2 }} />
+        <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.warn, borderRadius: 0 }} />
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.accentDark, letterSpacing: '0.04em', marginBottom: 6, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.warn, letterSpacing: '0.04em', marginBottom: 6, textTransform: 'uppercase' }}>
             Backup
           </div>
           <div style={{ fontSize: 13, color: PALETTE.ink, lineHeight: 1.5 }}>
             Tes données sont stockées dans le
-            <code style={{ background: '#fff', padding: '1px 6px', borderRadius: 4, fontSize: 12, margin: '0 4px' }}>
+            <code style={{ background: PALETTE.surface, padding: '1px 6px', borderRadius: 2, fontSize: 12, margin: '0 4px' }}>
               localStorage
             </code>
             de ton navigateur (uniquement sur cet appareil).

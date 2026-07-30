@@ -6,7 +6,7 @@ export default function NetBalanceCard({ weekly, plannedTrain }) {
   const tiles = [
     { label: 'APPORT', value: Math.round(weekly.totalIntake), unit: 'kcal', color: PALETTE.ink },
     { label: 'DÉPENSE', value: Math.round(weekly.totalExp), unit: 'kcal', color: PALETTE.ink },
-    { label: 'SÉANCES', value: `${weekly.trainDone}/${plannedTrain}`, unit: '', color: weekly.trainDone >= plannedTrain ? PALETTE.deep : PALETTE.accent },
+    { label: 'SÉANCES', value: `${weekly.trainDone}/${plannedTrain}`, unit: '', color: weekly.trainDone >= plannedTrain ? PALETTE.deep : PALETTE.warn },
   ];
 
   return (
@@ -18,7 +18,7 @@ export default function NetBalanceCard({ weekly, plannedTrain }) {
             key={label}
             style={{
               background: PALETTE.paper,
-              borderRadius: 10,
+              borderRadius: 3,
               padding: '10px 8px',
               textAlign: 'center',
             }}

@@ -39,17 +39,17 @@ export default function WeightCard({ avgWeight, weightDelta, weightSeries }) {
           {weightDelta !== null && (
             <div style={{
               marginTop: 10, padding: '8px 10px',
-              background: weightDelta < 0 ? PALETTE.deepSoft : weightDelta > 0 ? PALETTE.highlight : PALETTE.paper,
-              borderRadius: 8, display: 'flex', alignItems: 'center', gap: 6,
+              background: weightDelta < 0 ? PALETTE.deepSoft : weightDelta > 0 ? PALETTE.alertSoft : PALETTE.paper,
+              borderRadius: 3, display: 'flex', alignItems: 'center', gap: 6,
             }}>
               {weightDelta < 0
                 ? <TrendingDown size={14} color={PALETTE.deep} strokeWidth={2.5} />
                 : weightDelta > 0
-                ? <TrendingUp size={14} color={PALETTE.accent} strokeWidth={2.5} />
+                ? <TrendingUp size={14} color={PALETTE.alert} strokeWidth={2.5} />
                 : <Minus size={14} color={PALETTE.muted} strokeWidth={2.5} />}
               <span className="vf-body" style={{
                 fontSize: 12, fontWeight: 700,
-                color: weightDelta < 0 ? PALETTE.deep : weightDelta > 0 ? PALETTE.accent : PALETTE.muted,
+                color: weightDelta < 0 ? PALETTE.deep : weightDelta > 0 ? PALETTE.alert : PALETTE.muted,
               }}>
                 {weightDelta >= 0 ? '+' : ''}{weightDelta.toFixed(1)} kg sur la semaine
               </span>

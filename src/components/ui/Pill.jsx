@@ -7,11 +7,12 @@ export default function Pill({ active, children, onClick, color = PALETTE.ink, b
       className="vf-body"
       style={{
         flex: 1,
+        minHeight: 44, // cible tactile — voir DESIGN.md
         padding: '10px 12px',
-        borderRadius: 10,
+        borderRadius: 3,
         border: `1px solid ${active ? color : PALETTE.line}`,
         background: active ? (bg || color) : 'transparent',
-        color: active ? '#fff' : PALETTE.ink,
+        color: active ? PALETTE.surface : PALETTE.ink,
         fontWeight: 700,
         fontSize: 13,
         letterSpacing: '0.04em',

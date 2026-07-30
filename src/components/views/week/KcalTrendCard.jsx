@@ -6,7 +6,7 @@ import DayBar from './DayBar.jsx';
 
 const LEGEND = [
   { color: PALETTE.deep, label: 'Dans la cible' },
-  { color: PALETTE.accent, label: 'Surplus' },
+  { color: PALETTE.alert, label: 'Surplus' },
   { color: PALETTE.warn, label: 'Sous la cible' },
   { color: PALETTE.line, label: 'Non saisi' },
 ];
@@ -41,7 +41,7 @@ export default function KcalTrendCard({ days, dateKey, setDateKey, resolvedTarge
       }}>
         {LEGEND.map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
+            <div style={{ width: 8, height: 8, borderRadius: 0, background: color }} />
             <span style={{ fontSize: 10, color: PALETTE.muted }}>{label}</span>
           </div>
         ))}

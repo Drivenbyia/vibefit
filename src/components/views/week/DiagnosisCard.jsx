@@ -7,7 +7,7 @@ const STYLES = {
   [DIAGNOSIS.INSUFFICIENT_DATA]: { icon: Activity, color: PALETTE.muted },
   [DIAGNOSIS.LOW_ADHERENCE]: { icon: AlertTriangle, color: PALETTE.warn },
   [DIAGNOSIS.WATER_RETENTION_SUSPECTED]: { icon: Droplet, color: PALETTE.deep },
-  [DIAGNOSIS.PLATEAU_CONFIRMED]: { icon: Minus, color: PALETTE.accentDark },
+  [DIAGNOSIS.PLATEAU_CONFIRMED]: { icon: Minus, color: PALETTE.alert },
   [DIAGNOSIS.PROGRESSING]: { icon: TrendingDown, color: PALETTE.deep },
 };
 

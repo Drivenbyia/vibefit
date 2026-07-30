@@ -1,9 +1,12 @@
 export default function FontStyles() {
   return (
     <style>{`
-      .vf-display { font-family: 'Archivo', system-ui, sans-serif; letter-spacing: -0.02em; }
-      .vf-body { font-family: 'Inter Tight', system-ui, sans-serif; }
-      .vf-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+      /* Les 3 rôles typographiques de la direction — voir DESIGN.md.
+         Les @font-face vivent dans src/styles/fonts.css (auto-hébergés) : ici
+         on ne déclare que l'affectation des rôles. */
+      .vf-display { font-family: 'Archivo', sans-serif; letter-spacing: -0.02em; }
+      .vf-body { font-family: 'IBM Plex Sans', sans-serif; }
+      .vf-mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
       .vf-tabular { font-variant-numeric: tabular-nums; }
       .vf-app * { box-sizing: border-box; }
       .vf-no-spin::-webkit-outer-spin-button,

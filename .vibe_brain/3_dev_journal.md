@@ -511,3 +511,74 @@ Le statut « Équilibrée » (moyenne VFC 7 jours) n'a pas de champ : il compare
 
 ### Vérification
 `npm test` 96/96 ✅ · `vite build` ✅ · Playwright sur build de production, chiffres réels de l'écran Garmin : saisie 85 / 46 ms / 52 bpm / 6h55 → stocké `{"score":"85","durationMin":"415","hrv":"46","rhr":"52"}`, affichage hebdo « 6h55 · score 85 · VFC 46 ms · FC 52 bpm · 1 nuit renseignée », zéro erreur console.
+
+---
+
+## Session 2026-07-30 — Direction artistique : re-direction visuelle « Millimétré »
+
+### Ce qui a déclenché la session
+Une passe de setup design. Le constat de départ n'était pas celui attendu : il ne
+s'agissait pas d'installer une charte sur une app qui n'en avait pas, mais de
+**corriger une charte qui violait frontalement deux interdits explicites** :
+
+- `config.js` → `paper: '#F6F2EC'` (crème) + `accent: '#FF5A1F'` (orange), soit à
+  un cheveu du pairing crème/terracotta refusé ;
+- `FontStyles.jsx` → `.vf-body { font-family: 'Inter Tight' }`, Inter étant banni.
+
+Troisième problème trouvé en chemin, non demandé mais lié : les polices venaient
+du CDN Google Fonts, ce qui troue le principe « offline-first » du project bible
+— au premier lancement sans réseau, l'app retombait sur la police système, elle
+aussi bannie.
+
+### Pourquoi c'était peu coûteux
+Le système était déjà tokenisé : `PALETTE` consommé par 46 des 50 `.jsx`, toute
+la typo derrière 3 classes dans un seul fichier. Changer de direction = changer
+des valeurs, pas réécrire des composants. C'est le refactoring modulaire de
+2026-05-04 qui a rendu cette session courte.
+
+### Le seul point réellement délicat
+`accent` et `accentDark` signifiaient **deux choses à la fois** : emphase
+décorative (marque, nav active, icônes) *et* « hors cible ». Un remplacement
+global aurait teint le logo en rouge d'alerte. Les 37 sites ont donc été routés
+un par un, ce qui a imposé de trancher une règle qui n'existait pas avant :
+
+- `deep` → dans la cible / atteint / marque
+- `warn` → **manque** (pas en retard, séance non faite, apport sous la cible)
+- `alert` → **hors bornes** (dépassement, erreur de saisie, perte de données)
+
+Conséquence non triviale : `BalanceRing` avait l'ancien mapping inversé (orange
+pour « sous la cible », ambre pour « au-dessus »). Il suit maintenant la règle.
+
+### Deux défauts que seule la capture d'écran a révélés
+1. **L'arc de valeur du cadran recouvrait intégralement les graduations.** Avec la
+   règle et l'arc au même rayon, la signature s'annulait : on retombait sur un
+   donut ordinaire. Corrigé en séparant les rayons — règle à l'extérieur
+   (`R_RULE = 64`), valeur à l'intérieur (`R_ARC = 47`).
+2. **`ochre #8A5A2B` (lipides) se confondait avec `alert #C6321E`** sur un filet
+   de 4 px : « lipides » et « glucides en dépassement » devenaient le même objet
+   à l'écran. La teinte n'était pas le problème (ΔH = 23°), la **saturation**
+   l'était (ΔS = 0.16). Remplacé par `umber #5F5348`, désaturé (ΔS = 0.61).
+
+### Un piège d'accessibilité trouvé par l'audit
+`NumberInput` avait son padding vertical sur le **conteneur**, pas sur
+l'`<input>`. Le champ paraissait faire 45 px alors que la zone réellement
+cliquable n'en faisait que 25 : taper la marge ne focalisait rien. Padding
+déplacé sur l'input — même hauteur visuelle, cible tactile réelle. Le même audit
+a fait remonter la chrome du header (40 px) et le `DayTypeSwitcher` (30 px),
+corrigés aussi. Zéro élément interactif sous 44 px désormais.
+
+### Vérification
+`npm test` 96/96 ✅ (aucun test ne référence couleur ni police, ils servent de
+garde sur les imports) · `vite build` ✅ · contraste WCAG AA calculé sur les 19
+paires porteuses d'information, toutes conformes, dont `tick`/`surface` 3.55:1
+pour les graduations (WCAG 1.4.11) · 8 woff2 précachés dans `sw.js`, zéro
+référence CDN dans le `dist` · Playwright sur build de production : les 3
+familles auto-hébergées rendent effectivement (`document.fonts.check` vrai),
+zéro erreur console, zéro cible tactile sous 44 px.
+
+### Note de direction
+La règle graduée donne à l'état vide une valeur qu'il n'avait pas : l'écran sans
+données affiche l'échelle complète avec son encoche de cible et une valeur à
+zéro — l'instrument est calibré et en attente. L'échelle vide *est* le message.
+C'est documenté comme contrainte dans `DESIGN.md` pour éviter qu'une session
+future la remplace par un « aucune donnée » textuel.
