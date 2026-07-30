@@ -13,19 +13,19 @@ export default function MacroBar({ label, icon: Icon, value, target, color }) {
             {label}
           </span>
         </div>
-        <span style={{ fontSize: 13, fontWeight: 800, color: isOver ? PALETTE.accent : PALETTE.ink }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: isOver ? PALETTE.alert : PALETTE.ink }}>
           {Math.round(value)}
           <span style={{ fontSize: 10, fontWeight: 500, color: PALETTE.muted, marginLeft: 3 }}>
             / {Math.round(target)} g
           </span>
         </span>
       </div>
-      <div style={{ height: 5, background: PALETTE.paper, borderRadius: 999, overflow: 'hidden' }}>
+      <div style={{ height: 5, background: PALETTE.paper, overflow: 'hidden' }}>
         <div style={{
           height: '100%',
           width: `${Math.min(pct, 100)}%`,
-          background: isOver ? PALETTE.accent : color,
-          borderRadius: 999,
+          background: isOver ? PALETTE.alert : color,
+          
           transition: 'width 0.5s cubic-bezier(.4,0,.2,1)',
         }} />
       </div>

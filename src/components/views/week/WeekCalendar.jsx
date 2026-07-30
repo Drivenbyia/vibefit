@@ -10,22 +10,22 @@ export default function WeekCalendar({ days, dateKey, setDateKey }) {
         const t = dayType(key, day);
         const recorded = day && (num(day.intake?.kcal) > 0 || day.workout || num(day.expenditure?.steps) > 0);
         const isToday = key === dateKey;
-        const dotColor = { train: PALETTE.deep, off: PALETTE.accent, we: PALETTE.muted }[t];
+        const dotColor = { train: PALETTE.deep, off: PALETTE.slate, we: PALETTE.muted }[t];
         return (
           <button
             key={key}
             onClick={() => setDateKey(key)}
             style={{
               background: isToday ? PALETTE.ink : PALETTE.paper,
-              border: `2px solid ${isToday ? PALETTE.accent : 'transparent'}`,
-              borderRadius: 10,
+              border: `2px solid ${isToday ? PALETTE.ink : 'transparent'}`,
+              borderRadius: 3,
               padding: '8px 4px',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               gap: 4,
-              color: isToday ? '#fff' : PALETTE.ink,
+              color: isToday ? PALETTE.surface : PALETTE.ink,
             }}
           >
             <span className="vf-body" style={{ fontSize: 9, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase' }}>
@@ -35,7 +35,7 @@ export default function WeekCalendar({ days, dateKey, setDateKey }) {
               {key.slice(8, 10)}
             </span>
             <span style={{
-              width: 6, height: 6, borderRadius: '50%',
+              width: 6, height: 6, borderRadius: 0,
               background: recorded ? dotColor : 'transparent',
               border: `1.5px solid ${dotColor}`,
             }} />

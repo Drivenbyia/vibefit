@@ -1,17 +1,43 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-07-29
+last_updated: 2026-07-30
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
-- **Phase : 🔬 Moteur de calcul corrigé et testé — TDEE adaptatif branché (opt-in), protocole anti-rationalisation implémenté**
-- Branche active : `claude/vibefit-calc-audit-wut56i`
-- Derniers commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
+- **Phase : 🎨 Direction artistique figée — « Millimétré », persistée dans `DESIGN.md`**
+- Branche active : `claude/design-system-setup-shx5ot`
 - **Suite de tests : Vitest, 96 tests** — `npm test`
 
+### Session 2026-07-30 — Re-direction visuelle
+`DESIGN.md` à la racine est désormais la **mémoire de direction artistique** du
+repo : document prescriptif, à relire avant toute tâche UI sans redemander la
+direction. Détail de la décision dans `4_business_decisions.md`, récit de session
+dans `3_dev_journal.md`.
+
+- **Deux interdits levés** : le fond crème `#F6F2EC` + accent orange `#FF5A1F`
+  (pairing crème/terracotta refusé) et `Inter Tight` en police de corps.
+- **Palette** : gris froid (`paper #E8EBED`, `surface #F8FAFB`) + vert instrument
+  (`deep #0B6E4F`). `accent`/`accentDark` **supprimés**, leurs 37 sites routés
+  vers `deep`/`warn`/`alert`/`slate`/`ink`. Nouvelle règle à tenir : `warn` = un
+  **manque**, `alert` = **hors bornes** — un manque ordinaire n'est pas une alerte.
+  `tick` séparé de `line` (WCAG 1.4.11 : les graduations portent l'information).
+- **Typographie** : Archivo / IBM Plex Sans / IBM Plex Mono, **auto-hébergées**
+  (`public/fonts`, 8 woff2, 216 Ko, précachées par Workbox). Le `<link>` CDN et
+  les 2 règles `runtimeCaching` Google Fonts sont retirés — offline-first réel.
+- **Signature « règle graduée »** : plus aucune barre de progression remplie.
+  L'échelle court à 125 % de la cible, qui devient une **encoche** et non une fin
+  de course. `Bar.jsx` (linéaire) et `BalanceRing.jsx` (cadran). « Aujourd'hui »
+  est un cran `ink` lourd, pas une pastille colorée.
+- **Hygiène** : zéro `box-shadow` dans le projet, rayons ramenés à 0/2/3, zéro
+  couleur codée en dur hors `PALETTE`, cibles tactiles ≥ 44 px partout.
+- Vérifié : 96/96 tests, build OK, 19 paires de contraste conformes AA, 8 woff2
+  dans `sw.js`, zéro appel CDN dans le `dist`, zéro erreur console (Playwright).
+
 ### Session 2026-07-29 — Audit des calculs, 3 lots
+Commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
+
 1. **Math TDEE** — bug principal : le déséquilibre journalier était divisé par 14 alors que l'écart de demi-moyennes couvre 7 jours ⇒ erreur systématique de **291 kcal/j** (TDEE réel 2550 → calculé 2259). Remplacé par une régression OLS sur poids interpolés. Rejet des aberrations, plus de propagation à plat, recouvrement poids × apport exigé, pénalité de récence.
 2. **Cohérence des cibles** — le TDEE adaptatif n'alimentait aucune cible (seul l'export le lisait). Branchement **opt-in** via `RecalibrateCard`. `DEFAULT_TARGETS` dérivé. Écart de cyclage préservé sous le plancher. Plancher protéines garanti. La séance loggée pilote le type de jour. Apport et cible comparés sur la même base.
 3. **Protocole anti-rationalisation** — `plateauProtocol.js`, diagnostic pur croisant TDEE / poids / adhérence. Porte d'adhérence prioritaire, garde-fou rétention d'eau. Aucune action automatisée.
@@ -30,9 +56,12 @@ Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur véri
 
 ```
 src/
+  styles/
+    fonts.css          — @font-face des 8 woff2 auto-hébergés (Archivo, IBM Plex Sans/Mono)
   constants/
-    config.js          — PALETTE, PRESETS, STORAGE_KEY, seuils (KCAL_FLOOR, PROTEIN_FLOOR,
-                         MIN_BASE_TDEE, MIN_CYCLE_GAP) et bornes de plausibilité du signal
+    config.js          — PALETTE (direction « Millimétré » — voir DESIGN.md), PRESETS,
+                         STORAGE_KEY, seuils (KCAL_FLOOR, PROTEIN_FLOOR, MIN_BASE_TDEE,
+                         MIN_CYCLE_GAP) et bornes de plausibilité du signal
   utils/
     dateUtils.js       — toKey (date LOCALE), dayTypeFromKey, fmtFr, shortFr, addDays, startOfWeek
     mathUtils.js       — num, calculateWeeklyBalance, calculateWeightStats, computeWeeklyHistory,
@@ -63,10 +92,12 @@ src/
     useBackupManager.js   — export/import/reset des données
     useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
-    ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill, Bar, Label, SectionLabel, FontStyles
+    ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill,
+                         Label, SectionLabel, FontStyles (affectation des 3 rôles typo),
+                         Bar (LA RÈGLE GRADUÉE — signature, échelle 125 % + encoche de cible)
     layout/            — Header, DayTypeSwitcher, BottomNav
     views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes
-      TodayView.jsx    + today/   (BalanceCard, BalanceRing, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
+      TodayView.jsx    + today/   (BalanceCard, BalanceRing = la règle refermée en cadran, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
       WeekView.jsx     + week/    (WeekSummary, WeekCalendar, DiagnosisCard, NeatCard, NetBalanceCard, DayBar, KcalTrendCard, MacroBar, ProteinBadge, AveragesCard, KcalAverageRow, WaistCard, WeightCard, ReminderCard, ExportButton)
       TargetsView.jsx  + targets/ (PresetPickerCard, RecalibrateCard, StepsCard, TargetEditor, FooterCards)
       DataView.jsx     + data/    (BackupCard, DataInfoCards)

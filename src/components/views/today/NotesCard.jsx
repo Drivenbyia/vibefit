@@ -21,7 +21,7 @@ export default function NotesCard({ day, updateDay }) {
           padding: 10,
           background: PALETTE.paper,
           border: `1px solid ${PALETTE.line}`,
-          borderRadius: 10,
+          borderRadius: 3,
           outline: 'none',
           resize: 'vertical',
           fontSize: 13,

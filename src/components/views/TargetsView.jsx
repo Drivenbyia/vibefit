@@ -42,7 +42,7 @@ export default function TargetsView({ data, setData }) {
       <TargetEditor
         title="JOUR DE REPOS"
         subtitle="Mardi · Jeudi"
-        accent={PALETTE.accent}
+        accent={PALETTE.deep}
         target={targets.off}
         conflictKcal={macroConflictKcal(targets.off)}
         onChange={(field, val) => updateField('off', field, val)}

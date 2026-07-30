@@ -77,17 +77,44 @@ export const PRESETS = {
   },
 };
 
+// --- Direction artistique « Millimétré » — voir DESIGN.md ---
+// L'app est le relevé papier d'un instrument calibré : fond gris FROID (grain
+// labo, jamais crème), feuilles à bordure 1px et ZÉRO ombre, graduations
+// physiques plutôt que barres remplies.
+//
+// Règle de couleur : une couleur signifie un ÉTAT, jamais une décoration.
+//   deep  → dans la cible / atteint / marque VibeFit
+//   warn  → EN DESSOUS de la cible (un manque : pas, séances, apport)
+//   alert → HORS BORNES (dépassement, erreur de saisie, perte de données)
+// `alert` reste rare par construction : le diluer sur des manques ordinaires
+// lui ferait perdre sa valeur de signal.
 export const PALETTE = {
-  ink: '#0E1116',
-  inkSoft: '#1A1F26',
-  paper: '#F6F2EC',
-  surface: '#FFFFFF',
-  line: '#D9D2C7',
-  muted: '#5A6472',
-  accent: '#FF5A1F',
-  accentDark: '#C73E10',
-  deep: '#0B3D2E',
-  deepSoft: '#E8F1ED',
-  highlight: '#FFF3E6',
-  warn: '#B45309',
+  // Fonds & encre
+  paper: '#E8EBED',      // fond de l'app — gris froid
+  surface: '#F8FAFB',    // feuille surélevée (bordure 1px, sans ombre)
+  highlight: '#DDE3E6',  // encart consultatif — papier recessé, froid
+  ink: '#0F1419',        // texte, chiffres, cran « aujourd'hui »
+  inkSoft: '#1C232A',    // fonds inversés (header, nav)
+  muted: '#56616B',      // marginalia, labels — AA sur paper et surface
+  line: '#C2CBD1',       // bordures de séparation — décoratives, non porteuses
+  // `tick` est distinct de `line` à dessein : les graduations de la règle
+  // PORTENT l'information d'échelle, elles tombent donc sous WCAG 1.4.11
+  // (contraste non-textuel ≥ 3:1). Une bordure de card, elle, n'est pas le seul
+  // indice de la limite du composant et peut rester légère.
+  tick: '#7C868D',       // graduations — 3.55:1 sur surface, 3.10:1 sur paper
+
+  // États
+  deep: '#0B6E4F',       // signal : dans la cible
+  deepSoft: '#DCE9E3',
+  warn: '#8A5A0B',       // en dessous de la cible
+  alert: '#C6321E',      // hors bornes
+  alertSoft: '#F9EDEA',
+
+  // Rampe catégorielle — distingue des natures, pas des états.
+  // La couleur n'y est jamais porteuse seule : label, valeur et cible sont
+  // toujours écrits à côté (cf. Bar.jsx, MacroBar.jsx).
+  slate: '#2E5E8A',      // jour OFF / glucides
+  umber: '#5F5348',      // lipides — volontairement DÉSATURÉ : un brun saturé
+                         // (l'ancien #8A5A2B) se confondait avec `alert` sur un
+                         // filet de 4 px. Ici ΔS = 0.61, la confusion est levée.
 };

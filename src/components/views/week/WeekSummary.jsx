@@ -3,7 +3,7 @@ import { PALETTE } from '../../../constants/config.js';
 import { fmtFr } from '../../../utils/dateUtils.js';
 
 export default function WeekSummary({ start, recordedDays, netBalance }) {
-  const balanceColor = netBalance < -100 ? PALETTE.deep : netBalance > 100 ? PALETTE.accent : PALETTE.muted;
+  const balanceColor = netBalance < -100 ? PALETTE.deep : netBalance > 100 ? PALETTE.alert : PALETTE.muted;
   const BalanceIcon = netBalance < -100 ? TrendingDown : netBalance > 100 ? TrendingUp : Minus;
 
   return (

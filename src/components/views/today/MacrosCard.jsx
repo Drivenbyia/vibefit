@@ -11,13 +11,13 @@ export default function MacrosCard({ day, dt, intake, computedKcal, macroDelta, 
         MACRONUTRIMENTS
       </div>
       <Bar label="PROTÉINES" value={num(day.intake.protein)} target={dt.protein} color={PALETTE.deep} />
-      <Bar label="GLUCIDES" value={num(day.intake.carbs)} target={dt.carbs} color={PALETTE.accent} />
-      <Bar label="LIPIDES" value={num(day.intake.fat)} target={dt.fat} color="#7C5E3C" />
+      <Bar label="GLUCIDES" value={num(day.intake.carbs)} target={dt.carbs} color={PALETTE.slate} />
+      <Bar label="LIPIDES" value={num(day.intake.fat)} target={dt.fat} color={PALETTE.umber} />
       {showMacroWarning && (
         <div style={{
           marginTop: 8, padding: '8px 10px', background: PALETTE.highlight,
-          borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8,
-          fontSize: 12, color: PALETTE.accentDark,
+          borderRadius: 3, display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 12, color: PALETTE.alert,
         }}>
           <AlertCircle size={14} />
           <span>

@@ -12,11 +12,10 @@ export default function BottomNav({ tab, setTab }) {
     <div
       style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: '#fff', borderTop: `1px solid ${PALETTE.line}`,
+        background: PALETTE.surface, borderTop: `1px solid ${PALETTE.line}`,
         padding: '8px 8px max(8px, env(safe-area-inset-bottom))',
         display: 'flex', justifyContent: 'space-around',
         zIndex: 100,
-        boxShadow: '0 -4px 14px rgba(0,0,0,0.04)',
       }}
     >
       {items.map(({ id, label, Icon }) => {

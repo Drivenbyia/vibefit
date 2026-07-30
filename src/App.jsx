@@ -39,7 +39,7 @@ export default function VibeFit() {
       <div className="vf-app vf-body" style={{ minHeight: '100vh', background: PALETTE.paper, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <FontStyles />
         <div className="vf-pulse vf-display" style={{ fontSize: 24, fontWeight: 900, color: PALETTE.ink }}>
-          VIBE<span style={{ color: PALETTE.accent }}>FIT</span>
+          VIBE<span style={{ color: PALETTE.deep }}>FIT</span>
         </div>
       </div>
     );
@@ -54,7 +54,8 @@ export default function VibeFit() {
         color: PALETTE.ink,
         maxWidth: 720,
         margin: '0 auto',
-        boxShadow: '0 0 40px rgba(0,0,0,0.04)',
+        borderLeft: `1px solid ${PALETTE.line}`,
+        borderRight: `1px solid ${PALETTE.line}`,
       }}
     >
       <FontStyles />

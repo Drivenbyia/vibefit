@@ -10,7 +10,7 @@ export default function IntakeCard({ day, updateDay, intake, showUndereatAlert }
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <Flame size={16} color={PALETTE.accent} />
+        <Flame size={16} color={PALETTE.deep} />
         <div className="vf-body" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink, letterSpacing: '0.02em' }}>
           APPORT — depuis FatSecret
         </div>
@@ -35,9 +35,9 @@ export default function IntakeCard({ day, updateDay, intake, showUndereatAlert }
       </div>
       {showUndereatAlert && (
         <div style={{
-          marginTop: 10, padding: '10px 12px', background: '#FEE2E2',
-          borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8,
-          fontSize: 12, color: '#991B1B', border: '1px solid #FECACA',
+          marginTop: 10, padding: '10px 12px', background: PALETTE.alertSoft,
+          borderRadius: 3, display: 'flex', alignItems: 'center', gap: 8,
+          fontSize: 12, color: PALETTE.alert, border: `1px solid ${PALETTE.alert}`,
         }}>
           <AlertCircle size={14} />
           <span>

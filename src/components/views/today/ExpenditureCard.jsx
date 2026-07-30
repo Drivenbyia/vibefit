@@ -32,7 +32,7 @@ export default function ExpenditureCard({ day, updateDay, steps, stepsTarget }) 
       </div>
       {steps > 0 && (
         <div style={{ marginTop: 10 }}>
-          <Bar label="PROGRESSION DES PAS" value={steps} target={stepsTarget} color={steps >= stepsTarget ? PALETTE.deep : PALETTE.accent} unit="" />
+          <Bar label="PROGRESSION DES PAS" value={steps} target={stepsTarget} color={steps >= stepsTarget ? PALETTE.deep : PALETTE.warn} unit="" />
         </div>
       )}
     </Card>

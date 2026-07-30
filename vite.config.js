@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'VibeFit',
         short_name: 'VibeFit',
         description: 'Tracker quotidien de recomposition corporelle.',
-        theme_color: '#FF5A1F',
-        background_color: '#0E1116',
+        theme_color: '#0F1419',
+        background_color: '#E8EBED',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -32,27 +32,11 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Les .woff2 sont auto-hébergés (public/fonts) : ils entrent donc dans
+        // le précache au build, et non plus dans un runtimeCaching vers un CDN.
+        // Les deux règles google-fonts/gstatic ont été retirées avec le <link>
+        // correspondant dans index.html — elles ne pouvaient plus rien matcher.
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'gstatic-fonts-cache',
-              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
       },
     }),
   ],

@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0E1116"/>
-  <!-- Haltère géométrique -->
-  <rect x="104" y="220" width="304" height="72" rx="16" fill="#FF5A1F"/>
-  <rect x="88" y="176" width="72" height="160" rx="20" fill="#FF5A1F"/>
-  <rect x="352" y="176" width="72" height="160" rx="20" fill="#FF5A1F"/>
-  <rect x="72" y="200" width="48" height="112" rx="14" fill="#C73E10"/>
-  <rect x="392" y="200" width="48" height="112" rx="14" fill="#C73E10"/>
+  <rect width="512" height="512" rx="48" fill="#0F1419"/>
+  <!-- La règle graduée : signature VibeFit (voir DESIGN.md) -->
+  <g stroke="#C2CBD1" stroke-width="18" fill="none">
+    <path d="M72 348h368"/>
+    <path d="M72 348v-80M128 348v-48M176 348v-48M224 348v-48M272 348v-80M368 348v-48M416 348v-48"/>
+  </g>
+  <!-- L'encoche de cible : le cran lourd -->
+  <path d="M320 372V168" stroke="#0B6E4F" stroke-width="40" fill="none"/>
 </svg>

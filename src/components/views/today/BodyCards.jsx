@@ -32,7 +32,7 @@ export function WaistCard({ day, updateDay, isMonday }) {
         <div className="vf-body" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink, letterSpacing: '0.02em' }}>
           TOUR DE TAILLE
           {isMonday && (
-            <span style={{ marginLeft: 8, fontSize: 11, color: PALETTE.accent, fontWeight: 600 }}>
+            <span style={{ marginLeft: 8, fontSize: 11, color: PALETTE.deep, fontWeight: 600 }}>
               • Mesure du lundi
             </span>
           )}
