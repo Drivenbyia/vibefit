@@ -8,7 +8,7 @@ export default function BackupCard({ onExport, onFileChange, importStatus }) {
 
   return (
     <Card>
-      <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
+      <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
         BACKUP
       </div>
       <button

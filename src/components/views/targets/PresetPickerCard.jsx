@@ -8,10 +8,10 @@ export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApp
     <Card>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em' }}>
+          <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em' }}>
             MODE ACTUEL
           </div>
-          <div className="vf-display" style={{ fontSize: 22, fontWeight: 900, color: PALETTE.ink }}>
+          <div className="vf-gothic" style={{ fontSize: 25, color: PALETTE.ink }}>
             {presetId === 'custom' ? 'Personnalisé' : (PRESETS[presetId]?.label || 'Maintenance')}
           </div>
           <div style={{ fontSize: 12, color: PALETTE.muted, marginTop: 2 }}>

@@ -7,7 +7,7 @@ import Bar from '../../ui/Bar.jsx';
 export default function MacrosCard({ day, dt, intake, computedKcal, macroDelta, showMacroWarning }) {
   return (
     <Card>
-      <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
+      <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
         MACRONUTRIMENTS
       </div>
       <Bar label="PROTÉINES" value={num(day.intake.protein)} target={dt.protein} color={PALETTE.deep} />

@@ -1,4 +1,4 @@
-/* --- Typographie auto-hébergée — voir DESIGN.md ---
+/* --- Typographie auto-hébergée — voir DESIGN.md §2 ---
  *
  * Les polices sont servies depuis /fonts et non depuis le CDN Google Fonts.
  * Deux raisons, toutes deux issues du 1_project_bible.md :
@@ -11,11 +11,31 @@
  * plus), chargés à la demande par unicode-range. `font-display: swap` est
  * volontaire — un chiffre lisible tout de suite vaut mieux qu'un cadran vide,
  * et le FOUT disparaît dès le 2e lancement.
+ *
+ * IBM Plex Sans/Mono ont été RETIRÉES : c'était un reliquat de la direction
+ * « instrument de labo », soit la police corporate d'IBM en train de composer
+ * tout le texte lisible d'une app d'ADN hip-hop LA. Remplacées par Barlow
+ * (grotesque de signalétique) et Azeret Mono.
  */
 
-/* Anton — hero. Poster condensé ultra-gras, une seule graisse (400 = le
-   rendu complet de la fonte). Réservé aux gros chiffres et au wordmark —
-   voir DESIGN.md §2, illisible en usage courant. */
+/* ═══ UnifrakturCook — gothique cérémoniel ═══
+ * Blackletter textura : l'ADN typographique de Los Angeles (The Chronic,
+ * Cypress Hill, plaques de clubs lowrider, tatouage chicano).
+ * Sous-ensemble `latin` seul — il couvre U+0000-00FF, donc tous les accents
+ * français. Google n'expose pas de latin-ext pour cette fonte.
+ * USAGE STRICTEMENT LIMITÉ, voir .vf-gothic dans FontStyles.jsx. */
+@font-face {
+  font-family: 'UnifrakturCook';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/unifrakturcook-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ═══ Anton — hero ═══
+ * Poster condensé ultra-gras, une seule graisse (400 = le rendu complet).
+ * Gros chiffres uniquement. */
 @font-face {
   font-family: 'Anton';
   font-style: normal;
@@ -33,73 +53,97 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* Archivo — display secondaire (titres de section, cartes). Fichier variable, axe wght 100→900. */
+/* ═══ Archivo Black — display ═══
+ * Grotesque noir LARGE. Remplace Archivo variable @900, qui restait trop
+ * étroit : ici on veut la masse d'un box logo / d'un flocage de maillot.
+ * C'est une famille distincte, pas une graisse d'Archivo. */
 @font-face {
-  font-family: 'Archivo';
+  font-family: 'Archivo Black';
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/archivo-latin.woff2') format('woff2');
+  src: url('/fonts/archivo-black-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'Archivo';
+  font-family: 'Archivo Black';
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/archivo-latin-ext.woff2') format('woff2');
+  src: url('/fonts/archivo-black-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* IBM Plex Sans — body. Fichier variable, axe wght 100→700. */
+/* ═══ Barlow — corps ═══
+ * Grotesque légèrement arrondi, à faible contraste, d'ADN signalétique.
+ * Fontes statiques : 400 / 600 / 700. Pas de 500 volontairement — le CSS
+ * font-matching redescend sur 400 pour `font-weight: 500`, ce qui est le
+ * comportement voulu (et économise 2 fichiers). */
 @font-face {
-  font-family: 'IBM Plex Sans';
+  font-family: 'Barlow';
   font-style: normal;
-  font-weight: 100 700;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/plex-sans-latin.woff2') format('woff2');
+  src: url('/fonts/barlow-400-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'IBM Plex Sans';
+  font-family: 'Barlow';
   font-style: normal;
-  font-weight: 100 700;
+  font-weight: 400;
   font-display: swap;
-  src: url('/fonts/plex-sans-latin-ext.woff2') format('woff2');
+  src: url('/fonts/barlow-400-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/barlow-600-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/barlow-600-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('/fonts/barlow-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 700 900;
+  font-display: swap;
+  src: url('/fonts/barlow-700-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* IBM Plex Mono — data. Fontes statiques : deux graisses réelles (500 / 600)
- * plutôt qu'un gras synthétique, qui déforme les chiffres tabulaires. */
+/* ═══ Azeret Mono — données ═══
+ * Mono brutaliste, chunky. Fichier variable : 500 et 600 sortent du même
+ * woff2. Remplace IBM Plex Mono. */
 @font-face {
-  font-family: 'IBM Plex Mono';
+  font-family: 'Azeret Mono';
   font-style: normal;
-  font-weight: 500;
+  font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/plex-mono-500-latin.woff2') format('woff2');
+  src: url('/fonts/azeret-mono-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: 'IBM Plex Mono';
+  font-family: 'Azeret Mono';
   font-style: normal;
-  font-weight: 500;
+  font-weight: 100 900;
   font-display: swap;
-  src: url('/fonts/plex-mono-500-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'IBM Plex Mono';
-  font-style: normal;
-  font-weight: 600 700;
-  font-display: swap;
-  src: url('/fonts/plex-mono-600-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'IBM Plex Mono';
-  font-style: normal;
-  font-weight: 600 700;
-  font-display: swap;
-  src: url('/fonts/plex-mono-600-latin-ext.woff2') format('woff2');
+  src: url('/fonts/azeret-mono-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }

@@ -38,8 +38,8 @@ export default function VibeFit() {
     return (
       <div className="vf-app vf-body" style={{ minHeight: '100vh', background: PALETTE.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <FontStyles />
-        <div className="vf-pulse vf-hero" style={{ fontSize: 28, color: PALETTE.ink }}>
-          VIBE<span style={{ color: PALETTE.deep, textShadow: `0 0 16px ${PALETTE.deep}` }}>FIT</span>
+        <div className="vf-pulse vf-gothic" style={{ fontSize: 34, color: PALETTE.ink, lineHeight: 1 }}>
+          Vibe<span style={{ color: PALETTE.deep, textShadow: `0 0 16px ${PALETTE.deep}` }}>Fit</span>
         </div>
       </div>
     );

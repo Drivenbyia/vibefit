@@ -31,7 +31,7 @@ export default function WeekCalendar({ days, dateKey, setDateKey }) {
             <span className="vf-body" style={{ fontSize: 9, fontWeight: 700, opacity: 0.7, textTransform: 'uppercase' }}>
               {shortFr(key)}
             </span>
-            <span className="vf-display vf-tabular" style={{ fontSize: 16, fontWeight: 900 }}>
+            <span className="vf-hero vf-tabular" style={{ fontSize: 17 }}>
               {key.slice(8, 10)}
             </span>
             <span style={{

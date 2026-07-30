@@ -21,7 +21,7 @@ body {
      peuvent pas venir du token JS. */
   background: #150f1a;
   color: #f7f0e8;
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: 'Barlow', sans-serif;
   text-rendering: optimizeLegibility;
   /* Empêche le bounce iOS */
   overscroll-behavior-y: none;

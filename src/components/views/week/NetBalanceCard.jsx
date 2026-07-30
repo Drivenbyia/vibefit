@@ -23,10 +23,10 @@ export default function NetBalanceCard({ weekly, plannedTrain }) {
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: 9, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 4 }}>
+            <div className="vf-display" style={{ fontSize: 9, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 4 }}>
               {label}
             </div>
-            <div className="vf-display vf-tabular" style={{ fontSize: 18, fontWeight: 900, color }}>
+            <div className="vf-hero vf-tabular" style={{ fontSize: 18, color }}>
               {value}
             </div>
             {unit && (

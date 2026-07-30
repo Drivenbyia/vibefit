@@ -9,10 +9,10 @@ export default function WeekSummary({ start, recordedDays, netBalance }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
       <div>
-        <div style={{ fontSize: 10, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.12em', marginBottom: 3 }}>
+        <div className="vf-display" style={{ fontSize: 10, color: PALETTE.muted, letterSpacing: '0.12em', marginBottom: 3 }}>
           SEMAINE DU
         </div>
-        <div className="vf-display" style={{ fontSize: 18, fontWeight: 700 }}>
+        <div className="vf-gothic" style={{ fontSize: 21 }}>
           {fmtFr(start)}
         </div>
         <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 2 }}>
@@ -20,14 +20,14 @@ export default function WeekSummary({ start, recordedDays, netBalance }) {
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.12em', marginBottom: 3 }}>
+        <div className="vf-display" style={{ fontSize: 10, color: PALETTE.muted, letterSpacing: '0.12em', marginBottom: 3 }}>
           SOLDE NET
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end' }}>
           <BalanceIcon size={16} color={balanceColor} strokeWidth={2.5} />
           <span
-            className="vf-display vf-tabular"
-            style={{ fontSize: 22, fontWeight: 900, color: balanceColor }}
+            className="vf-hero vf-tabular"
+            style={{ fontSize: 22, color: balanceColor }}
           >
             {netBalance >= 0 ? '+' : ''}{Math.round(netBalance)}
           </span>

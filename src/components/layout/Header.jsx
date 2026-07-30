@@ -64,8 +64,12 @@ export default function Header({ dateKey, setDateKey, day, updateDay, targets })
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-        <div className="vf-hero" style={{ fontSize: 26, letterSpacing: '0.01em' }}>
-          VIBE<span style={{ color: PALETTE.deep, textShadow: `0 0 14px ${PALETTE.deep}` }}>FIT</span>
+        {/* Wordmark : blackletter en casse mixte (les capitales sont
+            illisibles en textura), « Vibe » chromé sur le coucher de soleil,
+            « Fit » en vert Grove Street pour garder l'accent de marque. */}
+        <div className="vf-gothic" style={{ fontSize: 30, lineHeight: 1 }}>
+          <span className="vf-chrome">Vibe</span>
+          <span style={{ color: PALETTE.deep, textShadow: `0 0 14px ${PALETTE.deep}` }}>Fit</span>
         </div>
         <div className="vf-mono" style={{ fontSize: 11, opacity: 0.75 }}>
           {dateKey === today ? "AUJOURD'HUI" : 'JOURNAL'}

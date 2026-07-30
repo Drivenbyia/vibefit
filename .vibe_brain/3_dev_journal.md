@@ -695,3 +695,74 @@ précédente pour les 2 fichiers Anton) · Anton confirmée chargée via
 reconfirmées après l'ajout du sticker · zéro erreur console sur les 3 écrans
 (Playwright) · contraste AA vérifié sur toute la nouvelle palette, y compris
 le dégradé décoratif (d'où la contrainte de layout ci-dessus).
+
+---
+
+## Session 2026-07-30 (suite 3) — Refonte typographique : sortie d'IBM Plex, entrée du blackletter
+
+### Le retour, et ce que l'audit a confirmé
+Le développeur a validé la DA « Los Santos Dusk » mais estimé qu'on pouvait
+aller beaucoup plus loin sur les polices pour ressentir l'ADN hip-hop LA. Il
+avait raison, et de façon plus embarrassante que « on peut faire mieux » :
+`.vf-body` et `.vf-mono` étaient **encore IBM Plex**. Un reliquat de la
+première direction (« instrument de labo ») qui avait traversé DEUX
+re-directions complètes sans que je le voie. La police corporate d'IBM,
+dessinée pour des interfaces d'entreprise, composait tout le texte réellement
+lu de l'app. Anton habillait 20 % de l'écran (les gros chiffres) et je
+comptais ça comme « la typo est faite ».
+
+Leçon : quand on change de direction, on audite les *rôles* typographiques un
+par un comme on auditerait des tokens de couleur. Un rôle qui n'a pas été
+touché depuis deux directions est suspect par défaut, pas neutre par défaut.
+
+### Ce que j'ai refusé
+Pas de police graffiti/tag. C'est l'option évidente sur un brief « hip-hop
+LA » et c'est un piège : illisible en français accentué, et surtout ça crie
+l'intention — ça fait déguisement plutôt que direction artistique. Le
+blackletter porte la même culture (tatouage chicano, plaques de clubs, *The
+Chronic*) avec une vraie histoire typographique derrière, et il reste lisible
+si on le contient. Dit au développeur avant de commencer, pas après.
+
+### Le découpage en 5 rôles, et pourquoi c'est ce qui rend le blackletter viable
+Le blackletter n'est utilisable QUE si quelque chose d'autre porte la lecture.
+D'où 5 rôles au lieu de 4 : `.vf-gothic` (UnifrakturCook) reste cérémoniel —
+trois emplacements, casse mixte, ≥16px — pendant que Barlow prend tout le
+texte courant. En capitales le blackletter est un mur (« VIBEFIT » en textura
+est illisible), donc le wordmark est devenu « VibeFit » en casse mixte, ce qui
+est de toute façon plus fidèle au lettrage d'album et de tatouage.
+
+### Deux pièges techniques qui ne se voient ni au build ni aux tests
+1. **Faux gras synthétique.** Anton et Archivo Black n'ont qu'une graisse
+   réelle (400). Les 11 sites convertis portaient un `fontWeight: 900` inline
+   — et un style inline gagne sur la classe, donc le navigateur aurait
+   synthétisé un gras par-dessus une fonte déjà noire (ça bave). Il a fallu
+   retirer chaque `fontWeight` explicitement, pas juste poser la classe. Un
+   `sed` a raté un site (`fontWeight: 900 }}` sans virgule finale là où les
+   autres avaient `fontWeight: 900,`) — rattrapé par un grep de contrôle,
+   qui est la seule raison pour laquelle je l'ai vu.
+2. **Débordement par changement de largeur.** Archivo Black est nettement plus
+   large qu'IBM Plex. La légende centrale de `BalanceRing` (« SOUS LA CIBLE »,
+   le libellé le plus long possible) est passée à 101 px pour 92 px de passage
+   libre au centre de l'anneau, et mordait sur l'arc — visible seulement à la
+   capture. Mesurée au `getBBox()` dans le navigateur plutôt qu'estimée, puis
+   redimensionnée à 82.9 px. Substituer une fonte display, c'est changer les
+   métriques de tous les libellés contraints : il faut mesurer, pas supposer.
+
+### Le chrome
+`.vf-chrome` = dégradé argent clippé sur le texte, appliqué au « Vibe » du
+wordmark. Le chrome sur coucher de soleil, c'est la plaque de club lowrider.
+Piège évité : `color: transparent` + `background-clip: text` non supporté =
+wordmark **invisible**. Encadré par un `@supports`, couleur pleine en défaut.
+Contraste vérifié sur les 4 stops du dégradé contre la bande haute du header,
+le plus sombre passe à 5.61:1 (au-delà du seuil gros-texte requis) et le
+fallback à 13.43:1.
+
+### Vérification
+`npm test` 96/96 ✅ · `vite build` ✅ (20 entrées précachées, 13 woff2, 276 Ko
+pour 5 familles — +8 Ko seulement vs 4 familles, en sortant Plex et Archivo
+variable) · les 5 familles confirmées chargées via `document.fonts.check` et
+`getComputedStyle(body).fontFamily === 'Barlow, sans-serif'` · pire cas
+blackletter mesuré (« Diet Break (Vacances) », 216 px, tient sur une ligne) ·
+zéro erreur console · cibles tactiles ≥44px reconfirmées · garde-fous ajoutés
+au passage : grep sur `fontWeight` posé sur `.vf-hero`/`.vf-display`, et grep
+sur `uppercase` posé sur `.vf-gothic`.

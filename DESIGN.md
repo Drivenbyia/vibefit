@@ -118,28 +118,72 @@ Toute nouvelle couleur d'état doit être vérifiée avant d'entrer.
 
 ---
 
-## 2. Typographie
+## 2. Typographie — le cœur de la direction
 
-Quatre rôles désormais — l'ajout d'un rôle **hero** est le changement
-typographique de cette direction. Affectation dans
+**Cinq rôles.** C'est ici que l'ADN hip-hop LA se joue vraiment : une palette
+peut évoquer un univers, seul le lettrage l'incarne. Affectation dans
 `src/components/ui/FontStyles.jsx`, `@font-face` dans `src/styles/fonts.css`.
 
-| Classe | Famille | Rôle |
-|---|---|---|
-| `.vf-hero` | **Anton** 400 (seule graisse) | wordmark, gros chiffres (anneau, StatCard) |
-| `.vf-display` | **Archivo** 700/900 | titres de section, éléments display secondaires |
-| `.vf-body` | **IBM Plex Sans** 400/600 | corps, labels, interface |
-| `.vf-mono` | **IBM Plex Mono** 500/600 | données, ratios, valeurs tabulaires |
+| Classe | Famille | Rôle | Référence |
+|---|---|---|---|
+| `.vf-gothic` | **UnifrakturCook** 700 | wordmark, nom de preset, date de semaine | blackletter LA — *The Chronic*, Cypress Hill, plaques lowrider, tatouage chicano |
+| `.vf-hero` | **Anton** 400 | gros chiffres | poster condensé — flyers, jaquettes West Coast |
+| `.vf-display` | **Archivo Black** 400 | capitales tracées (labels, titres de carte) | flocage de maillot, box logo streetwear |
+| `.vf-body` | **Barlow** 400/600/700 | tout le texte lisible | grotesque de signalétique, faible contraste |
+| `.vf-mono` | **Azeret Mono** var. | données tabulaires | mono brutaliste |
 
-**Anton** est un poster condensé ultra-gras — omniprésent sur les flyers
-lowrider, les jaquettes d'albums West Coast et le lettrage streetwear actuel.
-Réservé au wordmark et aux gros chiffres : illisible passé 3-4 mots, ne
-JAMAIS l'utiliser en corps de texte ou en label long.
+> **IBM Plex Sans/Mono ont été retirées.** C'était un reliquat de la première
+> direction (« instrument de labo ») qui avait survécu à deux re-directions :
+> la police corporate d'IBM composait encore tout le texte réellement lisible
+> d'une app d'ADN californien. C'est le plus gros écart qui restait entre la
+> palette et le lettrage.
 
-`.vf-tabular` reste obligatoire sur toute valeur qui change dans le temps.
+### Règles dures
 
-**Polices auto-hébergées**, servies depuis `/fonts`, précachées par Workbox.
-Aucun appel CDN au chargement. **Ne pas réintroduire de `<link>` Google Fonts
+- **Blackletter (`.vf-gothic`) : casse mixte, ≥16px, chaînes courtes.**
+  Jamais en capitales — « VIBEFIT » en textura est un mur illisible ; le
+  wordmark est donc « VibeFit ». Jamais en texte courant. **Trois
+  emplacements autorisés** : le wordmark, le nom de preset
+  (`PresetPickerCard`), la date de semaine (`WeekSummary`). En ajouter un
+  quatrième demande de vérifier la longueur — testé jusqu'à
+  « Diet Break (Vacances) » (21 caractères, 216 px à 25px, tient sur une
+  ligne).
+- **Anton et Archivo Black n'ont qu'une graisse réelle (400).** Ne jamais
+  leur passer un `fontWeight` inline : le navigateur synthétiserait un faux
+  gras par-dessus une fonte déjà noire, ce qui bave. Les deux classes forcent
+  `font-weight: 400`, et comme un style inline gagne toujours sur une classe,
+  la règle est de **ne pas écrire de `fontWeight`** sur un élément portant
+  `.vf-hero` ou `.vf-display`.
+- **Archivo Black est large.** Le remplacer sur un libellé existant peut le
+  faire déborder. Cas réel : la légende centrale de `BalanceRing`
+  (« SOUS LA CIBLE », le libellé le plus long possible) passait de 92 px de
+  passage libre à 101 px de texte et mordait sur l'arc — redimensionnée à
+  `fontSize: 9` / `letterSpacing: 0.05em` (82.9 px). Mesurer avant de
+  substituer.
+- **Pas de police graffiti/tag pour l'UI.** Refus délibéré : ça crie
+  l'intention, ça devient illisible en français accentué, et ça fait
+  déguisement plutôt que direction. Le blackletter porte déjà la culture rue
+  sans sacrifier la lecture.
+- `.vf-tabular` reste obligatoire sur toute valeur qui change dans le temps.
+
+### Lettrage chromé — `.vf-chrome`
+
+Dégradé argent clippé sur le texte (`background-clip: text`), appliqué au
+« Vibe » du wordmark : le chrome sur coucher de soleil, c'est la plaque de
+club lowrider. « Fit » reste en vert Grove Street pour garder l'accent de
+marque.
+
+Le fallback compte : sans garde, un navigateur sans `background-clip: text`
+afficherait du texte transparent, donc **invisible**. La couleur pleine
+(`#EFE7DC`) est la valeur par défaut et n'est retirée que dans un
+`@supports`. Contraste vérifié sur la bande haute du header (`#241645`) :
+tous les stops du dégradé passent l'AA texte normal, le plus sombre
+(`#9C93A8`) à 5.61:1, et le fallback à 13.43:1.
+
+**Polices auto-hébergées** : 13 fichiers woff2, sous-ensembles latin +
+latin-ext, 276 Ko, précachées par Workbox. UnifrakturCook n'existe qu'en
+`latin` chez Google — suffisant, ce sous-ensemble couvre U+0000-00FF donc
+tous les accents français. **Ne pas réintroduire de `<link>` Google Fonts
 dans `index.html`.**
 
 ---
@@ -150,10 +194,11 @@ dans `index.html`.**
 horizon de coucher de soleil en haut d'écran, un canvas de nuit violette
 en dessous, des données qui glowent comme des néons.
 
-- **Header** (`Header.jsx`) : fond `SUNSET`, wordmark en `.vf-hero`, et une
-  **skyline** décorative (silhouette d'immeubles bas + palmiers, composant
-  `Skyline`) découpée sur la bande basse du dégradé. C'est la pièce la plus
-  identifiable de cette direction — l'écho direct du loading screen GTA SA.
+- **Header** (`Header.jsx`) : fond `SUNSET`, wordmark en blackletter chromé
+  (`.vf-gothic` + `.vf-chrome`, voir §2), et une **skyline** décorative
+  (silhouette d'immeubles bas + palmiers, composant `Skyline`) découpée sur la
+  bande basse du dégradé. C'est la pièce la plus identifiable de cette
+  direction — l'écho direct du loading screen GTA SA.
 - **Icône/favicon** (`public/pwa-icon.svg`, `index.html`) : même logique
   condensée — un disque « soleil » en dégradé, un palmier en silhouette.
 - **Rayons** : cartes 16–20px, contrôles/pills 12px, chips 999px (rond

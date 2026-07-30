@@ -5,10 +5,10 @@ import Card from '../../ui/Card.jsx';
 export function StatusCard({ dayCount }) {
   return (
     <Card>
-      <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
+      <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
         ÉTAT
       </div>
-      <div className="vf-display vf-tabular" style={{ fontSize: 32, fontWeight: 900, lineHeight: 1 }}>
+      <div className="vf-hero vf-tabular" style={{ fontSize: 32, lineHeight: 1 }}>
         {dayCount}
         <span className="vf-body" style={{ fontSize: 13, fontWeight: 500, color: PALETTE.muted, marginLeft: 6 }}>
           {dayCount > 1 ? 'jours saisis' : 'jour saisi'}
@@ -21,7 +21,7 @@ export function StatusCard({ dayCount }) {
 export function DangerCard({ onReset }) {
   return (
     <Card>
-      <div style={{ fontSize: 11, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
+      <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
         DANGER
       </div>
       <button

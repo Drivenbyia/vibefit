@@ -10,6 +10,40 @@ last_updated: 2026-07-30
 - Branche active : `claude/design-system-setup-shx5ot`
 - **Suite de tests : Vitest, 96 tests** — `npm test`
 
+### Session 2026-07-30 (suite 3) — Refonte typographique : 5 rôles, sortie d'IBM Plex
+Le développeur a validé la DA mais demandé d'aller beaucoup plus loin sur les
+polices pour ressentir l'ADN hip-hop LA. L'audit lui a donné raison de façon
+concrète : `.vf-body` et `.vf-mono` étaient **encore IBM Plex**, reliquat de la
+1re direction ayant survécu à deux re-directions — la police corporate d'IBM
+composait 80 % du texte réellement lu. Détail dans `4_business_decisions.md`,
+récit dans `3_dev_journal.md`.
+
+- **5 rôles** au lieu de 4 : `.vf-gothic` **UnifrakturCook** (blackletter — ADN
+  LA : *The Chronic*, plaques lowrider, tatouage chicano) · `.vf-hero`
+  **Anton** (gros chiffres) · `.vf-display` **Archivo Black** (capitales
+  tracées, flocage de maillot) · `.vf-body` **Barlow** (grotesque de
+  signalétique) · `.vf-mono` **Azeret Mono**. IBM Plex Sans/Mono et Archivo
+  variable supprimées.
+- **Poids** : 13 woff2 / 276 Ko pour 5 familles, contre 11 / 268 Ko pour 4 —
+  +8 Ko seulement (Plex et Archivo variable sortis, Barlow limité à 400/600/700).
+- **`.vf-chrome`** : dégradé argent clippé sur le texte pour le « Vibe » du
+  wordmark (plaque de club lowrider). Encadré par un `@supports` — sans ça,
+  `color: transparent` sur un navigateur sans `background-clip: text` rendrait
+  le wordmark invisible.
+- **Deux règles dures nouvelles**, avec garde-fous grep : (1) jamais de
+  `fontWeight` inline sur `.vf-hero`/`.vf-display` — Anton et Archivo Black
+  n'ont qu'une graisse réelle, un style inline gagne sur la classe et produit
+  un faux gras baveux ; (2) blackletter en casse mixte uniquement, ≥16px, 3
+  emplacements autorisés — en capitales c'est illisible.
+- **Régression attrapée au rendu seulement** : Archivo Black étant plus large,
+  « SOUS LA CIBLE » dans `BalanceRing` passait à 101 px pour 92 px de passage
+  libre et mordait sur l'arc. Mesurée au `getBBox()`, redimensionnée à 82.9 px.
+  Ni les tests ni le build ne pouvaient la voir.
+- Refus explicite : **pas de police graffiti/tag** — illisible en français
+  accentué et effet « déguisement » qui décrédibilise la direction.
+- Vérifié : 96/96 tests, build OK (20 précaches), les 5 familles confirmées
+  chargées, pire cas blackletter mesuré, zéro erreur console, ≥44px OK.
+
 ### Session 2026-07-30 (suite 2) — Troisième direction : « Los Santos Dusk »
 Le développeur a demandé d'aller plus loin sur l'app comme test de direction
 artistique, avec sa propre référence : GTA San Andreas / Californie 90s /
@@ -105,7 +139,8 @@ Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur véri
 ```
 src/
   styles/
-    fonts.css          — @font-face des 10 woff2 auto-hébergés (Anton, Archivo, IBM Plex Sans/Mono)
+    fonts.css          — @font-face des 13 woff2 auto-hébergés (UnifrakturCook, Anton,
+                         Archivo Black, Barlow, Azeret Mono) — voir DESIGN.md §2
   constants/
     config.js          — PALETTE (direction « Los Santos Dusk » — voir DESIGN.md), PRESETS,
                          STORAGE_KEY, seuils (KCAL_FLOOR, PROTEIN_FLOOR, MIN_BASE_TDEE,
@@ -141,7 +176,7 @@ src/
     useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
     ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill,
-                         Label, SectionLabel, FontStyles (affectation des 3 rôles typo),
+                         Label, SectionLabel, FontStyles (affectation des 5 rôles typo + .vf-chrome),
                          Bar (PISTE LUMINEUSE — signature, remplissage rond + glow + marqueur de cible)
     layout/            — Header, DayTypeSwitcher, BottomNav
     views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes

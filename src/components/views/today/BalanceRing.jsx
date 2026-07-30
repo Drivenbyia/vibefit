@@ -82,8 +82,13 @@ export default function BalanceRing({ intake, target }) {
       <text
         x={CX} y="102"
         textAnchor="middle"
-        className="vf-body"
-        style={{ fontSize: 10, fontWeight: 700, fill: color, letterSpacing: '0.12em' }}
+        className="vf-display"
+        /* Archivo Black est nettement plus large que le corps de texte : à
+           fontSize 10 / tracking 0.12em, « SOUS LA CIBLE » (le libellé le plus
+           long possible, 13 caractères) mesurait 101 px pour 92 px de passage
+           libre au centre de l'anneau, et mordait sur l'arc. Dimensionné ici
+           pour ce pire cas. */
+        style={{ fontSize: 9, fill: color, letterSpacing: '0.05em' }}
       >
         {sub.toUpperCase()}
       </text>

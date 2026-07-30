@@ -11,7 +11,7 @@ export default function StatCard({ label, value, unit, sub, colSpan = 1 }) {
         padding: 14,
       }}
     >
-      <div style={{ fontSize: 10, fontWeight: 700, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 6 }}>
+      <div className="vf-display" style={{ fontSize: 10, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 6 }}>
         {label}
       </div>
       <div className="vf-hero vf-tabular" style={{ fontSize: 24, color: PALETTE.ink, lineHeight: 1.1 }}>
