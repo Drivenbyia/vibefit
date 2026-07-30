@@ -766,3 +766,80 @@ blackletter mesuré (« Diet Break (Vacances) », 216 px, tient sur une ligne) �
 zéro erreur console · cibles tactiles ≥44px reconfirmées · garde-fous ajoutés
 au passage : grep sur `fontWeight` posé sur `.vf-hero`/`.vf-display`, et grep
 sur `uppercase` posé sur `.vf-gothic`.
+
+---
+
+## Session 2026-07-30 (suite 4) — La question de la page d'accueil
+
+Le développeur ouvre l'app sur le jour à renseigner, trouve ça pratique, mais
+voudrait « une page d'accueil montrant les tendances ou mon état de forme
+actuel » — en demandant explicitement qu'on lui dise si c'est une mauvaise
+idée. C'est la bonne façon de poser la question, et la réponse honnête est :
+l'intuition est juste, la solution ne l'est pas.
+
+### Pourquoi la page d'accueil est le mauvais objet
+Trois arguments, dans l'ordre de force :
+
+1. **VibeFit est une app d'écriture.** `TodayView` est le seul écran où l'on
+   produit de la donnée. Une home en amont coûte un tap sur 100 % des
+   ouvertures pour servir une info consultée une fois par semaine.
+2. **Le contenu existe déjà, en entier.** `WeekView` a `DiagnosisCard`,
+   `NeatCard`, `KcalTrendCard`, `WeightCard`, `AveragesCard`. Une home
+   « tendances » serait un troisième endroit affichant le même delta de poids.
+3. Et surtout, ça ne règle pas le vrai problème.
+
+### Le vrai problème
+L'app **sait des choses qu'elle ne dit pas**. `plateauProtocol.js`,
+`neatDrift.js`, `adaptiveTDEE.js` — le plus cher à écrire du projet — ne
+vivent que dans un onglet qu'il faut penser à ouvrir. Or le cas terrain
+fondateur de R3, celui qui a justifié de dégeler la règle, est exactement
+celui qu'on n'ouvre pas : les pas ont chuté de 62 % pendant deux mois sans
+que rien ne le signale. Un diagnostic qui attend qu'on vienne le chercher
+n'est pas un diagnostic. C'est ça que l'intuition avait senti — pas « il
+manque une page », mais « l'app ne me parle pas ».
+
+### Ce qui a été fait
+Une bande d'état en haut de `TodayView`, sur le jour courant : titre de
+verdict, une phrase, une ligne `−0,48 kg/sem · TDEE 2 690 kcal · conf. 100 %`.
+Un tap ouvre `WeekView` pour le détail. Zéro tap ajouté, le jour reste
+l'atterrissage.
+
+La discipline qui compte est dans `useVibeStatus` : il **rejoue** les hooks de
+`WeekView` avec la même résolution de cibles (`targets ?? DEFAULT_TARGETS`)
+au lieu de recalculer. La bande et l'onglet Semaine ne *peuvent pas* diverger
+— c'est exactement le risque que je reprochais à la page d'accueil, il fallait
+donc l'éliminer par construction et pas par vigilance. Corollaire assumé :
+`extractSignals` tourne 3× par rendu au lieu de 2× dans `WeekView`. Balayage
+de 30 jours en mémoire, non mesurable ; mutualiser aurait demandé de réécrire
+deux hooks existants pour rien.
+
+`summarizeStatus()` est un pur arbitre : il ne calcule aucun diagnostic, il
+choisit lequel publier et le raccourcit. Le seul point d'ordre non évident est
+la **rétention d'eau, placée avant les avertissements**. Son rôle est
+d'empêcher une coupe calorique injustifiée ; la faire passer derrière un
+signal plus alarmant produirait exactement la décision qu'elle interdit.
+
+Deux silences volontaires, qui sont la moitié de l'intérêt de la chose : la
+bande disparaît quand on feuillette un jour passé (elle parle de MAINTENANT,
+elle mentirait) et disparaît entièrement sur installation neuve (aucun chiffre
+à montrer ⇒ `null`, plutôt qu'un cadre vide au-dessus de la saisie).
+
+### Ce que les tests n'auraient pas vu
+Comme au tour précédent avec `BalanceRing`, la régression était une largeur.
+Au premier rendu la ligne de mesure passait sur deux lignes, orphelinant
+« 100 % » et faisant grossir la bande de 13 px. Mesurée dans le navigateur —
+et ma première mesure était fausse : un `<div>` bloc fait toujours la largeur
+de son conteneur, il faut mesurer le **texte** via un `Range` et compter ses
+`getClientRects()`, qui sont les lignes réelles. Corrigée en abrégeant
+« confiance » → « conf. », en resserrant les séparateurs et en descendant à
+10 px : 316 px → 283 px. Vérifié à 390 px **et à 360 px** (Galaxy S), le
+format où la version 11 px cassait sans qu'on le voie à 390.
+
+### Vérification
+`npm test` 106/106 ✅ (10 ajoutés) · `vite build` ✅ (20 entrées précachées,
+inchangé) · rendu Playwright sur build de production, 2 scénarios (dérive NEAT
+du cas terrain, sèche qui progresse) × 2 viewports (360/390 px) · ligne de
+mesure sur 1 ligne dans les 4 cas · titre le plus large 177 px pour 282 px de
+passage · fonte confirmée Archivo Black @400 (pas de faux gras) · tap →
+Semaine ✅ · bande masquée en J-1 et sur installation neuve ✅ · zéro erreur
+console · hauteur de la cible tactile 58–98 px (≥44 requis).

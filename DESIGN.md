@@ -217,6 +217,18 @@ en dessous, des données qui glowent comme des néons.
   glow. **Ne pas l'étendre aux grandes cards** : sur une grande surface
   l'effet tourne au bruit visuel plutôt qu'à la signature — réservé aux
   petits éléments d'accent.
+- **Bande d'état** (`today/StatusBand.jsx`) : première chose sous le header sur
+  le jour courant. Le VERDICT des diagnostics, jamais leur tableau de bord —
+  une ligne de titre en `.vf-display`, une phrase en `.vf-body`, une ligne de
+  mesure en `.vf-mono` à **10 px sans letter-spacing**. Contrat de couleur
+  identique à `DiagnosisCard`/`NeatCard` (texte d'état sur son propre `*Soft`,
+  paires déjà validées AA), glow porté par la seule **icône**
+  (`drop-shadow`, comme `BottomNav`) et non par la bande : un halo sur toute la
+  largeur écrase le header sunset juste au-dessus. Deux mesures à ne pas
+  perdre : la ligne de mesure fait 283 px et doit tenir sur **une** ligne
+  jusqu'à 360 px de large (à 11 px elle en faisait 316 et s'orphelinait), et le
+  titre le plus long (« PAS ENCORE DE VERDICT ») fait 177 px pour 282 px de
+  passage libre en Archivo Black.
 - **Grain** (`index.css`, `body::after`) : texture de bruit très légère
   (opacité 0.035, `mix-blend-mode: overlay`) sur tout l'écran — la patine VHS
   du ciné 80s. Volontairement discrète : présente au regard attentif,

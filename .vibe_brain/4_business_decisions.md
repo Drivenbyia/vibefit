@@ -23,6 +23,20 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-07-30 — Refus d'une page d'accueil : bande d'état dans `TodayView`
+- **Décision** : Ne PAS créer d'écran d'accueil ni de cinquième onglet. Le jour à renseigner reste l'écran d'atterrissage. Les diagnostics existants (`plateauProtocol`, `neatDrift`, `adaptiveTDEE`) sont remontés en une **bande d'état** en haut de `TodayView`, affichée sur le jour courant uniquement, qui publie **un verdict et une ligne de mesure**, et renvoie vers `WeekView` d'un tap.
+- **Contexte** : Le développeur trouvait pratique de tomber directement sur la saisie, mais voulait « une page d'accueil montrant les tendances ou mon état de forme actuel » — en demandant explicitement qu'on lui dise si l'idée était mauvaise.
+- **Alternatives considérées** : (A) une vraie page d'accueil / 5e onglet devenant l'écran d'atterrissage ; (B) ne rien changer ; (C) la bande d'état — retenue.
+- **Raison du choix** : (A) coûte un tap sur **100 % des ouvertures** pour servir une information consultée une fois par semaine, dans une app dont `TodayView` est le seul écran où l'on *produit* de la donnée ; et elle serait un **troisième** rendu des mêmes chiffres, après `WeekView` qui contient déjà `DiagnosisCard`, `NeatCard`, `KcalTrendCard`, `WeightCard`, `AveragesCard` — trois endroits à garder cohérents. (B) laisse intact le vrai défaut, qui n'est pas l'absence d'une page : l'intelligence du produit est **muette**. `diagnose()` et `diagnoseNeat()` ne vivent que dans un onglet qu'il faut penser à ouvrir, alors que le cas terrain fondateur de R3 est précisément celui qu'on n'ouvre pas (pas effondrés de 62 % pendant deux mois sans signal). Un diagnostic qui attend qu'on vienne le chercher n'est pas un diagnostic.
+- **Impact** :
+  - Nouveau module pur `utils/vibeStatus.js` : `summarizeStatus()` **ne recalcule rien**, il arbitre entre deux diagnostics déjà produits et réécrit leur `detail` en version courte. Ordre de priorité documenté dans le fichier ; le point non évident est que la **rétention d'eau passe avant les avertissements** — son rôle étant de bloquer une coupe calorique injustifiée, la taire au profit d'un signal plus alarmant produirait exactement la décision qu'elle interdit.
+  - `hooks/useVibeStatus.js` rejoue `usePlateauDiagnosis` et `useNeatDrift` avec la **même** résolution de cibles que `useWeekStats` (`targets ?? DEFAULT_TARGETS`). C'est la condition pour que la bande et l'onglet Semaine ne puissent jamais annoncer deux diagnostics différents — la duplication redoutée en (A) est écartée par construction, pas par vigilance.
+  - Règle de non-duplication tenue : la bande affiche la **conclusion**, plus le couple tendance/TDEE ; jamais un chiffre que `WeekView` montre déjà en grand.
+  - Deux silences volontaires : masquée en feuilletant le journal sur un jour passé (`isToday`, ajouté à `useDayMetrics` — elle parle de MAINTENANT), et masquée entièrement sur installation neuve (`summarizeStatus` retourne `null` sans le moindre chiffre) plutôt que d'occuper l'écran avec un statut vide au-dessus de la saisie.
+  - `extractSignals` est désormais évalué 3× par rendu de `TodayView`. Balayage de 30 jours en mémoire, déjà payé 2× par `WeekView` : mutualiser exigerait de réécrire les deux hooks existants pour un gain non mesurable.
+  - 10 tests ajoutés (106 au total).
+- **Réversibilité** : Facile. La bande est un composant + un hook + un util, branchés en une ligne dans `TodayView` ; aucun diagnostic existant n'a été modifié.
+
 ### 2026-05-04 — Pas de state manager externe
 - **Décision** : Utiliser uniquement `useState`, `useReducer` et le Context API natif de React.
 - **Contexte** : Application de taille modeste (tracker personnel), surcharge cognitive d'une librairie externe non justifiée à ce stade.
