@@ -1,5 +1,6 @@
 import { KCAL_FLOOR } from '../constants/config.js';
 import { num } from '../utils/mathUtils.js';
+import { toKey } from '../utils/dateUtils.js';
 import { dayType } from '../models/day.js';
 
 /**
@@ -13,6 +14,9 @@ export function useDayMetrics(dateKey, day, targets) {
   const expenditure = num(day.expenditure.kcal);
   const steps = num(day.expenditure.steps);
   const isMonday = new Date(dateKey + 'T12:00:00').getDay() === 1;
+  // La bande d'état parle de MAINTENANT. En feuilletant le journal sur un jour
+  // passé, elle mentirait sur ce qu'elle décrit.
+  const isToday = dateKey === toKey(new Date());
 
   const computedKcal = num(day.intake.protein) * 4 + num(day.intake.carbs) * 4 + num(day.intake.fat) * 9;
   const macroDelta = Math.abs(computedKcal - intake);
@@ -23,6 +27,7 @@ export function useDayMetrics(dateKey, day, targets) {
     expenditure,
     steps,
     isMonday,
+    isToday,
     computedKcal,
     macroDelta,
     showMacroWarning: intake > 0 && computedKcal > 0 && macroDelta > 100,

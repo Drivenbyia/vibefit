@@ -16,6 +16,8 @@ export default function VibeFit() {
   const [dateKey, setDateKey] = useState(() => toKey(new Date()));
   const [tab, setTab] = useState('today');
 
+  const openWeek = useCallback(() => setTab('week'), []);
+
   const day = useMemo(
     () => ({ ...emptyDay(), ...(data.days[dateKey] || {}) }),
     [data.days, dateKey]
@@ -60,7 +62,7 @@ export default function VibeFit() {
     >
       <FontStyles />
       <Header dateKey={dateKey} setDateKey={setDateKey} day={day} updateDay={updateDay} targets={data.targets} />
-      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={data.targets} stepsTarget={data.stepsTarget} />}
+      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={data.targets} stepsTarget={data.stepsTarget} data={data} onOpenWeek={openWeek} />}
       {tab === 'week' && <WeekView dateKey={dateKey} data={data} setDateKey={setDateKey} targets={data.targets} stepsTarget={data.stepsTarget} />}
       {tab === 'targets' && <TargetsView data={data} setData={setData} />}
       {tab === 'data' && <DataView data={data} setData={setData} />}

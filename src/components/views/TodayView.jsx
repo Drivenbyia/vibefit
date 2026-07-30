@@ -1,4 +1,6 @@
 import { useDayMetrics } from '../../hooks/useDayMetrics.js';
+import { useVibeStatus } from '../../hooks/useVibeStatus.js';
+import StatusBand from './today/StatusBand.jsx';
 import BalanceCard from './today/BalanceCard.jsx';
 import MacrosCard from './today/MacrosCard.jsx';
 import IntakeCard from './today/IntakeCard.jsx';
@@ -8,14 +10,16 @@ import { WeightCard, WaistCard } from './today/BodyCards.jsx';
 import SleepCard from './today/SleepCard.jsx';
 import NotesCard from './today/NotesCard.jsx';
 
-export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget }) {
+export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, onOpenWeek }) {
   const {
-    dt, intake, expenditure, steps, isMonday,
+    dt, intake, expenditure, steps, isMonday, isToday,
     computedKcal, macroDelta, showMacroWarning, showUndereatAlert,
   } = useDayMetrics(dateKey, day, targets);
+  const status = useVibeStatus(data, targets);
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {isToday && <StatusBand status={status} onOpenWeek={onOpenWeek} />}
       <BalanceCard intake={intake} expenditure={expenditure} target={dt.kcal} />
       <MacrosCard
         day={day}

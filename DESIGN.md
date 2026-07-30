@@ -217,6 +217,18 @@ en dessous, des données qui glowent comme des néons.
   glow. **Ne pas l'étendre aux grandes cards** : sur une grande surface
   l'effet tourne au bruit visuel plutôt qu'à la signature — réservé aux
   petits éléments d'accent.
+- **Bande d'état** (`today/StatusBand.jsx`) : première chose sous le header sur
+  le jour courant. Le VERDICT des diagnostics, jamais leur tableau de bord —
+  titre en `.vf-display`, phrase en `.vf-body`, tracé de tendance (§4), ligne de
+  mesure en `.vf-mono` à **10 px sans letter-spacing**. Contrat de couleur
+  identique à `DiagnosisCard`/`NeatCard` (texte d'état sur son propre `*Soft`,
+  paires déjà validées AA), glow porté par la seule **icône**
+  (`drop-shadow`, comme `BottomNav`) et non par la bande : un halo sur toute la
+  largeur écrase le header sunset juste au-dessus. Deux mesures à ne pas
+  perdre : la ligne de mesure doit tenir sur **une** ligne jusqu'à 360 px de
+  large (à 11 px elle faisait 316 px et s'orphelinait), et le titre le plus long
+  (« PAS ENCORE DE VERDICT ») fait 177 px pour 282 px de passage libre en
+  Archivo Black.
 - **Grain** (`index.css`, `body::after`) : texture de bruit très légère
   (opacité 0.035, `mix-blend-mode: overlay`) sur tout l'écran — la patine VHS
   du ciné 80s. Volontairement discrète : présente au regard attentif,
@@ -263,6 +275,49 @@ simple fond noir). Le mécanisme — échelle à 125 %, bouts ronds, glow qui su
 l'état — n'a pas de raison de rechanger tant que la direction visuelle change
 de palette sans changer de nature (wearable-like → toujours wearable-like,
 juste habillé différemment).
+
+---
+
+### 4bis. Le tracé de tendance — la signature étendue au temps
+
+`ui/Sparkline.jsx`. Même mécanisme que l'anneau et la piste — **une valeur
+contre une cible** — appliqué à la seule métrique qui y avait échappé, le poids.
+La cible n'y est pas un point mais une trajectoire : celle que le preset en
+cours prédit (`presetWeeklyRate`, la même source que le libellé de
+`PresetPickerCard`, pour que le guide ne puisse pas annoncer un rythme
+différent de l'écran Cibles). Le marqueur de cible devient donc une **ligne de
+guide**, et l'écart entre les deux courbes est littéralement la perte de poids
+qui manque.
+
+- **Bouts ronds, glow sur la seule valeur réelle**, comme le remplissage de
+  `Bar`. Le guide ne glowe pas : il n'est pas un état, il est un repère.
+- **Guide tireté.** Un tireté sur une grille est du bruit — c'est un
+  anti-pattern connu — mais ici la ligne *est* une projection, le seul cas où le
+  tireté dit la vérité. Il sert aussi d'encodage secondaire : les deux séries
+  restent séparables sans couleur.
+- **Un seul axe.** Les deux séries sont la même mesure (kg). Jamais deux
+  échelles verticales.
+- **Plancher d'amplitude (`minSpan`, 1 kg dans la bande) — le paramètre le plus
+  important.** Une échelle qui s'ajuste toujours au contenu ment : sans axe
+  chiffré, 0,1 kg de dérive remplit la même hauteur que 3 kg de perte.
+  Constaté au rendu — un guide « maintenance » écarté de 0,12 kg occupait 40 %
+  du tracé et se lisait comme une divergence grave.
+- **Couleur = l'état du verdict**, sauf en tonalité neutre où la courbe passe à
+  `ink` et non `muted` : mesuré au validateur de palette, `muted` contre le
+  guide `tick` donne ΔE 7.5 en vision **normale** (seuil dur 15) — deux gris
+  indiscernables qu'aucun encodage secondaire ne rachète. `ink` remonte la paire
+  à ΔE 36. La paire `alert`/`tick` reste à ΔE 6.0 en protanopie, dans la bande
+  6–8 tolérée uniquement grâce au tireté.
+- **Point d'arrivée : jamais un `<circle>`.** Le viewBox est étiré en x
+  (`preserveAspectRatio="none"`), un cercle y devient une ellipse. Un
+  sous-tracé de longueur nulle à bout rond + `vector-effect="non-scaling-stroke"`
+  se dessine dans l'espace écran, donc rond à toute largeur.
+- **Un seul libellé direct** (la valeur d'arrivée), jamais un chiffre par point.
+  Légende à deux entrées reprenant le trait exact, pas une pastille.
+- **Pas de survol ni d'infobulle**, contrairement au défaut pour un graphique
+  HTML : la bande entière est une cible tactile unique qui ouvre `WeekView`, où
+  `WeightCard` liste les mêmes pesées en tableau. Le drill-down existe, il est
+  juste au niveau de la bande.
 
 ---
 

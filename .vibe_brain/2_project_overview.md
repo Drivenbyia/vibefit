@@ -7,8 +7,70 @@ last_updated: 2026-07-30
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/design-system-setup-shx5ot`
-- **Suite de tests : Vitest, 96 tests** — `npm test`
+- Branche active : `claude/homepage-tendances-design-o5oqs5`
+- **Suite de tests : Vitest, 111 tests** — `npm test`
+
+### Session 2026-07-30 (suite 5) — Cohérence DA de la bande : le tracé de tendance
+Demande de vérifier que la bande est vraiment cohérente avec la DA, quitte à
+créer des graphiques inexistants. L'audit a donné raison : la bande livrée au
+tour d'avant était **l'élément le moins VibeFit de l'app** — un rectangle à
+bordure colorée, sans la signature (piste lumineuse + marqueur de cible), et
+qui affichait la tendance de poids en **texte** dans une app où chaque valeur
+est un tracé qui glowe.
+
+- **`ui/Sparkline.jsx`** — premier graphique de série temporelle du projet. Ce
+  n'est pas une courbe décorative : c'est le mécanisme « valeur contre cible »
+  appliqué au poids, la seule métrique qui y échappait. Le guide = la
+  trajectoire que le preset prédit (`presetWeeklyRate`, même source que
+  `PresetPickerCard`). **L'écart entre les deux courbes est la perte de poids
+  qui manque.**
+- **`minSpan`, le plancher d'amplitude** — trouvé au rendu, pas aux tests. Une
+  échelle qui s'ajuste toujours au contenu ment : un guide « maintenance »
+  écarté de 0,12 kg occupait 40 % de la hauteur et se lisait comme une
+  divergence grave.
+- **Une correction de couleur invisible à l'œil, trouvée par calcul** : en
+  tonalité neutre, courbe `muted` contre guide `tick` = ΔE 7.5 en vision
+  **normale** (seuil dur 15). Deux gris indiscernables. Passée à `ink` (ΔE 36).
+- Détails techniques qui se paient sinon au rendu : point d'arrivée en
+  sous-tracé de longueur nulle (un `<circle>` deviendrait une ellipse dans un
+  viewBox étiré), tireté légitime ici car le guide *est* une projection, un
+  seul axe (même mesure), un seul libellé direct.
+- La ligne de mesure **cède** la tendance au tracé — la répéter en texte à 3 cm
+  de la courbe serait la duplication refusée à une page d'accueil.
+- Vérifié : 111/111 tests, build OK, Playwright sur build de prod — 3 scénarios
+  (dérive NEAT, sèche qui progresse, plateau sous sèche = guide en pente contre
+  courbe plate) × 2 viewports, zéro erreur console.
+
+### Session 2026-07-30 (suite 4) — Bande d'état : l'app se met à parler
+Demande d'une page d'accueil « tendances / état de forme », avec invitation
+explicite à dire si l'idée était mauvaise. **Refusée, et remplacée** : le jour
+à renseigner reste l'écran d'atterrissage. Détail dans
+`4_business_decisions.md`, récit dans `3_dev_journal.md`.
+
+- **Pourquoi pas une home** : `TodayView` est le seul écran où l'on *produit*
+  de la donnée — une home coûte un tap sur 100 % des ouvertures pour une info
+  vue une fois par semaine ; et `WeekView` contient déjà tout, une home serait
+  un **troisième** rendu des mêmes chiffres.
+- **Le vrai manque** : `plateauProtocol` / `neatDrift` / `adaptiveTDEE` ne
+  vivaient que dans un onglet qu'il faut penser à ouvrir. Or le cas terrain
+  fondateur de R3 est celui qu'on n'ouvre pas (pas effondrés de 62 % pendant
+  deux mois, sans signal). Un diagnostic qui attend qu'on vienne le chercher
+  n'est pas un diagnostic.
+- **Livré** : `StatusBand` en haut de `TodayView` — un verdict, une phrase, une
+  ligne `−0,48 kg/sem · TDEE 2 690 kcal · conf. 100 %`, un tap vers `WeekView`.
+- **Non-duplication par construction** : `useVibeStatus` **rejoue** les hooks
+  de `WeekView` avec la même résolution de cibles (`targets ?? DEFAULT_TARGETS`)
+  au lieu de recalculer — les deux écrans ne *peuvent pas* diverger. Coût
+  assumé : `extractSignals` évalué 3× par rendu (30 jours en mémoire).
+- **Deux silences volontaires** : masquée sur un jour passé (elle parle de
+  MAINTENANT) et sur installation neuve (aucun chiffre ⇒ `null`).
+- **Régression attrapée au rendu, encore une largeur** : la ligne de mesure
+  passait sur 2 lignes. Mesurée au `Range` (un `<div>` bloc fait toujours la
+  largeur du conteneur — c'est le *texte* qu'il faut mesurer), corrigée de
+  316 px à 283 px. Vérifiée à 360 px aussi, le format où la version 11 px
+  cassait sans que ça se voie à 390.
+- Vérifié : 106/106 tests, build OK (20 précaches, inchangé), Playwright sur
+  build de prod — 2 scénarios × 2 viewports, zéro erreur console.
 
 ### Session 2026-07-30 (suite 3) — Refonte typographique : 5 rôles, sortie d'IBM Plex
 Le développeur a validé la DA mais demandé d'aller beaucoup plus loin sur les
@@ -151,7 +213,8 @@ src/
                          aggregateSleep
     backupUtils.js     — exportBackup, importBackup
     exportUtils.js     — getHistoricalWeeks(data, n) : export Markdown 8 semaines (AI Bridge V2 + header)
-    adaptiveTDEE.js    — extractSignals(data) + olsSlope() : TDEE par régression OLS, Sliding Window
+    adaptiveTDEE.js    — extractSignals(data) (dont weightSeries, série lissée pour le TRACÉ seul)
+                         + olsSlope() : TDEE par régression OLS, Sliding Window
                          (scan 30j, fenêtre 14j pénalisée par la récence), rejet des aberrations,
                          recouvrement poids × apport, lissage 7j pour l'affichage seul
     plateauProtocol.js — diagnose() : croisement TDEE / poids / adhérence. DIAGNOSTIC PUR, sans action
@@ -160,14 +223,22 @@ src/
     presetUtils.js     — computePresetTargets, clampTargetField, macroConflictKcal, deriveBaseTDEE,
                          DEFAULT_TARGETS (dérivé de DEFAULT_TDEE — ici pour éviter un cycle d'import)
     reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
-    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift, sleep (96 tests)
+    vibeStatus.js      — summarizeStatus() : ARBITRE PUR de la bande d'état. Ne calcule aucun
+                         diagnostic, choisit lequel publier et le raccourcit. Rétention d'eau
+                         prioritaire sur les avertissements (elle bloque une coupe injustifiée).
+                         Prépare aussi le tracé : poids lissé + guide dérivé de presetWeeklyRate
+    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift, sleep,
+                         vibeStatus (106 tests)
   models/
     day.js             — emptyDay (dont sleep: score/durationMin/hrv/rhr), dayType
                          (typeOverride > séance loggée > calendrier)
   hooks/
     useVibefitStorage.js  — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
     useWeekStats.js       — dérivation hebdo (days, weekly, séries, macros, plancher protéines en jours)
-    useDayMetrics.js      — métriques du jour (cibles, totaux, alertes)
+    useDayMetrics.js      — métriques du jour (cibles, totaux, alertes, isToday)
+    useVibeStatus.js      — verdict de la bande d'état. REJOUE usePlateauDiagnosis/useNeatDrift
+                            avec la même résolution de cibles que useWeekStats : les deux écrans
+                            ne peuvent pas diverger
     useTargetsManager.js  — logique presets/TDEE/updateField/reset
     useAdaptiveTargets.js — TDEE mesuré + recalibration OPT-IN des cibles
     usePlateauDiagnosis.js— croisement TDEE / poids / adhérence pour WeekView
@@ -176,11 +247,14 @@ src/
     useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
     ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill,
+                         Sparkline (TRACÉ DE TENDANCE — la signature étendue au temps : poids réel
+                         contre trajectoire prévue par le preset, plancher d'amplitude minSpan),
                          Label, SectionLabel, FontStyles (affectation des 5 rôles typo + .vf-chrome),
                          Bar (PISTE LUMINEUSE — signature, remplissage rond + glow + marqueur de cible)
     layout/            — Header, DayTypeSwitcher, BottomNav
     views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes
-      TodayView.jsx    + today/   (BalanceCard, BalanceRing = la piste refermée en anneau lumineux, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
+      TodayView.jsx    + today/   (StatusBand = le verdict des diagnostics remonté au-dessus de
+                                   la saisie, jour courant uniquement, tap → WeekView ; BalanceCard, BalanceRing = la piste refermée en anneau lumineux, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
       WeekView.jsx     + week/    (WeekSummary, WeekCalendar, DiagnosisCard, NeatCard, NetBalanceCard, DayBar, KcalTrendCard, MacroBar, ProteinBadge, AveragesCard, KcalAverageRow, WaistCard, WeightCard, ReminderCard, ExportButton)
       TargetsView.jsx  + targets/ (PresetPickerCard, RecalibrateCard, StepsCard, TargetEditor, FooterCards)
       DataView.jsx     + data/    (BackupCard, DataInfoCards)
