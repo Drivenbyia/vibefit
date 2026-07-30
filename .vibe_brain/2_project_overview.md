@@ -9,7 +9,7 @@ last_updated: 2026-07-29
 - **Phase : 🔬 Moteur de calcul corrigé et testé — TDEE adaptatif branché (opt-in), protocole anti-rationalisation implémenté**
 - Branche active : `claude/vibefit-calc-audit-wut56i`
 - Derniers commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
-- **Suite de tests : Vitest, 75 tests** — `npm test`
+- **Suite de tests : Vitest, 79 tests** — `npm test`
 
 ### Session 2026-07-29 — Audit des calculs, 3 lots
 1. **Math TDEE** — bug principal : le déséquilibre journalier était divisé par 14 alors que l'écart de demi-moyennes couvre 7 jours ⇒ erreur systématique de **291 kcal/j** (TDEE réel 2550 → calculé 2259). Remplacé par une régression OLS sur poids interpolés. Rejet des aberrations, plus de propagation à plat, recouvrement poids × apport exigé, pénalité de récence.
@@ -19,6 +19,8 @@ last_updated: 2026-07-29
 4. **Libellés des presets** — les `sub` figés de `config.js` annonçaient des taux faux d'un facteur ~2 : ils ignoraient le week-end, qui n'a aucune cible et dilue le déficit sur 2 jours sur 7. « Sèche forte : perte ~500 g/sem » délivrait en réalité **234 g/sem**. Remplacés par `presetRateLabel()`, calculé depuis les cibles effectives et la composition de semaine dérivée du calendrier.
 
 5. **R3 NEAT_DRIFT dégelée** — `neatDrift.js` : détection de l'effondrement de l'activité, déclenchée par un cas terrain où les pas ont chuté de 62 % (−698 kcal/j de dépense) sans que l'app ne signale quoi que ce soit pendant deux mois.
+
+6. **Cible week-end dérivée** — cause racine du trou dont les lots 4 et 5 ne corrigeaient que les symptômes. Le WE reçoit la moyenne pondérée des jours de semaine au lieu de `kcal: null`, et reste effaçable à la main. **Moteur gelé ensuite** : la contrainte est la donnée (0 semaine exploitable pour le backtesting §9), plus le code.
 
 Vérifié sur build de production (Playwright) : TDEE mesuré **2551** sur vérité terrain 2550, recalibration 2000 → 2551 (TRAIN 2751 / OFF 2351), diagnostics discriminants, taux de presets exacts, zéro erreur console.
 
@@ -43,7 +45,7 @@ src/
     presetUtils.js     — computePresetTargets, clampTargetField, macroConflictKcal, deriveBaseTDEE,
                          DEFAULT_TARGETS (dérivé de DEFAULT_TDEE — ici pour éviter un cycle d'import)
     reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
-    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift (75 tests)
+    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift (79 tests)
   models/
     day.js             — emptyDay, dayType (typeOverride > séance loggée > calendrier)
   hooks/

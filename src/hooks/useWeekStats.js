@@ -34,10 +34,21 @@ export function useWeekStats(dateKey, data, targets) {
 
   const { avgWeight, weightDelta, weightSeries } = calculateWeightStats(days);
 
+  // Cibles macro moyennées sur les jours RÉELS de la semaine affichée, via
+  // dayType — plutôt qu'une moyenne TRAIN/OFF qui ignorait le week-end et
+  // recodait implicitement la composition du split.
+  const dayTargets = days.map(
+    ({ key, day }) => resolvedTargets[dayType(key, day)] ?? resolvedTargets.off
+  );
+  const avgTarget = (field, fallback) => {
+    const vs = dayTargets.map((t) => t?.[field]).filter((v) => v != null);
+    return vs.length > 0 ? vs.reduce((a, b) => a + b, 0) / vs.length : fallback;
+  };
+
   const macroTargets = {
     protein: resolvedTargets.train?.protein ?? PROTEIN_FLOOR,
-    carbs: ((resolvedTargets.train?.carbs ?? 280) + (resolvedTargets.off?.carbs ?? 120)) / 2,
-    fat: ((resolvedTargets.train?.fat ?? 70) + (resolvedTargets.off?.fat ?? 75)) / 2,
+    carbs: avgTarget('carbs', 200),
+    fat: avgTarget('fat', 72),
   };
 
   // Plancher protéines évalué sur les 7 jours CALENDAIRES, pas sur les jours

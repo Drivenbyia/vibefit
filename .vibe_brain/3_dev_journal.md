@@ -436,3 +436,36 @@ Apport moyen 2 128 vs dépense 2 158 = **−30 kcal/j**. Aucune perte de poids n
 
 ### Vérification
 `npm test` 75/75 ✅ · `vite build` ✅ · Playwright sur build de production, schéma terrain rejoué : *« Activité en baisse installée — 6 229 pas/j contre 14 554 en moyenne sur les 4 semaines précédentes (−57 %). Soit environ 331 kcal/j de dépense en moins. »*
+
+---
+
+## [2026-07-29] Cible week-end dérivée — dernier trou du modèle de calcul
+
+### Contexte
+Décision produit prise après arbitrage : le week-end ne reste plus sans cible calorique. C'était la cause racine dont les deux sessions précédentes n'avaient corrigé que les symptômes (libellés de presets faux d'un facteur ~2, comparaison apport/cible biaisée).
+
+Argument retenu : si la nourriture est le levier de pilotage principal, laisser 29 % de la semaine sans repère est l'incohérence la plus coûteuse qui reste.
+
+### Design
+`WE.kcal = max(KCAL_FLOOR, moyenne pondérée des jours de semaine)`. Le week-end se place **entre** TRAIN et OFF — plus souple qu'un jour de repos, sans sortir du protocole. Lipides sur la même moyenne, glucides en résidu.
+
+La pondération vient de `nominalWeek()`, dérivée de `dayTypeFromKey` — pas de recodage du split.
+
+Effet sur les taux annoncés (TDEE 2200) :
+
+| Preset | Avant (WE sans cible) | Après |
+|---|---|---|
+| Sèche légère | −114 kcal/j · 104 g/sem | **−160 kcal/j · 145 g/sem** |
+| Sèche forte | −257 kcal/j · 234 g/sem | **−360 kcal/j · 327 g/sem** |
+| Prise de masse | +243 kcal/j · 221 g/sem | **+340 kcal/j · 309 g/sem** |
+
+Le champ reste effaçable : un jour sans cible est alors exclu **des deux côtés** de la comparaison apport/cible, ce qui préserve la correction d'origine (test dédié).
+
+### Vestige corrigé au passage
+`useWeekStats.macroTargets` moyennait TRAIN et OFF en ignorant le week-end, et recodait implicitement la composition du split. Remplacé par une moyenne sur les jours **réels** de la semaine affichée, via `dayType`.
+
+### Vérification
+`npm test` 79/79 ✅ · `vite build` ✅ · Playwright sur build de production : WE = 2040 kcal (moyenne pondérée de 2200/1800), lipides 72, glucides 188 ; les 5 taux de presets affichent les nouvelles valeurs ; zéro erreur console.
+
+### Décision : gel du moteur
+Fin des développements sur le moteur expert. La contrainte n'est plus le code mais la donnée : 3 jours d'apport en historique, 0 semaine exploitable pour le backtesting exigé par la spec §9 (8 semaines minimum, 80 % de déclenchements pertinents). R2, R4, R5 et R6 restent gelées jusqu'à disposer de vraies données.

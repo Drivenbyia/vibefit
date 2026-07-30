@@ -60,10 +60,45 @@ describe('presetKcal — plancher et cyclage', () => {
   it('garde les glucides positifs', () => {
     for (let tdee = 1000; tdee <= 3000; tdee += 50) {
       for (const id of PRESET_IDS) {
-        expect(computePresetTargets(id, tdee).train.carbs).toBeGreaterThanOrEqual(0);
-        expect(computePresetTargets(id, tdee).off.carbs).toBeGreaterThanOrEqual(0);
+        const t = computePresetTargets(id, tdee);
+        for (const k of ['train', 'off', 'we']) {
+          expect(t[k].carbs, `${id}.${k} @ ${tdee}`).toBeGreaterThanOrEqual(0);
+        }
       }
     }
+  });
+});
+
+describe('cible week-end', () => {
+  it('donne une cible calorique au week-end', () => {
+    const t = computePresetTargets('cut_strong', 2200);
+    expect(t.we.kcal).not.toBeNull();
+    expect(t.we.carbs).toBeGreaterThan(0);
+    expect(t.we.fat).toBeGreaterThan(0);
+  });
+
+  it('place le week-end entre les jours TRAIN et OFF', () => {
+    for (let tdee = 1800; tdee <= 3000; tdee += 100) {
+      for (const id of PRESET_IDS) {
+        const t = computePresetTargets(id, tdee);
+        expect(t.we.kcal, `${id} @ ${tdee}`).toBeLessThanOrEqual(t.train.kcal);
+        expect(t.we.kcal, `${id} @ ${tdee}`).toBeGreaterThanOrEqual(t.off.kcal);
+      }
+    }
+  });
+
+  it('respecte le plancher calorique le week-end', () => {
+    for (let tdee = 1000; tdee <= 3000; tdee += 50) {
+      for (const id of PRESET_IDS) {
+        expect(computePresetTargets(id, tdee).we.kcal).toBeGreaterThanOrEqual(KCAL_FLOOR);
+      }
+    }
+  });
+
+  it('rend le taux du preset cohérent sur 7 jours', () => {
+    // Avant, le WE sans cible était mangé au TDEE et diluait le déficit :
+    // cut_strong @ 2200 n'affichait que −257 kcal/j au lieu de −360.
+    expect(presetWeeklyRate('cut_strong', 2200).kcalPerDay).toBe(-360);
   });
 });
 
@@ -86,26 +121,28 @@ describe('macroConflictKcal', () => {
     for (let tdee = 1000; tdee <= 3000; tdee += 50) {
       for (const id of PRESET_IDS) {
         const t = computePresetTargets(id, tdee);
-        expect(macroConflictKcal(t.train), `${id} train @ ${tdee}`).toBe(0);
-        expect(macroConflictKcal(t.off), `${id} off @ ${tdee}`).toBe(0);
+        for (const k of ['train', 'off', 'we']) {
+          expect(macroConflictKcal(t[k]), `${id}.${k} @ ${tdee}`).toBe(0);
+        }
       }
     }
   });
 });
 
-describe('presetWeeklyRate — taux réel, week-end compris', () => {
-  it('tient compte des jours sans cible dans le déficit', () => {
-    // Les libellés figés annonçaient −400 kcal/j et ~500 g/sem pour cut_strong.
-    // Le week-end n'ayant pas de cible, il est mangé au TDEE et dilue le déficit.
+describe('presetWeeklyRate — taux réel sur 7 jours', () => {
+  it('annonce le déficit effectivement produit par les cibles', () => {
+    // Le libellé figé annonçait −400 kcal/j et ~500 g/sem pour cut_strong,
+    // en supposant le déficit appliqué 7 jours sur 7 alors que le preset ne
+    // définissait que 5 jours.
     const r = presetWeeklyRate('cut_strong', 2200);
-    expect(r.kcalPerDay).toBe(-257);
-    expect(r.gramsPerWeek).toBe(-234);
+    expect(r.kcalPerDay).toBe(-360);
+    expect(r.gramsPerWeek).toBe(-327);
   });
 
   it('chiffre correctement la sèche légère', () => {
     const r = presetWeeklyRate('cut_light', 2200);
-    expect(r.kcalPerDay).toBe(-114);
-    expect(r.gramsPerWeek).toBe(-104);
+    expect(r.kcalPerDay).toBe(-160);
+    expect(r.gramsPerWeek).toBe(-145);
   });
 
   it('donne un taux nul à Diet Break', () => {
@@ -126,7 +163,7 @@ describe('presetWeeklyRate — taux réel, week-end compris', () => {
 
 describe('presetRateLabel', () => {
   it('annonce le taux réel, pas le taux nominal', () => {
-    expect(presetRateLabel('cut_strong', 2200)).toBe('−257 kcal/j · perte ~234 g/sem');
+    expect(presetRateLabel('cut_strong', 2200)).toBe('−360 kcal/j · perte ~327 g/sem');
   });
 
   it('qualifie de maintien un écart sous le bruit de mesure', () => {
