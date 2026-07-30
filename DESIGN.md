@@ -28,6 +28,14 @@ Ces points ne sont pas des préférences, ce sont des refus. Aucune exception.
 
 - **Polices** : jamais Inter (ni Inter Tight), Roboto, Arial, Space Grotesk, ni
   police système par défaut.
+- **Jamais de police graffiti / tag / bombe dans l'UI.** Refus explicite du
+  développeur, pas une préférence de style : ça abîme l'UI et l'UX. Trois
+  raisons qui tiennent quel que soit l'univers visuel — c'est illisible en
+  français accentué, ça crie l'intention au point de faire déguisement plutôt
+  que direction, et ça dégrade la lecture des données, qui est la fonction
+  même de l'app. La culture rue passe par le **traitement** (blackletter
+  contenu, chrome, capitales larges, patch sérigraphié), jamais par des
+  lettres décoratives illisibles. Ne pas rouvrir ce point.
 - **Palette** : jamais fond crème + accent terracotta ; jamais gris papier
   froid façon carnet de labo (direction 1) ; jamais noir neutre de wearable
   générique (direction 2) — le fond est **presque noir mais chaud**, teinté
@@ -160,10 +168,9 @@ peut évoquer un univers, seul le lettrage l'incarne. Affectation dans
   passage libre à 101 px de texte et mordait sur l'arc — redimensionnée à
   `fontSize: 9` / `letterSpacing: 0.05em` (82.9 px). Mesurer avant de
   substituer.
-- **Pas de police graffiti/tag pour l'UI.** Refus délibéré : ça crie
-  l'intention, ça devient illisible en français accentué, et ça fait
-  déguisement plutôt que direction. Le blackletter porte déjà la culture rue
-  sans sacrifier la lecture.
+- **Pas de police graffiti/tag** — voir §0, c'est un refus ferme et non un
+  arbitrage typographique. Le blackletter porte la culture rue sans sacrifier
+  la lecture ; c'est le seul véhicule autorisé pour ça.
 - `.vf-tabular` reste obligatoire sur toute valeur qui change dans le temps.
 
 ### Lettrage chromé — `.vf-chrome`
