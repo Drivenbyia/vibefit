@@ -49,20 +49,56 @@ const kcalSuffix = (kcal) =>
     : ` — environ ${Math.abs(kcal)} kcal/j de dépense en ${kcal < 0 ? 'moins' : 'plus'}`;
 
 /**
- * Ligne de mesure, toujours affichée dès qu'un chiffre existe. C'est elle qui
- * répond à « mon état de forme actuel » sans changer d'onglet.
+ * Ligne de mesure. Elle répond à « mon état de forme actuel » sans changer
+ * d'onglet — mais elle CÈDE la tendance au tracé dès qu'il y en a un : une
+ * courbe dit mieux « −0,48 kg/sem » que le texte « −0,48 kg/sem », et le
+ * répéter à 3 cm d'écart est exactement la duplication qu'on refusait à une
+ * page d'accueil.
  *
- * Tenue sur UNE ligne à 390 px en Azeret Mono 11px : au-delà, le dernier
- * segment s'orpheline sur une deuxième ligne et la bande double de hauteur pour
- * trois caractères. D'où « conf. » abrégé et les séparateurs à une espace. Pire
- * cas mesuré : 44 caractères pour 334 px de passage libre.
+ * Tenue sur UNE ligne à 360 px en Azeret Mono 10px. D'où « conf. » abrégé et
+ * les séparateurs à une espace.
  */
-function buildReadout({ trendPerWeek, tdee, confidence }) {
+function buildReadout({ trendPerWeek, tdee, confidence }, hasChart) {
   const parts = [];
-  if (trendPerWeek !== null) parts.push(`${signedKg(trendPerWeek)} kg/sem`);
+  if (!hasChart && trendPerWeek !== null) parts.push(`${signedKg(trendPerWeek)} kg/sem`);
   if (tdee !== null) parts.push(`TDEE ${fmtInt(tdee)} kcal`);
   if (confidence !== null) parts.push(`conf. ${confidence} %`);
   return parts.length > 0 ? parts.join(' · ') : null;
+}
+
+/**
+ * Prépare le tracé : poids lissé réel contre trajectoire prévue par le preset.
+ *
+ * C'est le mécanisme central de VibeFit — une valeur CONTRE UNE CIBLE — appliqué
+ * à la seule métrique qui y avait échappé. Le guide n'est donc pas un décor :
+ * c'est le marqueur de cible de la signature, transposé à une série temporelle.
+ * Les deux séries sont la même mesure (kg) sur la même échelle : un seul axe.
+ *
+ * En maintenance le taux prévu est ~0, le guide est plat — ce qui est
+ * exactement la bonne lecture (« tu devrais rester stable »), pas un cas
+ * dégénéré à masquer.
+ */
+function buildTrend(series, expectedKgPerWeek, trendPerWeek) {
+  if (!Array.isArray(series) || series.length < 2) return null;
+  const first = series[0];
+  const last = series[series.length - 1];
+  const projected = (x) => first.y + (expectedKgPerWeek * (x - first.x)) / 7;
+  const guide =
+    expectedKgPerWeek == null
+      ? null
+      : [{ x: first.x, y: first.y }, { x: last.x, y: projected(last.x) }];
+
+  return {
+    points: series,
+    guide,
+    latestLabel: `${last.y.toFixed(1).replace('.', ',')} kg`,
+    // Équivalent textuel du tracé : un lecteur d'écran ne lit pas une courbe.
+    // La vue tabulaire de la même donnée existe par ailleurs dans WeekView.
+    ariaLabel:
+      `Poids lissé sur ${series.length} jours, dernier point ${last.y.toFixed(1)} kilos` +
+      (trendPerWeek !== null ? `, tendance ${signedKg(trendPerWeek)} kilo par semaine` : '') +
+      (guide ? `, comparé en pointillés à la trajectoire prévue par l’objectif.` : '.'),
+  };
 }
 
 /**
@@ -85,15 +121,16 @@ function buildReadout({ trendPerWeek, tdee, confidence }) {
  * @returns {{tone, kind, headline, detail, readout}|null} null ⇒ rien à dire,
  *   la bande ne s'affiche pas (installation neuve).
  */
-export function summarizeStatus({ diagnosis, neat, signals } = {}) {
+export function summarizeStatus({ diagnosis, neat, signals, expectedKgPerWeek = null } = {}) {
   const trendPerWeek = signals?.weightTrendPerWeek ?? null;
   const tdee = signals?.adaptiveTDEE ?? null;
   // La confiance n'est publiée qu'avec un TDEE : seule, c'est le pourcentage
   // d'un chiffre qu'on n'affiche pas.
   const confidence = tdee !== null ? (signals?.confidence ?? null) : null;
-  const readout = buildReadout({ trendPerWeek, tdee, confidence });
+  const trend = buildTrend(signals?.weightSeries, expectedKgPerWeek, trendPerWeek);
+  const readout = buildReadout({ trendPerWeek, tdee, confidence }, trend !== null);
 
-  const verdict = (tone, kind, headline, detail) => ({ tone, kind, headline, detail, readout });
+  const verdict = (tone, kind, headline, detail) => ({ tone, kind, headline, detail, readout, trend });
 
   if (neat?.status === NEAT.SUSTAINED_DRIFT) {
     return verdict(
@@ -153,9 +190,9 @@ export function summarizeStatus({ diagnosis, neat, signals } = {}) {
     );
   }
 
-  // Repos : sans le moindre chiffre, la bande disparaît plutôt que d'occuper
-  // l'écran avec un statut vide.
-  if (readout === null) return null;
+  // Repos : sans le moindre chiffre NI tracé, la bande disparaît plutôt que
+  // d'occuper l'écran avec un statut vide au-dessus de la saisie.
+  if (readout === null && trend === null) return null;
 
   if (diagnosis?.status === DIAGNOSIS.INSUFFICIENT_DATA) {
     // `detail` du protocole est déjà la raison exacte du non-verdict, et déjà

@@ -37,6 +37,22 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
   - 10 tests ajoutés (106 au total).
 - **Réversibilité** : Facile. La bande est un composant + un hook + un util, branchés en une ligne dans `TodayView` ; aucun diagnostic existant n'a été modifié.
 
+### 2026-07-30 — Tracé de tendance : la signature « valeur contre cible » étendue au temps
+- **Décision** : Doter la bande d'état d'un **tracé** (`ui/Sparkline.jsx`) opposant le poids lissé 30 jours à la **trajectoire prévue par le preset**. Premier graphique de série temporelle du projet.
+- **Contexte** : Demande explicite de vérifier la cohérence de la bande avec la DA, quitte à créer des graphiques inexistants jusqu'ici. L'audit a donné raison à la demande : la bande livrée au tour précédent était un rectangle à bordure colorée avec trois lignes de texte — l'élément le **moins** VibeFit de l'app. La signature du projet (piste/anneau lumineux + marqueur de cible, DESIGN.md §4) en était totalement absente, et la tendance de poids s'affichait en **texte** dans une application où chaque valeur est un tracé qui glowe.
+- **Alternatives considérées** : (a) une simple sparkline du poids, sans cible — écartée : elle aurait apporté la forme sans le mécanisme, or c'est le couple *réel contre cible* qui est la signature, pas la courbe ; (b) habiller la bande de glow/sticker sans rien ajouter d'informatif — écarté, c'est du vernis ; (c) ne rien changer.
+- **Raison du choix** : `presetWeeklyRate()` existait déjà et fournit le rythme que l'objectif en cours prédit. Le poids était donc la seule métrique du produit qui échappait au mécanisme « valeur contre cible », faute d'une cible exprimée — et elle existait, juste inexploitée. Le marqueur de cible devient une ligne de guide, et **l'écart entre les deux courbes est littéralement la perte de poids qui manque**. Le guide vient de la même source que le libellé de `PresetPickerCard` : il ne peut pas annoncer un rythme différent de l'écran Cibles.
+- **Impact** :
+  - `extractSignals` expose `weightSeries` (additif). `x` reste l'index réel dans l'horizon de scan : un trou de pesée s'affiche comme un segment plus long, il ne comprime pas le temps.
+  - **Plancher d'amplitude `minSpan`** — le paramètre le plus important du composant, et une correction trouvée au rendu seulement. Une échelle qui s'ajuste toujours au contenu ment : un guide « maintenance » écarté de 0,12 kg occupait 40 % de la hauteur et se lisait comme une divergence grave. Sans axe chiffré, rien ne disait au lecteur si l'écart valait 0,1 kg ou 5 kg.
+  - **Correction de couleur trouvée par calcul, invisible à l'œil** : en tonalité neutre la courbe devait être `muted`, à ΔE 7.5 du guide `tick` en vision **normale** (seuil dur 15). Deux gris indiscernables, qu'aucun encodage secondaire ne rachète. Passée à `ink` (ΔE 36). La paire `alert`/`tick` reste à ΔE 6.0 en protanopie, tolérable uniquement parce que le guide est tireté.
+  - Le tireté est ici légitime alors qu'il est un anti-pattern sur une grille : la ligne *est* une projection.
+  - Le point d'arrivée n'est pas un `<circle>` mais un sous-tracé de longueur nulle à bout rond — le viewBox étant étiré en x, un cercle deviendrait une ellipse.
+  - La ligne de mesure **cède** la tendance au tracé : la répéter en texte à 3 cm de la courbe serait exactement la duplication refusée à une page d'accueil.
+  - Pas de survol/infobulle, contrairement au défaut d'un graphique HTML : la bande est une cible tactile unique vers `WeekView`, où `WeightCard` liste déjà les mêmes pesées en tableau.
+  - 5 tests ajoutés (111 au total).
+- **Réversibilité** : Facile. `Sparkline` est une primitive `ui/` autonome et paramétrée (`minSpan`, `guide` optionnel) ; la retirer de la bande est une suppression de bloc JSX.
+
 ### 2026-05-04 — Pas de state manager externe
 - **Décision** : Utiliser uniquement `useState`, `useReducer` et le Context API natif de React.
 - **Contexte** : Application de taille modeste (tracker personnel), surcharge cognitive d'une librairie externe non justifiée à ce stade.

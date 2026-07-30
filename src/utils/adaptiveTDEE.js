@@ -251,8 +251,16 @@ export function extractSignals(data) {
     adaptiveTDEE = Math.round(avgIntake - slopeKgPerDay * KCAL_PER_KG);
   }
 
+  // Série lissée destinée au TRACÉ seul (bande d'état). `x` est l'index réel
+  // dans l'horizon de scan, jamais l'index après filtrage : un trou de pesée
+  // doit s'afficher comme un segment plus long, pas comprimer le temps.
+  const weightSeries = smoothedEntries
+    .map((e, x) => ({ x, y: e.smoothed }))
+    .filter((p) => p.y !== null);
+
   return {
     smoothedWeight,
+    weightSeries,
     adaptiveTDEE,
     weightTrendPerWeek,
     avgIntake,

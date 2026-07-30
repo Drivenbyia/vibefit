@@ -8,7 +8,38 @@ last_updated: 2026-07-30
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/homepage-tendances-design-o5oqs5`
-- **Suite de tests : Vitest, 106 tests** — `npm test`
+- **Suite de tests : Vitest, 111 tests** — `npm test`
+
+### Session 2026-07-30 (suite 5) — Cohérence DA de la bande : le tracé de tendance
+Demande de vérifier que la bande est vraiment cohérente avec la DA, quitte à
+créer des graphiques inexistants. L'audit a donné raison : la bande livrée au
+tour d'avant était **l'élément le moins VibeFit de l'app** — un rectangle à
+bordure colorée, sans la signature (piste lumineuse + marqueur de cible), et
+qui affichait la tendance de poids en **texte** dans une app où chaque valeur
+est un tracé qui glowe.
+
+- **`ui/Sparkline.jsx`** — premier graphique de série temporelle du projet. Ce
+  n'est pas une courbe décorative : c'est le mécanisme « valeur contre cible »
+  appliqué au poids, la seule métrique qui y échappait. Le guide = la
+  trajectoire que le preset prédit (`presetWeeklyRate`, même source que
+  `PresetPickerCard`). **L'écart entre les deux courbes est la perte de poids
+  qui manque.**
+- **`minSpan`, le plancher d'amplitude** — trouvé au rendu, pas aux tests. Une
+  échelle qui s'ajuste toujours au contenu ment : un guide « maintenance »
+  écarté de 0,12 kg occupait 40 % de la hauteur et se lisait comme une
+  divergence grave.
+- **Une correction de couleur invisible à l'œil, trouvée par calcul** : en
+  tonalité neutre, courbe `muted` contre guide `tick` = ΔE 7.5 en vision
+  **normale** (seuil dur 15). Deux gris indiscernables. Passée à `ink` (ΔE 36).
+- Détails techniques qui se paient sinon au rendu : point d'arrivée en
+  sous-tracé de longueur nulle (un `<circle>` deviendrait une ellipse dans un
+  viewBox étiré), tireté légitime ici car le guide *est* une projection, un
+  seul axe (même mesure), un seul libellé direct.
+- La ligne de mesure **cède** la tendance au tracé — la répéter en texte à 3 cm
+  de la courbe serait la duplication refusée à une page d'accueil.
+- Vérifié : 111/111 tests, build OK, Playwright sur build de prod — 3 scénarios
+  (dérive NEAT, sèche qui progresse, plateau sous sèche = guide en pente contre
+  courbe plate) × 2 viewports, zéro erreur console.
 
 ### Session 2026-07-30 (suite 4) — Bande d'état : l'app se met à parler
 Demande d'une page d'accueil « tendances / état de forme », avec invitation
@@ -182,7 +213,8 @@ src/
                          aggregateSleep
     backupUtils.js     — exportBackup, importBackup
     exportUtils.js     — getHistoricalWeeks(data, n) : export Markdown 8 semaines (AI Bridge V2 + header)
-    adaptiveTDEE.js    — extractSignals(data) + olsSlope() : TDEE par régression OLS, Sliding Window
+    adaptiveTDEE.js    — extractSignals(data) (dont weightSeries, série lissée pour le TRACÉ seul)
+                         + olsSlope() : TDEE par régression OLS, Sliding Window
                          (scan 30j, fenêtre 14j pénalisée par la récence), rejet des aberrations,
                          recouvrement poids × apport, lissage 7j pour l'affichage seul
     plateauProtocol.js — diagnose() : croisement TDEE / poids / adhérence. DIAGNOSTIC PUR, sans action
@@ -193,7 +225,8 @@ src/
     reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
     vibeStatus.js      — summarizeStatus() : ARBITRE PUR de la bande d'état. Ne calcule aucun
                          diagnostic, choisit lequel publier et le raccourcit. Rétention d'eau
-                         prioritaire sur les avertissements (elle bloque une coupe injustifiée)
+                         prioritaire sur les avertissements (elle bloque une coupe injustifiée).
+                         Prépare aussi le tracé : poids lissé + guide dérivé de presetWeeklyRate
     __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift, sleep,
                          vibeStatus (106 tests)
   models/
@@ -214,6 +247,8 @@ src/
     useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
     ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill,
+                         Sparkline (TRACÉ DE TENDANCE — la signature étendue au temps : poids réel
+                         contre trajectoire prévue par le preset, plancher d'amplitude minSpan),
                          Label, SectionLabel, FontStyles (affectation des 5 rôles typo + .vf-chrome),
                          Bar (PISTE LUMINEUSE — signature, remplissage rond + glow + marqueur de cible)
     layout/            — Header, DayTypeSwitcher, BottomNav

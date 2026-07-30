@@ -843,3 +843,84 @@ mesure sur 1 ligne dans les 4 cas · titre le plus large 177 px pour 282 px de
 passage · fonte confirmée Archivo Black @400 (pas de faux gras) · tap →
 Semaine ✅ · bande masquée en J-1 et sur installation neuve ✅ · zéro erreur
 console · hauteur de la cible tactile 58–98 px (≥44 requis).
+
+---
+
+## Session 2026-07-30 (suite 5) — « Assure-toi que le design est vraiment cohérent »
+
+Demande de vérifier la cohérence de la bande d'état avec la DA, quitte à créer
+des graphiques qui n'existaient pas. L'audit donne raison à la demande, et
+assez durement : **la bande que je venais de livrer était l'élément le moins
+VibeFit de l'application.**
+
+### Le constat
+Un rectangle à bordure colorée, icône + trois lignes de texte. La signature du
+projet — piste/anneau lumineux à bouts ronds, glow dans la couleur d'état,
+marqueur de cible — en était totalement absente. Et surtout : j'affichais
+« −0,48 kg/sem » **en texte** dans une application où chaque valeur, sans
+exception, est un tracé qui glowe contre sa cible. Typographiquement conforme,
+visuellement étranger.
+
+### Ce que j'ai ajouté, et pourquoi ce n'est pas de la décoration
+Le réflexe aurait été d'ajouter du glow et une ombre sticker sur la bande. Ça
+aurait été du vernis. La signature de VibeFit n'est pas un effet, c'est un
+**mécanisme** : une valeur contre une cible.
+
+Le poids était la seule métrique du produit à y échapper — non pas parce
+qu'elle n'a pas de cible, mais parce que sa cible n'était nulle part exprimée.
+Or `presetWeeklyRate()` existait déjà et donne le rythme que l'objectif en
+cours prédit. D'où le tracé : poids lissé 30 jours, contre la trajectoire du
+preset en ligne de guide. Le marqueur de cible devient une ligne, et **l'écart
+entre les deux courbes est littéralement la perte de poids qui manque**. Le
+guide vient de la même fonction que le libellé de `PresetPickerCard` : il ne
+peut pas annoncer un rythme différent de l'écran Cibles.
+
+Le meilleur cas de test le montre bien : « PLATEAU CONFIRMÉ » avec une courbe
+réelle plate pendant que le guide tireté s'échappe vers le bas.
+
+### Deux erreurs que je n'aurais pas vues sans mesurer
+1. **L'échelle auto-ajustée ment.** Au premier rendu, un guide « maintenance »
+   écarté de 0,12 kg occupait 40 % de la hauteur du tracé et se lisait comme
+   une divergence grave. Sans axe chiffré, rien ne dit au lecteur si l'écart
+   vaut 0,1 kg ou 5 kg — une sparkline qui s'ajuste toujours à son contenu
+   amplifie le bruit jusqu'à lui donner l'allure d'une tendance. Corrigé par un
+   plancher d'amplitude (`minSpan`, 1 kg dans la bande) : au-dessus on ajuste,
+   en dessous on centre dans une fenêtre fixe et un petit écart a enfin l'air
+   petit. C'est le paramètre le plus important du composant.
+2. **Deux gris indiscernables, invisibles à l'œil.** J'allais tracer la courbe
+   en `muted` sur la tonalité neutre, avec le guide en `tick`. Le validateur de
+   palette donne ΔE 7.5 en vision **normale** — sous le seuil dur de 15, donc
+   illisible pour tout le monde, pas seulement en daltonisme, et qu'aucun
+   encodage secondaire ne rachète. Passé à `ink` : ΔE 36. Je n'aurais jamais
+   attrapé ça en regardant l'écran, les deux gris « semblaient » différents.
+   La paire `alert`/`tick` reste à ΔE 6.0 en protanopie, tolérable uniquement
+   parce que le guide est tireté.
+
+### Détails qui se paient au rendu si on ne les prévoit pas
+- **Le point d'arrivée ne peut pas être un `<circle>`.** Le viewBox est étiré
+  en x (`preserveAspectRatio="none"` pour occuper toute la largeur), un cercle
+  y devient une ellipse. Un sous-tracé de longueur nulle à bout rond avec
+  `vector-effect="non-scaling-stroke"` se dessine dans l'espace écran : rond à
+  n'importe quelle largeur.
+- **Le tireté est un anti-pattern sur une grille**, parce qu'il fait lire
+  « projection » là où il n'y a qu'un repère. Ici la ligne *est* une
+  projection : c'est le seul cas où il dit la vérité. Il sert au passage
+  d'encodage secondaire — les deux séries restent séparables sans couleur.
+- **Un seul axe**, les deux séries étant la même mesure (kg).
+- **Pas d'infobulle**, contrairement au défaut pour un graphique HTML : la
+  bande entière est une cible tactile unique vers `WeekView`, où `WeightCard`
+  liste déjà les mêmes pesées en tableau. Le drill-down existe, il est juste
+  d'un cran au-dessus.
+- La ligne de mesure **cède** la tendance au tracé. La répéter en texte à 3 cm
+  de la courbe aurait été exactement la duplication que je refusais à une page
+  d'accueil au tour précédent.
+
+### Vérification
+`npm test` 111/111 ✅ (5 ajoutés) · `vite build` ✅ · rendu Playwright sur build
+de production, **3 scénarios × 2 viewports** (360/390 px) : dérive NEAT du cas
+terrain, sèche qui progresse (courbe sous un guide plat), et plateau sous sèche
+(guide en pente contre courbe plate — le cas le plus parlant) · guide confirmé
+plat en maintenance et en pente en `cut_strong` · ligne de mesure sur 1 ligne
+partout · zéro erreur console · garde-fous grep du projet repassés (aucun
+`fontWeight` sur `.vf-hero`/`.vf-display`, aucune capitale sur `.vf-gothic`,
+aucune ombre floue générique).

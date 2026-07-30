@@ -109,6 +109,73 @@ describe('summarizeStatus — ligne de mesure', () => {
   });
 });
 
+describe('summarizeStatus — tracé de tendance', () => {
+  // Pas de 0,1 kg : le dernier point tombe sur 79,1 sans ambiguïté d'arrondi.
+  const series = Array.from({ length: 30 }, (_, x) => ({ x, y: 82 - x * 0.1 }));
+
+  it('oppose la trajectoire prévue par l’objectif au poids réel', () => {
+    const s = summarizeStatus({
+      diagnosis: diag(DIAGNOSIS.PROGRESSING),
+      neat: neat(NEAT.STABLE),
+      signals: signals({ weightSeries: series }),
+      expectedKgPerWeek: -0.35,
+    });
+    // Le guide part du premier point réel et projette le rythme du preset.
+    expect(s.trend.guide[0]).toEqual({ x: 0, y: 82 });
+    expect(s.trend.guide[1].x).toBe(29);
+    expect(s.trend.guide[1].y).toBeCloseTo(82 - 0.35 * (29 / 7), 5);
+    expect(s.trend.latestLabel).toBe('79,1 kg');
+  });
+
+  it('trace un guide plat en maintenance plutôt que pas de guide', () => {
+    const s = summarizeStatus({
+      diagnosis: diag(DIAGNOSIS.PROGRESSING),
+      neat: neat(NEAT.STABLE),
+      signals: signals({ weightSeries: series }),
+      expectedKgPerWeek: 0,
+    });
+    expect(s.trend.guide[0].y).toBe(s.trend.guide[1].y);
+  });
+
+  it('cède la tendance au tracé au lieu de la répéter en texte', () => {
+    const withChart = summarizeStatus({
+      diagnosis: diag(DIAGNOSIS.PROGRESSING),
+      neat: neat(NEAT.STABLE),
+      signals: signals({ weightSeries: series }),
+      expectedKgPerWeek: -0.35,
+    });
+    const withoutChart = summarizeStatus({
+      diagnosis: diag(DIAGNOSIS.PROGRESSING),
+      neat: neat(NEAT.STABLE),
+      signals: signals({ weightSeries: [] }),
+    });
+    expect(withChart.readout).not.toContain('kg/sem');
+    expect(withoutChart.readout).toContain('kg/sem');
+  });
+
+  it('ne trace rien avec moins de deux points', () => {
+    const s = summarizeStatus({
+      diagnosis: diag(DIAGNOSIS.PROGRESSING),
+      neat: neat(NEAT.STABLE),
+      signals: signals({ weightSeries: [{ x: 0, y: 80 }] }),
+      expectedKgPerWeek: -0.35,
+    });
+    expect(s.trend).toBeNull();
+  });
+
+  it('décrit le tracé en toutes lettres pour un lecteur d’écran', () => {
+    const s = summarizeStatus({
+      diagnosis: diag(DIAGNOSIS.PROGRESSING),
+      neat: neat(NEAT.STABLE),
+      signals: signals({ weightSeries: series }),
+      expectedKgPerWeek: -0.35,
+    });
+    expect(s.trend.ariaLabel).toContain('30 jours');
+    expect(s.trend.ariaLabel).toContain('79.1 kilos');
+    expect(s.trend.ariaLabel).toContain('trajectoire prévue');
+  });
+});
+
 describe('summarizeStatus — silence', () => {
   it('ne renvoie rien sur une installation neuve', () => {
     // Aucun chiffre à montrer : la bande disparaît au lieu d'occuper l'écran

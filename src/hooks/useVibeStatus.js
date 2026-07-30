@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { extractSignals } from '../utils/adaptiveTDEE.js';
-import { DEFAULT_TARGETS } from '../utils/presetUtils.js';
+import { DEFAULT_TARGETS, presetWeeklyRate } from '../utils/presetUtils.js';
 import { summarizeStatus } from '../utils/vibeStatus.js';
 import { usePlateauDiagnosis } from './usePlateauDiagnosis.js';
 import { useNeatDrift } from './useNeatDrift.js';
@@ -24,8 +24,17 @@ export function useVibeStatus(data, targets) {
   const neat = useNeatDrift(data, resolvedTargets);
   const signals = useMemo(() => extractSignals(data), [data]);
 
+  // Trajectoire que l'objectif en cours PRÉDIT — la cible que le tracé oppose
+  // au poids réel. Elle vient de `presetWeeklyRate`, la même source que le
+  // libellé de `PresetPickerCard` : le guide ne peut pas annoncer un rythme
+  // différent de celui affiché sur l'écran Cibles.
+  const expectedKgPerWeek = useMemo(() => {
+    if (data?.baseTDEE == null) return null;
+    return presetWeeklyRate(data.presetId, data.baseTDEE).gramsPerWeek / 1000;
+  }, [data?.presetId, data?.baseTDEE]);
+
   return useMemo(
-    () => summarizeStatus({ diagnosis, neat, signals }),
-    [diagnosis, neat, signals]
+    () => summarizeStatus({ diagnosis, neat, signals, expectedKgPerWeek }),
+    [diagnosis, neat, signals, expectedKgPerWeek]
   );
 }
