@@ -12,6 +12,7 @@ export default function SleepAverageRow({ sleep }) {
   }
   if (sleep.score !== null) parts.push(`score ${Math.round(sleep.score)}`);
   if (sleep.hrv !== null) parts.push(`VFC ${Math.round(sleep.hrv)} ms`);
+  if (sleep.rhr !== null) parts.push(`FC ${Math.round(sleep.rhr)} bpm`);
 
   return (
     <div style={{

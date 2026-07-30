@@ -5,15 +5,16 @@ import { emptyDay } from '../../models/day.js';
 
 describe('formatSleep — export', () => {
   it('formate un relevé complet', () => {
-    // Écran Garmin : score 85, 6h 55m, VFC 42 ms
-    expect(formatSleep({ score: '85', durationMin: '415', hrv: '42' }))
-      .toBe('score 85 · 6h55 · VFC 42 ms');
+    // Écran Garmin : score 85, 6h 55m, VFC 46 ms, FC repos 52 bpm
+    expect(formatSleep({ score: '85', durationMin: '415', hrv: '46', rhr: '52' }))
+      .toBe('score 85 · 6h55 · VFC 46 ms · FC repos 52 bpm');
   });
 
-  it('reste complet sans VFC — le score et la durée suffisent', () => {
-    // La VFC est sur un autre écran Garmin : le champ doit pouvoir rester vide
-    // sans jamais apparaître ni dans l'export ni dans les moyennes.
-    expect(formatSleep({ score: '85', durationMin: '415', hrv: '' }))
+  it('reste complet sans VFC ni FC — le score et la durée suffisent', () => {
+    // Toutes les métriques vivent sur le même écran Garmin, mais aucune n'est
+    // obligatoire : un champ vide ne doit apparaître ni dans l'export ni dans
+    // les moyennes hebdo.
+    expect(formatSleep({ score: '85', durationMin: '415', hrv: '', rhr: '' }))
       .toBe('score 85 · 6h55');
   });
 
@@ -40,7 +41,7 @@ describe('formatSleep — export', () => {
 
 describe('rétrocompatibilité des jours existants', () => {
   it('emptyDay fournit le champ sleep', () => {
-    expect(emptyDay().sleep).toEqual({ score: '', durationMin: '', hrv: '' });
+    expect(emptyDay().sleep).toEqual({ score: '', durationMin: '', hrv: '', rhr: '' });
   });
 
   it('un jour antérieur au champ récupère la valeur par défaut', () => {
@@ -52,7 +53,7 @@ describe('rétrocompatibilité des jours existants', () => {
       workout: 'haut', waist: '88', weight: '77', notes: 'Nuit de 7h00 score 71',
     };
     const fusionne = { ...emptyDay(), ...ancien };
-    expect(fusionne.sleep).toEqual({ score: '', durationMin: '', hrv: '' });
+    expect(fusionne.sleep).toEqual({ score: '', durationMin: '', hrv: '', rhr: '' });
     expect(fusionne.weight).toBe('77');   // les données d'origine survivent
     expect(fusionne.notes).toBe('Nuit de 7h00 score 71');
   });
@@ -68,18 +69,20 @@ describe('rétrocompatibilité des jours existants', () => {
 });
 
 describe('aggregateSleep — moyennes hebdo', () => {
-  const nuit = (score, durationMin, hrv) => ({ day: { sleep: { score, durationMin, hrv } } });
+  const nuit = (score, durationMin, hrv, rhr = '') =>
+    ({ day: { sleep: { score, durationMin, hrv, rhr } } });
 
   it('moyenne uniquement les nuits renseignées', () => {
     const s = aggregateSleep([
-      nuit('85', '415', '42'),
-      nuit('75', '365', '38'),
+      nuit('85', '415', '42', '52'),
+      nuit('75', '365', '38', '56'),
       { day: null },
-      { day: { sleep: { score: '', durationMin: '', hrv: '' } } },
+      { day: { sleep: { score: '', durationMin: '', hrv: '', rhr: '' } } },
     ]);
     expect(s.score).toBe(80);
     expect(s.durationMin).toBe(390);
     expect(s.hrv).toBe(40);
+    expect(s.rhr).toBe(54);
     expect(s.nights).toBe(2);
   });
 
@@ -88,17 +91,28 @@ describe('aggregateSleep — moyennes hebdo', () => {
     expect(s.score).toBe(85);
     expect(s.durationMin).toBe(400);
     expect(s.hrv).toBeNull();
+    expect(s.rhr).toBeNull();
     expect(s.nights).toBe(1);
   });
 
   it('retourne des nulls sans aucune nuit', () => {
     const s = aggregateSleep([{ day: null }, { day: {} }]);
-    expect(s).toEqual({ score: null, durationMin: null, hrv: null, nights: 0 });
+    expect(s).toEqual({ score: null, durationMin: null, hrv: null, rhr: null, nights: 0 });
   });
 
   it('survit aux jours antérieurs au champ sleep', () => {
     const s = aggregateSleep([{ day: { weight: '77', intake: { kcal: '2000' } } }]);
     expect(s.nights).toBe(0);
+  });
+});
+
+describe('FC au repos — croisement avec la VFC', () => {
+  it('est exportée quand elle est renseignée', () => {
+    expect(formatSleep({ rhr: '52' })).toBe('FC repos 52 bpm');
+  });
+
+  it('reste optionnelle comme les autres', () => {
+    expect(formatSleep({ score: '85', rhr: '' })).toBe('score 85');
   });
 });
 

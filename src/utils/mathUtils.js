@@ -126,6 +126,7 @@ export const aggregateSleep = (daysData) => {
     score: mean(scores),
     durationMin: mean(durations),
     hrv: mean(field('hrv')),
+    rhr: mean(field('rhr')),
     nights: Math.max(scores.length, durations.length),
   };
 };

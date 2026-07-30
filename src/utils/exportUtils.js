@@ -11,6 +11,7 @@ export function formatSleep(sleep) {
     if (!isNaN(t) && t > 0) bits.push(`${Math.floor(t / 60)}h${String(t % 60).padStart(2, '0')}`);
   }
   if (sleep.hrv) bits.push(`VFC ${sleep.hrv} ms`);
+  if (sleep.rhr) bits.push(`FC repos ${sleep.rhr} bpm`);
   return bits.join(' · ');
 }
 

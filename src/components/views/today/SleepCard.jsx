@@ -33,15 +33,19 @@ export default function SleepCard({ day, updateDay }) {
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <div>
+        <div style={{ gridColumn: 'span 2' }}>
           <Label>Score</Label>
           <NumberInput value={sleep.score ?? ''} onChange={(v) => patch({ score: v })} placeholder="ex. 85" suffix="/100" />
         </div>
         <div>
-          {/* Libellé aligné sur la montre (Statut VFC). La clé de stockage reste
-              `hrv`, terme standard côté code. */}
+          {/* Libellés alignés sur la montre (VFC nocturne, FC au repos). Les clés
+              de stockage restent `hrv` et `rhr`, termes standard côté code. */}
           <Label>VFC</Label>
-          <NumberInput value={sleep.hrv ?? ''} onChange={(v) => patch({ hrv: v })} placeholder="ex. 42" suffix="ms" />
+          <NumberInput value={sleep.hrv ?? ''} onChange={(v) => patch({ hrv: v })} placeholder="ex. 46" suffix="ms" />
+        </div>
+        <div>
+          <Label>FC repos</Label>
+          <NumberInput value={sleep.rhr ?? ''} onChange={(v) => patch({ rhr: v })} placeholder="ex. 52" suffix="bpm" />
         </div>
         <div>
           <Label>Durée — heures</Label>

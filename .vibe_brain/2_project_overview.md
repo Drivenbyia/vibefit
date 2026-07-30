@@ -9,7 +9,7 @@ last_updated: 2026-07-29
 - **Phase : 🔬 Moteur de calcul corrigé et testé — TDEE adaptatif branché (opt-in), protocole anti-rationalisation implémenté**
 - Branche active : `claude/vibefit-calc-audit-wut56i`
 - Derniers commits : `10a7b68` (math TDEE), `7cb82e7` (cohérence cibles), `9f9b252` (protocole plateau)
-- **Suite de tests : Vitest, 93 tests** — `npm test`
+- **Suite de tests : Vitest, 96 tests** — `npm test`
 
 ### Session 2026-07-29 — Audit des calculs, 3 lots
 1. **Math TDEE** — bug principal : le déséquilibre journalier était divisé par 14 alors que l'écart de demi-moyennes couvre 7 jours ⇒ erreur systématique de **291 kcal/j** (TDEE réel 2550 → calculé 2259). Remplacé par une régression OLS sur poids interpolés. Rejet des aberrations, plus de propagation à plat, recouvrement poids × apport exigé, pénalité de récence.
@@ -48,9 +48,9 @@ src/
     presetUtils.js     — computePresetTargets, clampTargetField, macroConflictKcal, deriveBaseTDEE,
                          DEFAULT_TARGETS (dérivé de DEFAULT_TDEE — ici pour éviter un cycle d'import)
     reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
-    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift, sleep (93 tests)
+    __tests__/         — adaptiveTDEE, presetUtils, mathUtils, plateauProtocol, neatDrift, sleep (96 tests)
   models/
-    day.js             — emptyDay (dont sleep: score/durationMin/hrv), dayType
+    day.js             — emptyDay (dont sleep: score/durationMin/hrv/rhr), dayType
                          (typeOverride > séance loggée > calendrier)
   hooks/
     useVibefitStorage.js  — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
