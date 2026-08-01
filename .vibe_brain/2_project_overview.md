@@ -1,14 +1,32 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-07-30
+last_updated: 2026-08-01
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/homepage-tendances-design-o5oqs5`
+- Branche active : `claude/pwa-timezone-sync-kznkrj`
 - **Suite de tests : Vitest, 111 tests** — `npm test`
+
+### Session 2026-08-01 — Fix PWA figée sur la date de la veille au réveil
+Signalé avec captures d'écran : téléphone samedi 6h33, la PWA affichait encore
+vendredi. Ce n'était **pas** un bug de fuseau horaire (`toKey()` avait déjà été
+audité deux fois et est correct en date locale) — la cause était que
+`App.jsx` calculait `dateKey` une seule fois via `useState(() => toKey(new
+Date()))`, exécuté au montage seulement. Une PWA installée n'est pas rechargée
+à chaque réouverture (l'OS suspend le JS en arrière-plan), donc `dateKey`
+restait figé sur la dernière date réellement montée.
+
+- Nouveau hook `hooks/useCurrentDateKey.js` : recalcule la date au réveil
+  (`visibilitychange`/`focus`), mais **seulement** si l'app affichait encore
+  l'ancien "aujourd'hui" — une navigation manuelle vers un jour passé dans
+  `WeekView` n'est jamais écrasée.
+- `App.jsx` : `useState` brut remplacé par ce hook, import direct de `toKey`
+  retiré (n'était plus utilisé ailleurs dans le fichier).
+- Vérifié : 111/111 tests (inchangés — le chemin dépend d'événements DOM que
+  jsdom ne simule pas de façon représentative), build OK (20 précaches).
 
 ### Session 2026-07-30 (suite 5) — Cohérence DA de la bande : le tracé de tendance
 Demande de vérifier que la bande est vraiment cohérente avec la DA, quitte à
@@ -234,6 +252,8 @@ src/
                          (typeOverride > séance loggée > calendrier)
   hooks/
     useVibefitStorage.js  — source de vérité localStorage (clé vibefit_v1) + baseTDEE persisté
+    useCurrentDateKey.js  — dateKey qui se resynchronise au réveil de la PWA (visibilitychange/
+                            focus), sans écraser une navigation manuelle vers un jour passé
     useWeekStats.js       — dérivation hebdo (days, weekly, séries, macros, plancher protéines en jours)
     useDayMetrics.js      — métriques du jour (cibles, totaux, alertes, isToday)
     useVibeStatus.js      — verdict de la bande d'état. REJOUE usePlateauDiagnosis/useNeatDrift

@@ -924,3 +924,42 @@ plat en maintenance et en pente en `cut_strong` · ligne de mesure sur 1 ligne
 partout · zéro erreur console · garde-fous grep du projet repassés (aucun
 `fontWeight` sur `.vf-hero`/`.vf-display`, aucune capitale sur `.vf-gothic`,
 aucune ombre floue générique).
+
+---
+
+## [2026-08-01] Fix décalage de date PWA — `dateKey` figé au réveil de l'app
+
+### Contexte
+Signalé avec captures d'écran : téléphone samedi 1er août 6h33, la PWA installée
+affichait encore vendredi 31 juillet en écran d'atterrissage (`TodayView`).
+
+### Fausse piste écartée
+`toKey()` (`dateUtils.js`) a déjà été audité deux fois (`93168da`, `9f9b252`) et
+produit une vraie date **locale** — aucun décalage UTC possible en France sur ce
+créneau horaire (6h33 heure d'été = 4h33 UTC, même jour calendaire des deux
+côtés). Le bug n'est pas dans le calcul de la date, il est dans le moment où il
+s'exécute.
+
+### Cause racine
+`App.jsx` : `const [dateKey, setDateKey] = useState(() => toKey(new Date()))` ne
+s'évalue qu'**au montage**. Une PWA installée sur iOS/Android n'est pas
+rechargée à chaque réouverture — l'OS suspend le contexte JS en arrière-plan et
+le restaure tel quel. Téléphone verrouillé vendredi soir, rouvert samedi matin
+sans reload complet ⇒ `dateKey` restait la valeur calculée au dernier montage
+réel (vendredi).
+
+### Fix
+Nouveau hook `hooks/useCurrentDateKey.js` : mêmes garanties de `useState`, plus
+un effet qui réécoute `visibilitychange`/`focus` et recalcule `toKey(new
+Date())`. Ne fait avancer `dateKey` que s'il pointait encore sur l'ancien
+« aujourd'hui » (`todayRef`) — une navigation manuelle vers un jour passé dans
+`WeekView` (qui réutilise le même `setDateKey`) n'est jamais écrasée par le
+réveil de l'app. `App.jsx` passe de `useState` brut à ce hook, import `toKey`
+retiré (plus utilisé directement dans le fichier).
+
+### Vérification
+`npm test` 111/111 ✅ (aucun test existant ne couvrait ce chemin — pas de test
+ajouté, la logique dépend d'événements DOM `visibilitychange`/`focus` que jsdom
+ne simule pas de façon représentative d'un vrai cycle de suspension PWA ;
+vérifié manuellement par lecture du hook et par le raisonnement `todayRef`) ·
+`vite build` ✅ (20 précaches, inchangé).

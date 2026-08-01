@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { PALETTE } from './constants/config.js';
-import { toKey } from './utils/dateUtils.js';
 import { useVibefitStorage } from './hooks/useVibefitStorage.js';
+import { useCurrentDateKey } from './hooks/useCurrentDateKey.js';
 import { emptyDay } from './models/day.js';
 import FontStyles from './components/ui/FontStyles.jsx';
 import Header from './components/layout/Header.jsx';
@@ -13,7 +13,7 @@ import DataView from './components/views/DataView.jsx';
 
 export default function VibeFit() {
   const [data, setData, loaded] = useVibefitStorage();
-  const [dateKey, setDateKey] = useState(() => toKey(new Date()));
+  const [dateKey, setDateKey] = useCurrentDateKey();
   const [tab, setTab] = useState('today');
 
   const openWeek = useCallback(() => setTab('week'), []);
