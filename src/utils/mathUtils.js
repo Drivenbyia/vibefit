@@ -107,6 +107,10 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
       avgWaist: waists.length > 0 ? waists.reduce((a, b) => a + b, 0) / waists.length : null,
       avgSteps: steps.length > 0 ? steps.reduce((a, b) => a + b, 0) / steps.length : null,
       stepsDays: steps.length,
+      // Même logique que les pas : le sommeil vient de la montre et continue
+      // d'être remonté les semaines où rien n'est loggé côté nutrition.
+      sleep: aggregateSleep(days),
+      heavyWorkDays: days.filter(({ day }) => day?.heavyWork).length,
     };
   });
 };

@@ -1,52 +1,47 @@
 import { useRef } from 'react';
-import { Download, Upload, Check, AlertCircle } from 'lucide-react';
+import { Download, Upload, GitMerge, Check, AlertCircle } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import Card from '../../ui/Card.jsx';
+import BackupButton from './BackupButton.jsx';
 
-export default function BackupCard({ onExport, onFileChange, importStatus }) {
-  const fileInputRef = useRef(null);
+/**
+ * Deux chemins d'import distincts, et c'est volontaire.
+ *
+ * « Restaurer » remplace les jours en bloc : c'est ce qu'on veut en
+ * réinstallant un appareil. « Fusionner » ne remplit que les champs vides :
+ * c'est ce qu'on veut pour un apport partiel et répété. Les confondre ferait
+ * disparaître des macros saisies à la main derrière un fichier qui ne contient
+ * que dépense et sommeil.
+ */
+export default function BackupCard({ onExport, onFileChange, onMergeChange, importStatus }) {
+  const restoreInputRef = useRef(null);
+  const mergeInputRef = useRef(null);
 
   return (
     <Card>
       <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em', marginBottom: 12 }}>
         BACKUP
       </div>
-      <button
-        onClick={onExport}
-        style={{
-          width: '100%', padding: '14px',
-          background: PALETTE.ink, color: PALETTE.inkSoft, border: 'none',
-          borderRadius: 12, fontWeight: 700, fontSize: 14,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          cursor: 'pointer', marginBottom: 8, minHeight: 44,
-        }}
-        className="vf-body"
-      >
-        <Download size={18} />
-        Exporter en JSON
-      </button>
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          width: '100%', padding: '14px',
-          background: PALETTE.bg, color: PALETTE.ink,
-          border: `1px solid ${PALETTE.line}`,
-          borderRadius: 12, fontWeight: 700, fontSize: 14,
-          cursor: 'pointer', minHeight: 44,
-        }}
-        className="vf-body"
-      >
-        <Upload size={18} />
-        Importer un JSON
-      </button>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/json"
-        onChange={onFileChange}
-        style={{ display: 'none' }}
-      />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <BackupButton filled icon={Download} label="Exporter en JSON" onClick={onExport} />
+        <BackupButton
+          icon={Upload}
+          label="Restaurer une sauvegarde"
+          hint="Remplace les jours du fichier"
+          onClick={() => restoreInputRef.current?.click()}
+        />
+        <BackupButton
+          icon={GitMerge}
+          label="Fusionner des données"
+          hint="Ne remplit que les champs vides"
+          onClick={() => mergeInputRef.current?.click()}
+        />
+      </div>
+
+      <input ref={restoreInputRef} type="file" accept="application/json" onChange={onFileChange} style={{ display: 'none' }} />
+      <input ref={mergeInputRef} type="file" accept="application/json" onChange={onMergeChange} style={{ display: 'none' }} />
+
       {importStatus && (
         <div
           style={{

@@ -1,5 +1,6 @@
 import { DIAGNOSIS } from './plateauProtocol.js';
 import { NEAT } from './neatDrift.js';
+import { SLEEP } from './sleepDiagnosis.js';
 
 /**
  * Bande d'état — LE VERDICT, PAS LE TABLEAU DE BORD.
@@ -31,6 +32,8 @@ export const STATUS_KIND = {
   NEAT_DROP: 'NEAT_DROP',
   NEAT_IMPROVING: 'NEAT_IMPROVING',
   PLATEAU: 'PLATEAU',
+  SLEEP_STRAIN: 'SLEEP_STRAIN',
+  SLEEP_DEBT: 'SLEEP_DEBT',
   WATER_RETENTION: 'WATER_RETENTION',
   LOW_ADHERENCE: 'LOW_ADHERENCE',
   PROGRESSING: 'PROGRESSING',
@@ -107,21 +110,28 @@ function buildTrend(series, expectedKgPerWeek, trendPerWeek) {
  * Ordre de priorité, du plus coûteux au plus anodin :
  *   1. dérive installée du NEAT — des semaines perdues en silence, et le seul
  *      signal qui survit au décrochage du suivi alimentaire ;
- *   2. plateau confirmé ;
- *   3. rétention d'eau — publiée AVANT les avertissements car son rôle est
+ *   2. tension de récupération (VFC/FC repos dégradées) — placée AVANT le
+ *      plateau pour la même raison que la rétention d'eau est placée avant les
+ *      avertissements : un plateau annoncé sur un organisme mal récupéré
+ *      appelle une coupe calorique, qui est exactement la mauvaise réponse.
+ *      L'ordre encode donc une règle de sécurité, pas une hiérarchie de gravité ;
+ *   3. plateau confirmé ;
+ *   4. rétention d'eau — publiée AVANT les avertissements car son rôle est
  *      d'empêcher une coupe calorique injustifiée ; la taire au profit d'un
  *      signal plus alarmant produirait exactement la décision qu'elle bloque ;
- *   4. chute d'activité aiguë — concrète et actionnable, donc devant
+ *   5. chute d'activité aiguë — concrète et actionnable, donc devant
  *      l'adhérence, qui ne dit que « je ne peux rien conclure » ;
- *   5. adhérence insuffisante ;
- *   6-7. bonnes nouvelles ;
- *   8-9. repos — la seule ligne de mesure.
+ *   6. dette de sommeil — chronique et actionnable, mais moins urgente qu'une
+ *      chute d'activité datée ;
+ *   7. adhérence insuffisante ;
+ *   8-10. bonnes nouvelles ;
+ *   11-12. repos — la seule ligne de mesure.
  *
- * @param {{diagnosis: Object, neat: Object, signals: Object}} input
+ * @param {{diagnosis: Object, neat: Object, sleep: Object, signals: Object}} input
  * @returns {{tone, kind, headline, detail, readout}|null} null ⇒ rien à dire,
  *   la bande ne s'affiche pas (installation neuve).
  */
-export function summarizeStatus({ diagnosis, neat, signals, expectedKgPerWeek = null } = {}) {
+export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPerWeek = null } = {}) {
   const trendPerWeek = signals?.weightTrendPerWeek ?? null;
   const tdee = signals?.adaptiveTDEE ?? null;
   // La confiance n'est publiée qu'avec un TDEE : seule, c'est le pourcentage
@@ -139,6 +149,10 @@ export function summarizeStatus({ diagnosis, neat, signals, expectedKgPerWeek = 
       'Activité en baisse',
       `${fmtInt(neat.currentSteps)} pas/j contre ${fmtInt(neat.baselineSteps)} les semaines d’avant${kcalSuffix(neat.kcalImpact)}.`
     );
+  }
+
+  if (sleep?.status === SLEEP.STRAIN) {
+    return verdict(TONE.ALERT, STATUS_KIND.SLEEP_STRAIN, 'Récupération dégradée', sleep.detail);
   }
 
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {
@@ -166,6 +180,10 @@ export function summarizeStatus({ diagnosis, neat, signals, expectedKgPerWeek = 
       'Chute d’activité',
       `${fmtInt(neat.currentSteps)} pas/j contre ${fmtInt(neat.baselineSteps)} en moyenne${kcalSuffix(neat.kcalImpact)}.`
     );
+  }
+
+  if (sleep?.status === SLEEP.DEBT) {
+    return verdict(TONE.WARN, STATUS_KIND.SLEEP_DEBT, 'Dette de sommeil', sleep.detail);
   }
 
   if (diagnosis?.status === DIAGNOSIS.LOW_ADHERENCE) {

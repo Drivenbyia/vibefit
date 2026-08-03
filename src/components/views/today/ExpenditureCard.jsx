@@ -4,8 +4,10 @@ import Card from '../../ui/Card.jsx';
 import NumberInput from '../../ui/NumberInput.jsx';
 import Label from '../../ui/Label.jsx';
 import Bar from '../../ui/Bar.jsx';
+import Pill from '../../ui/Pill.jsx';
 
 export default function ExpenditureCard({ day, updateDay, steps, stepsTarget }) {
+  const heavyWork = !!day.heavyWork;
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -35,6 +37,23 @@ export default function ExpenditureCard({ day, updateDay, steps, stepsTarget }) 
           <Bar label="PROGRESSION DES PAS" value={steps} target={stepsTarget} color={steps >= stepsTarget ? PALETTE.deep : PALETTE.warn} unit="" />
         </div>
       )}
+      {/* `umber` vient de la rampe CATÉGORIELLE : le chantier qualifie la
+          nature de la journée, il n'est ni un manque (`warn`) ni un
+          dépassement (`alert`). Voir DESIGN.md §1. */}
+      <div style={{ display: 'flex', marginTop: 12 }}>
+        <Pill
+          active={heavyWork}
+          color={PALETTE.umber}
+          onClick={() => updateDay({ heavyWork: !heavyWork })}
+        >
+          Journée chantier
+        </Pill>
+      </div>
+      <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 6, lineHeight: 1.4 }}>
+        À marquer les jours d'effort lourd hors séance. Sert à savoir si une
+        dépense mesurée est représentative — sans ça, une quinzaine chargée et
+        une quinzaine calme donnent le même TDEE sans qu'on puisse les distinguer.
+      </div>
     </Card>
   );
 }
