@@ -1,5 +1,6 @@
 import {
-  Activity, AlertTriangle, ChevronRight, Droplet, Minus, TrendingDown, TrendingUp,
+  Activity, AlertTriangle, ChevronRight, Droplet, HeartPulse, Minus, Moon,
+  TrendingDown, TrendingUp,
 } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import { TONE, STATUS_KIND } from '../../../utils/vibeStatus.js';
@@ -24,6 +25,10 @@ const ICONS = {
   [STATUS_KIND.NEAT_DROP]: TrendingDown,
   [STATUS_KIND.NEAT_IMPROVING]: TrendingUp,
   [STATUS_KIND.PLATEAU]: Minus,
+  // La tension se lit sur la VFC et la FC repos — un cœur, pas une lune ; la
+  // dette est une affaire de durée — une lune, comme `SleepCard`.
+  [STATUS_KIND.SLEEP_STRAIN]: HeartPulse,
+  [STATUS_KIND.SLEEP_DEBT]: Moon,
   [STATUS_KIND.WATER_RETENTION]: Droplet,
   [STATUS_KIND.LOW_ADHERENCE]: AlertTriangle,
   [STATUS_KIND.PROGRESSING]: TrendingDown,

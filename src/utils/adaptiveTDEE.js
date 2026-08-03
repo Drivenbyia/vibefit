@@ -191,6 +191,7 @@ export function extractSignals(data) {
       date: key,
       weight: !isNaN(w) && w >= WEIGHT_MIN_KG && w <= WEIGHT_MAX_KG ? w : null,
       intake: !isNaN(kc) && kc >= INTAKE_MIN_KCAL && kc <= INTAKE_MAX_KCAL ? kc : null,
+      heavyWork: !!day?.heavyWork,
     });
   }
 
@@ -205,6 +206,11 @@ export function extractSignals(data) {
 
   // Qualité = recouvrement poids × apport sur la fenêtre
   const overlapDays = windowQualityScore(bestWindow);
+  // Jours d'effort lourd hors séance contenus dans la fenêtre retenue. Ne
+  // corrige RIEN au calcul — c'est une mesure de représentativité : deux
+  // fenêtres de même qualité formelle ne décrivent pas la même vie si l'une
+  // contient quatre jours de chantier et l'autre zéro.
+  const heavyWorkDays = bestWindow.filter((e) => e.heavyWork).length;
   const confidence = size > 0 ? Math.round((overlapDays / size) * 100) : 0;
   const hasEnoughData = overlapDays >= Math.min(MIN_OVERLAP_DAYS, size);
 
@@ -267,6 +273,7 @@ export function extractSignals(data) {
     confidence,
     hasEnoughData,
     overlapDays,
+    heavyWorkDays,
     interpolatedCount,
     windowStart,
     windowEnd,

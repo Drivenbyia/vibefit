@@ -1,6 +1,6 @@
 import { DEFAULT_STEPS_TARGET } from '../constants/config.js';
 import { DEFAULT_TDEE, DEFAULT_TARGETS } from '../utils/presetUtils.js';
-import { exportBackup, importBackup } from '../utils/backupUtils.js';
+import { exportBackup, importBackup, mergeDays } from '../utils/backupUtils.js';
 import { useTransientValue } from './useTransientValue.js';
 
 /**
@@ -48,6 +48,50 @@ export function useBackupManager(data, setData) {
     e.target.value = '';
   };
 
+  /**
+   * Fusion non destructive — le second chemin d'import.
+   *
+   * Distinct de la restauration, et volontairement SANS confirmation : rien
+   * n'est écrasé, il n'y a donc rien à confirmer. Les réglages (cibles, preset,
+   * TDEE) ne sont PAS restaurés ici : un fichier de données n'a pas à changer
+   * le protocole en cours.
+   */
+  const handleMergeChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    importBackup(
+      file,
+      (parsed) => {
+        try {
+          if (!parsed.days || typeof parsed.days !== 'object') {
+            throw new Error('Format invalide');
+          }
+          // Fusion calculée AVANT le setData : un updater doit rester pur —
+          // React peut le rejouer, et on a besoin du résumé pour l'afficher.
+          const { days, ...summary } = mergeDays(data.days, parsed.days);
+          setData((prev) => ({ ...prev, days }));
+
+          const bits = [];
+          if (summary.added > 0) bits.push(`${summary.added} jour(s) ajouté(s)`);
+          if (summary.enriched > 0) {
+            bits.push(`${summary.enriched} complété(s) (${summary.fieldsFilled} champ(s))`);
+          }
+          setImportStatus({
+            ok: true,
+            msg: bits.length > 0 ? `Fusionné : ${bits.join(', ')}` : 'Rien à compléter',
+          });
+        } catch (err) {
+          setImportStatus({ ok: false, msg: 'Fichier invalide : ' + err.message });
+        }
+      },
+      (err) => {
+        setImportStatus({ ok: false, msg: 'Fichier invalide : ' + err.message });
+      },
+    );
+    e.target.value = '';
+  };
+
   const reset = () => {
     if (confirm('Effacer TOUTES les données ? Cette action est irréversible.')) {
       // Reset complet vers un state cohérent — un objet partiel ({ days: {} })
@@ -62,5 +106,5 @@ export function useBackupManager(data, setData) {
     }
   };
 
-  return { importStatus, handleExport, handleFileChange, reset };
+  return { importStatus, handleExport, handleFileChange, handleMergeChange, reset };
 }

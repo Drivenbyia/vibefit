@@ -5,6 +5,19 @@ export const emptyDay = () => ({
   intake: { kcal: '', protein: '', carbs: '', fat: '' },
   expenditure: { kcal: '', steps: '' },
   workout: null,
+  // Journée de chantier — effort lourd hors séance (travaux de rénovation).
+  //
+  // Structuré plutôt que laissé aux notes, pour la même raison que le sommeil :
+  // en texte libre, l'information n'est exploitable qu'à la lecture. Or elle
+  // conditionne l'interprétation du TDEE — une fenêtre de 14 jours contient 4
+  // jours de week-end, et selon qu'ils aient été chantier ou repos la dépense
+  // mesurée se décale de plusieurs centaines de kcal.
+  //
+  // Volontairement SÉPARÉ de `workout` : une séance loggée bascule le type du
+  // jour (donc sa cible calorique), un chantier ne doit pas — ce n'est pas un
+  // entraînement, et le transformer en jour TRAIN servirait une cible haute un
+  // jour de repos programmé.
+  heavyWork: false,
   waist: '',
   weight: '',
   // Sommeil saisi depuis la montre. `durationMin` est la valeur canonique en

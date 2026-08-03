@@ -1,5 +1,34 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
+import { PRESETS, DEFAULT_STEPS_TARGET } from '../constants/config.js';
+
+/**
+ * Ligne de protocole : le réglage sur lequel tourne l'app au moment de l'export.
+ *
+ * Sans elle, le rapport publiait des mesures sans dire à quoi elles étaient
+ * censées obéir — un lecteur extérieur (ou un coach) devait deviner le preset
+ * et les cibles, ou se fier à des chiffres mémorisés qui périment dès la
+ * première recalibration. Les cibles sont LUES depuis le state, jamais
+ * recalculées : la source de vérité reste `data.targets`.
+ */
+export function formatProtocol(data) {
+  const presetId = data?.presetId ?? 'maintenance';
+  const label = PRESETS[presetId]?.label ?? presetId;
+  const t = data?.targets ?? {};
+
+  const kcal = (k) => (t[k]?.kcal != null ? `${Math.round(t[k].kcal)}` : '—');
+  // Le plancher protéines est le même sur les trois types de jour ; on publie
+  // celui de TRAIN, en repli sur OFF si des cibles anciennes sont incomplètes.
+  const protein = t.train?.protein ?? t.off?.protein ?? null;
+  const steps = data?.stepsTarget ?? DEFAULT_STEPS_TARGET;
+
+  return (
+    `🎯 Preset : ${label} | Cibles : TRAIN ${kcal('train')} / OFF ${kcal('off')}` +
+    ` / WE ${kcal('we')} kcal` +
+    (protein != null ? ` · protéines ${Math.round(protein)} g` : '') +
+    ` | Objectif pas : ${Number(steps).toLocaleString('fr-FR')}/j`
+  );
+}
 
 /** Résumé lisible du sommeil saisi — chaîne vide si rien n'est renseigné. */
 export function formatSleep(sleep) {
@@ -15,14 +44,28 @@ export function formatSleep(sleep) {
   return bits.join(' · ');
 }
 
+/**
+ * Un jour porte-t-il la moindre information ?
+ *
+ * Prédicat UNIQUE, partagé par la ligne du jour et par le test de la semaine.
+ * Les deux avaient divergé : la semaine ignorait le sommeil, si bien qu'une
+ * semaine où seules les nuits étaient renseignées s'annonçait « aucune donnée
+ * saisie » alors que le rapport contenait ses relevés.
+ */
+function hasAnyData(day) {
+  return Boolean(
+    day && (
+      day.intake?.kcal || day.workout || day.expenditure?.kcal || day.expenditure?.steps
+      || day.weight || day.waist || day.heavyWork || day.notes || formatSleep(day.sleep)
+    )
+  );
+}
+
 function formatDay(key, day) {
   const label = fmtFr(key);
   const sleepStr = formatSleep(day?.sleep);
-  const hasData = day && (
-    day.intake?.kcal || day.workout || day.expenditure?.steps || day.weight || day.waist || sleepStr
-  );
 
-  if (!hasData) return `- **${label}** : Aucune donnée saisie`;
+  if (!hasAnyData(day)) return `- **${label}** : Aucune donnée saisie`;
 
   const parts = [];
   if (day.intake?.kcal) {
@@ -36,6 +79,7 @@ function formatDay(key, day) {
   if (day.expenditure?.kcal) parts.push(`Dépense: ${Math.round(day.expenditure.kcal)} kcal`);
   if (day.expenditure?.steps) parts.push(`Pas: ${Number(day.expenditure.steps).toLocaleString('fr-FR')}`);
   if (day.workout) parts.push(`Séance: ${day.workout === 'none' ? 'aucune (repos déclaré)' : day.workout}`);
+  if (day.heavyWork) parts.push('Chantier: oui');
   if (day.weight) parts.push(`Poids: ${day.weight} kg`);
   if (day.waist) parts.push(`Tour de taille: ${day.waist} cm`);
   if (sleepStr) parts.push(`Sommeil: ${sleepStr}`);
@@ -66,12 +110,23 @@ export function getHistoricalWeeks(data, n = 8) {
       ? `${signals.windowStart} → ${signals.windowEnd}` +
         (signals.windowAgeDays > 7 ? ` ⚠ fenêtre vieille de ${signals.windowAgeDays} j` : '')
       : 'N/A';
+  // Le nombre de jours de chantier dans la fenêtre qualifie la REPRÉSENTATIVITÉ
+  // du TDEE : une fenêtre riche en effort lourd décrit une quinzaine chargée,
+  // et recalibrer dessus fixerait des cibles trop hautes pour une quinzaine
+  // calme. Publié à côté de la période, jamais loin d'elle.
+  const heavyStr = `${signals.heavyWorkDays} j de chantier`;
+
   const header =
     `⚡ TDEE adaptatif : ${tdeeStr} | Tendance poids : ${trendStr}` +
     ` | Confiance : ${confidenceStr} | Apport moyen : ${intakeStr}` +
-    ` | Période : ${periodStr}`;
+    ` | Période : ${periodStr} | ${heavyStr}`;
 
-  const lines = [`# Rapport VibeFit — ${n} dernières semaines\n`, header, ''];
+  const lines = [
+    `# Rapport VibeFit — ${n} dernières semaines\n`,
+    header,
+    formatProtocol(data),
+    '',
+  ];
 
   for (let w = 0; w < n; w++) {
     const weekStart = startOfWeek(addDays(currentWeekStart, -w * 7));
@@ -80,13 +135,11 @@ export function getHistoricalWeeks(data, n = 8) {
       return { key, day: days[key] ?? null };
     });
 
-    const hasAnyData = weekDays.some(({ day }) =>
-      day && (day.intake?.kcal || day.workout || day.expenditure?.steps || day.weight || day.waist)
-    );
+    const weekHasData = weekDays.some(({ day }) => hasAnyData(day));
 
     lines.push(`## Semaine du ${fmtFr(weekStart)}`);
 
-    if (!hasAnyData) {
+    if (!weekHasData) {
       lines.push('Aucune donnée saisie pour cette semaine');
     } else {
       weekDays.forEach(({ key, day }) => lines.push(formatDay(key, day)));

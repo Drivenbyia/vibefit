@@ -4,6 +4,7 @@ import { DEFAULT_TARGETS, presetWeeklyRate } from '../utils/presetUtils.js';
 import { summarizeStatus } from '../utils/vibeStatus.js';
 import { usePlateauDiagnosis } from './usePlateauDiagnosis.js';
 import { useNeatDrift } from './useNeatDrift.js';
+import { useSleepDiagnosis } from './useSleepDiagnosis.js';
 
 /**
  * Verdict unique pour la bande d'état du jour.
@@ -22,6 +23,7 @@ export function useVibeStatus(data, targets) {
   const resolvedTargets = targets ?? DEFAULT_TARGETS;
   const diagnosis = usePlateauDiagnosis(data, resolvedTargets);
   const neat = useNeatDrift(data, resolvedTargets);
+  const sleep = useSleepDiagnosis(data, resolvedTargets);
   const signals = useMemo(() => extractSignals(data), [data]);
 
   // Trajectoire que l'objectif en cours PRÉDIT — la cible que le tracé oppose
@@ -34,7 +36,7 @@ export function useVibeStatus(data, targets) {
   }, [data?.presetId, data?.baseTDEE]);
 
   return useMemo(
-    () => summarizeStatus({ diagnosis, neat, signals, expectedKgPerWeek }),
-    [diagnosis, neat, signals, expectedKgPerWeek]
+    () => summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPerWeek }),
+    [diagnosis, neat, sleep, signals, expectedKgPerWeek]
   );
 }

@@ -7,8 +7,36 @@ last_updated: 2026-08-01
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/pwa-timezone-sync-kznkrj`
-- **Suite de tests : Vitest, 111 tests** — `npm test`
+- Branche active : `claude/vibefit-garmin-integration-e9iff0`
+- **Suite de tests : Vitest, 149 tests** — `npm test`
+
+### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
+Quatre chantiers, tous issus d'un même constat : plusieurs données étaient
+**saisies puis jamais confrontées à quoi que ce soit**.
+
+- **Diagnostic de sommeil** (`utils/sleepDiagnosis.js`, `hooks/useSleepDiagnosis.js`,
+  `week/SleepDiagnosisCard.jsx`). Les 4 champs sommeil n'entraient dans aucun
+  diagnostic : ni `extractSignals`, ni `diagnose()`, ni `diagnoseNeat()`, ni
+  `summarizeStatus()` ne les regardaient. Deux signaux distincts : **dette**
+  (durée moyenne < 6 h 30, seuil absolu) et **tension** (VFC/FC repos dégradées
+  contre la ligne de base personnelle). Non soumis à la porte d'adhérence, pour
+  la même raison que le NEAT.
+- **Jour de chantier** (`models/day.js` → `heavyWork`). Effort lourd hors séance,
+  structuré plutôt que laissé aux notes. Volontairement séparé de `workout` : un
+  chantier ne doit PAS basculer le type du jour. Compté dans la fenêtre TDEE
+  (`signals.heavyWorkDays`) et publié dans l'en-tête du rapport.
+- **Export enrichi** : nouvelle ligne « 🎯 Preset / Cibles / Objectif pas ». Le
+  rapport publiait des mesures sans dire à quoi elles obéissaient.
+- **Import non destructif** (`backupUtils.mergeDays`) : second chemin d'import
+  qui ne remplit que les champs vides. L'unique chemin existant fusionnait au
+  niveau du JOUR — un apport partiel effaçait en silence les macros déjà saisies.
+- **Régression corrigée au passage** : le test « semaine vide » de l'export
+  ignorait le sommeil ; une semaine où seules les nuits étaient renseignées
+  s'annonçait « aucune donnée saisie ». Prédicat `hasAnyData` désormais unique
+  et partagé avec la ligne du jour.
+- Vérifié : 149/149 tests, `vite build` OK, et **contrôle au rendu** (Chromium
+  390 px) — bande d'état en tension, carte Semaine, pill chantier à 44 px, trois
+  boutons de backup, zéro erreur console, zéro débordement horizontal.
 
 ### Session 2026-08-01 — Fix PWA figée sur la date de la veille au réveil
 Signalé avec captures d'écran : téléphone samedi 6h33, la PWA affichait encore

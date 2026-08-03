@@ -3,9 +3,11 @@ import { getHistoricalWeeks } from '../../utils/exportUtils.js';
 import { useWeekStats } from '../../hooks/useWeekStats.js';
 import { usePlateauDiagnosis } from '../../hooks/usePlateauDiagnosis.js';
 import { useNeatDrift } from '../../hooks/useNeatDrift.js';
+import { useSleepDiagnosis } from '../../hooks/useSleepDiagnosis.js';
 import { useClipboardCopy } from '../../hooks/useClipboardCopy.js';
 import DiagnosisCard from './week/DiagnosisCard.jsx';
 import NeatCard from './week/NeatCard.jsx';
+import SleepDiagnosisCard from './week/SleepDiagnosisCard.jsx';
 import Card from '../ui/Card.jsx';
 import WeekSummary from './week/WeekSummary.jsx';
 import WeekCalendar from './week/WeekCalendar.jsx';
@@ -26,6 +28,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
 
   const diagnosis = usePlateauDiagnosis(data, resolvedTargets);
   const neat = useNeatDrift(data, resolvedTargets);
+  const sleepDiagnosis = useSleepDiagnosis(data, resolvedTargets);
   const [copied, copy] = useClipboardCopy(2000);
   const handleExport = useCallback(() => copy(getHistoricalWeeks(data, 8)), [copy, data]);
 
@@ -47,6 +50,12 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
         detail={neat.detail}
         currentSteps={neat.currentSteps}
         baselineSteps={neat.baselineSteps}
+      />
+      <SleepDiagnosisCard
+        status={sleepDiagnosis.status}
+        label={sleepDiagnosis.label}
+        detail={sleepDiagnosis.detail}
+        avgDurationMin={sleepDiagnosis.avgDurationMin}
       />
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} />
       <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} />

@@ -23,6 +23,56 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-08-03 — Le sommeil devient un diagnostic, placé avant le plateau
+- **Décision** : Créer `utils/sleepDiagnosis.js` (module pur, sur le modèle de `neatDrift.js`) publiant deux statuts distincts — **DETTE** (durée moyenne < 6 h 30, seuil absolu) et **TENSION** (VFC < 85 % de sa ligne de base ou FC repos > baseline + 5 bpm, seuils relatifs). Non soumis à la porte d'adhérence. Dans `summarizeStatus`, **TENSION est arbitrée AVANT le plateau confirmé**.
+- **Contexte** : `SleepCard` structure 4 champs depuis fin juillet. Vérification par grep : ils n'apparaissaient que dans `aggregateSleep` (affichage) et `formatSleep` (export). Aucun des quatre diagnostics du produit ne les lisait. Le développeur saisissait donc score, durée, VFC et FC repos chaque matin sans qu'aucune conclusion n'en soit jamais tirée.
+- **Alternatives considérées** : (a) ne rien faire — écarté, c'est une corvée de saisie sans contrepartie ; (b) un seul statut « sommeil dégradé » mêlant durée et récupération — écarté, les deux n'appellent pas la même réponse (une dette se corrige en se couchant plus tôt, une tension en allégeant la charge) ; (c) des seuils absolus partout — écarté pour la VFC ; (d) des seuils relatifs partout — écarté pour la durée.
+- **Raison du choix** : Le mélange de seuils absolus et relatifs est **volontaire et asymétrique**. Une VFC ne se compare qu'à elle-même — 38 ms n'est « bas » que si l'habitude est 49 — d'où le relatif. Une durée de sommeil, à l'inverse, ne se juge PAS contre une habitude : s'habituer à dormir 6 h ne fait pas disparaître le coût de dormir 6 h, d'où l'absolu. Sur l'ordre d'arbitrage : placer TENSION avant PLATEAU applique exactement le raisonnement déjà retenu pour la rétention d'eau (2026-07-30) — un plateau annoncé sur un organisme mal récupéré appelle une coupe calorique, qui est la mauvaise réponse. **L'ordre encode une règle de sécurité, pas une hiérarchie de gravité.**
+- **Impact** :
+  - `computeWeeklyHistory` expose désormais `sleep` (via `aggregateSleep`) et `heavyWorkDays` par semaine — additif, aucun appelant existant modifié.
+  - Exemption de la porte d'adhérence héritée de `neatDrift`, avec un argument plus fort : un mauvais sommeil dégrade le contrôle alimentaire, donc les semaines où la saisie s'effondre sont les moins bien placées pour rester muettes sur leur cause probable.
+  - Exige ≥ 2 semaines de ligne de base avant de parler de tension : une seule semaine de recul ne distingue pas une chute d'une valeur habituelle.
+  - `STATUS_KIND` gagne `SLEEP_STRAIN` / `SLEEP_DEBT`, avec icônes `HeartPulse` / `Moon`. Titre le plus long, « RÉCUPÉRATION DÉGRADÉE », fait 21 caractères — exactement la longueur de « PAS ENCORE DE VERDICT » déjà mesurée à 177 px pour 282 px de passage libre (DESIGN.md §3), donc dans le budget sans nouvelle mesure.
+  - `SleepDiagnosisCard` ajoutée à `WeekView` : la bande promet que le détail s'y trouve, ce contrat serait rompu sinon.
+  - 18 tests ajoutés.
+- **Réversibilité** : Facile. Module pur + hook + une carte ; retirer les deux blocs de `summarizeStatus` suffit à revenir en arrière.
+
+### 2026-08-03 — Le jour de chantier devient une donnée structurée, séparée de la séance
+- **Décision** : Ajouter `heavyWork: false` au modèle de jour, avec une bascule dans `ExpenditureCard`. Le comptage sur la fenêtre TDEE (`signals.heavyWorkDays`) est publié dans l'en-tête du rapport. **Ne corrige aucun calcul.**
+- **Contexte** : Les week-ends de rénovation (3000+ kcal) sont irréguliers et sans date de fin. Une fenêtre TDEE de 14 jours contient 4 jours de week-end : selon qu'ils aient été chantier ou repos, la dépense mesurée se décale de plusieurs centaines de kcal. L'information n'existait qu'en texte libre dans les notes.
+- **Alternatives considérées** : (a) laisser dans les notes — écarté, exactement l'argument qui avait fait structurer le sommeil : en texte libre, l'information n'est exploitable qu'à la lecture ; (b) réutiliser `workout` avec une valeur `chantier` — **écarté, et c'est le point important** ; (c) corriger automatiquement le TDEE sur les jours de chantier — écarté.
+- **Raison du choix** : (b) est piégeux parce qu'il paraît économe. Mais `workout` **pilote `dayType`** : une séance loggée bascule le jour en TRAIN, donc change sa cible calorique. Un samedi de travaux serait alors servi à la cible d'un jour d'entraînement programmé. Un test dédié verrouille cette séparation. (c) supposerait un coût calorique connu du chantier, qu'on n'a pas — et fabriquerait une correction invérifiable dans le seul chiffre qui sert d'arbitre. Le marquage reste donc une **mesure de représentativité** : deux fenêtres de même qualité formelle ne décrivent pas la même vie, et c'est au lecteur d'en tenir compte, pas à l'algorithme de le masquer.
+- **Impact** :
+  - Couleur du pill prise à la rampe **catégorielle** (`umber`) et non aux couleurs d'état : un chantier qualifie la nature d'une journée, il n'est ni un manque (`warn`) ni un dépassement (`alert`). Aucune couleur nouvelle introduite, donc aucun contraste à revérifier.
+  - `heavyWork` suffit à rendre un jour non vide dans le rapport : un samedi de chantier sans pesée reste une information.
+  - Champ additif — les jours antérieurs le reçoivent par le spread d'`emptyDay()`.
+- **Réversibilité** : Facile pour l'UI et l'export. Le champ lui-même reste dans les données déjà saisies, mais son absence est sans effet (`!!day.heavyWork`).
+
+### 2026-08-03 — Deux chemins d'import : restaurer (remplace) et fusionner (complète)
+- **Décision** : Ajouter `backupUtils.mergeDays`, une fusion **champ à champ non destructive**, exposée comme un second bouton distinct de la restauration. En cas de désaccord entre une valeur importée et une valeur saisie, **la saisie gagne**.
+- **Contexte** : `useBackupManager` fusionnait via `{ ...prev.days, ...parsed.days }`, soit un remplacement au niveau du JOUR. Correct pour restaurer une sauvegarde sur un appareil neuf ; destructeur dès qu'un import devient récurrent et partiel — un fichier ne portant que dépense, pas et sommeil effacerait les macros déjà saisies à la main, sans le moindre signal.
+- **Alternatives considérées** : (a) rendre l'unique import non destructif — écarté, ça casse la restauration de sauvegarde, dont le sens est justement d'écraser ; (b) demander à l'utilisateur quoi faire champ par champ — écarté, insoutenable ; (c) laisser l'import écraser et prévenir dans le texte — écarté, un avertissement ne rattrape pas une perte de données.
+- **Raison du choix** : Les deux usages sont réellement distincts et méritent deux chemins ; les confondre force l'un des deux à être faux. Sur l'arbitrage saisie > import : c'est le seul choix sûr, parce que **l'utilisateur peut corriger une valeur qu'il voit, jamais en retrouver une qu'il n'a pas vu disparaître**.
+- **Impact** :
+  - `fillBlanks` est récursif : les groupes imbriqués (`intake`, `expenditure`, `sleep`) se complètent champ à champ, pas en bloc.
+  - Un jour absent est créé sur la forme d'`emptyDay()`, jamais recopié tel quel — un objet partiel priverait les vues des clés qu'elles déstructurent.
+  - La fusion est **sans `window.confirm`** : rien n'est écrasé, il n'y a rien à confirmer. Elle ne restaure pas non plus les réglages (cibles, preset, TDEE) — un fichier de données n'a pas à changer le protocole en cours.
+  - Le résumé est calculé **avant** `setData` : un updater React doit rester pur, et React peut le rejouer.
+  - `BackupCard` dépassait les 80 lignes avec un troisième bouton → `BackupButton.jsx` extrait (react-rules §3).
+  - 8 tests ajoutés.
+- **Réversibilité** : Facile. Fonction pure additive ; le chemin de restauration existant n'a pas été touché.
+
+### 2026-08-03 — L'export publie le protocole en vigueur
+- **Décision** : Ajouter une ligne `🎯 Preset / Cibles TRAIN-OFF-WE / plancher protéines / objectif de pas` sous la ligne de diagnostic, plus le nombre de jours de chantier de la fenêtre à côté de la période.
+- **Contexte** : Le rapport publiait des mesures sans dire à quoi elles étaient censées obéir. Un lecteur extérieur — ou un coach — devait deviner le preset, ou se fier à des chiffres mémorisés hors de l'app.
+- **Alternatives considérées** : Demander à l'utilisateur de préciser son réglage à côté du rapport. Écarté : c'est confier à une saisie humaine faillible la donnée la plus structurante du document, et elle périme à chaque recalibration.
+- **Raison du choix** : Cas concret qui tranche — le preset **Sèche forte impose 170 g de protéines et non 160**. Un lecteur travaillant de mémoire applique le mauvais plancher sans jamais s'en apercevoir. Les cibles sont **lues** depuis `data.targets` et jamais recalculées : la source de vérité reste le state, sans quoi le rapport pourrait annoncer un réglage que l'app ne sert pas.
+- **Impact** :
+  - Dégradation propre sur un state incomplet (`TRAIN —`) plutôt qu'un export cassé.
+  - **Régression corrigée au passage** : le prédicat de non-vacuité de la semaine ignorait le sommeil et la dépense en kcal, alors que celui du jour les comptait. Une semaine où seules les nuits étaient renseignées s'annonçait « Aucune donnée saisie pour cette semaine » tout en listant ses relevés. Prédicat `hasAnyData` unique, partagé par les deux appels.
+  - 12 tests ajoutés.
+- **Réversibilité** : Facile.
+
 ### 2026-07-30 — Refus d'une page d'accueil : bande d'état dans `TodayView`
 - **Décision** : Ne PAS créer d'écran d'accueil ni de cinquième onglet. Le jour à renseigner reste l'écran d'atterrissage. Les diagnostics existants (`plateauProtocol`, `neatDrift`, `adaptiveTDEE`) sont remontés en une **bande d'état** en haut de `TodayView`, affichée sur le jour courant uniquement, qui publie **un verdict et une ligne de mesure**, et renvoie vers `WeekView` d'un tap.
 - **Contexte** : Le développeur trouvait pratique de tomber directement sur la saisie, mais voulait « une page d'accueil montrant les tendances ou mon état de forme actuel » — en demandant explicitement qu'on lui dise si l'idée était mauvaise.

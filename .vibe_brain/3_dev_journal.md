@@ -963,3 +963,105 @@ ajouté, la logique dépend d'événements DOM `visibilitychange`/`focus` que js
 ne simule pas de façon représentative d'un vrai cycle de suspension PWA ;
 vérifié manuellement par lecture du hook et par le raisonnement `todayRef`) ·
 `vite build` ✅ (20 précaches, inchangé).
+
+---
+
+## Session 2026-08-03 — Sommeil diagnostiqué, chantier structuré, import non destructif
+
+Session partie d'une question produit (« connecter VibeFit à Garmin ? »), qui a
+dérivé sur l'audit des instructions du Coach Expert, lequel a mis au jour quatre
+défauts de l'app. Les quatre sont traités ici.
+
+### 1. Le sommeil était collecté mais muet
+
+`SleepCard` structure 4 champs depuis juillet (score, durée, VFC, FC repos).
+Vérifié par grep : ils n'apparaissent que dans `aggregateSleep` (affichage) et
+`formatSleep` (export). **Aucun diagnostic ne les lisait** — ni `extractSignals`,
+ni `plateauProtocol`, ni `neatDrift`, ni `vibeStatus`. Une métrique saisie chaque
+matin sans jamais rien conclure est une corvée, pas un instrument.
+
+`utils/sleepDiagnosis.js`, calqué sur `neatDrift.js` :
+- **DETTE** — durée moyenne < `SLEEP_DEBT_MIN` (390 min). Seuil **absolu** et non
+  relatif à une habitude : s'habituer à dormir peu n'en annule pas le coût.
+- **TENSION** — VFC < 85 % de sa ligne de base, ou FC repos > baseline + 5 bpm,
+  sur la dernière semaine complète. Seuils **relatifs** ici, à l'inverse : une
+  VFC ne se compare qu'à elle-même, 38 ms n'est « bas » que si l'habitude est 49.
+- Ligne de base sur 4 semaines, exige ≥ 2 semaines de recul avant de parler de
+  tension ; une seule semaine ne distingue pas une chute d'une valeur normale.
+- Non soumis à la porte d'adhérence, comme le NEAT — et l'argument est plus fort
+  encore ici : un mauvais sommeil dégrade le contrôle alimentaire, donc les
+  semaines où la saisie s'effondre sont les moins bien placées pour rester
+  muettes sur leur cause probable.
+
+**Ordre d'arbitrage dans `summarizeStatus`** — le point non évident : `STRAIN`
+est placée **avant** le plateau confirmé. Même raisonnement que la rétention
+d'eau placée avant les avertissements : un plateau annoncé sur un organisme mal
+récupéré appelle une coupe calorique, qui est exactement la mauvaise réponse.
+L'ordre encode une règle de sécurité, pas une hiérarchie de gravité. `DEBT` reste
+en avertissement, derrière la chute d'activité aiguë (datée, plus urgente).
+
+### 2. Le chantier vivait en texte libre
+
+`models/day.js` gagne `heavyWork: false`. Même argument que pour le sommeil deux
+sessions plus tôt : en texte libre, l'information n'est exploitable qu'à la
+lecture. Or elle conditionne l'interprétation du TDEE — la fenêtre de 14 jours
+contient 4 jours de week-end, et selon qu'ils aient été chantier ou repos la
+dépense mesurée se décale de plusieurs centaines de kcal.
+
+**Séparé de `workout` à dessein** : une séance loggée bascule le type du jour
+(donc sa cible calorique) ; un chantier ne doit pas, sinon un samedi de travaux
+servirait la cible d'un jour d'entraînement programmé. Test dédié sur ce point.
+
+`extractSignals` expose `heavyWorkDays` (comptage sur la fenêtre retenue). Ne
+corrige **rien** au calcul : c'est une mesure de représentativité, pas un
+facteur. Deux fenêtres de même qualité formelle ne décrivent pas la même vie.
+
+Couleur du pill : `umber`, pris à la rampe **catégorielle** (DESIGN.md §1) et non
+aux couleurs d'état — un chantier qualifie la nature d'une journée, il n'est ni
+un manque (`warn`) ni un dépassement (`alert`).
+
+### 3. L'export ne disait pas le protocole
+
+`formatProtocol()` : preset, cibles TRAIN/OFF/WE, plancher protéines, objectif de
+pas. Les cibles sont **lues** depuis `data.targets`, jamais recalculées — la
+source de vérité reste le state. Cas concret que ça règle : le preset Sèche forte
+impose 170 g de protéines et non 160, écart invisible pour quiconque lisait le
+rapport avec des chiffres mémorisés.
+
+### 4. L'import perdait des données en silence
+
+`useBackupManager` fusionnait via `{ ...prev.days, ...parsed.days }` — remplacement
+au niveau du JOUR. Correct pour restaurer une sauvegarde, destructeur pour un
+apport partiel : un fichier ne portant que dépense/pas/sommeil effaçait les macros
+saisies à la main.
+
+`backupUtils.mergeDays` + `fillBlanks` : fusion récursive qui ne remplit que ce
+qui est vide. **Arbitrage explicite** — en cas de désaccord entre valeur importée
+et valeur saisie, c'est la saisie qui gagne. C'est le seul choix sûr :
+l'utilisateur peut corriger une valeur qu'il voit, jamais en retrouver une qu'il
+n'a pas vu disparaître. Un jour absent est créé sur la forme d'`emptyDay()` et
+jamais recopié tel quel — un objet partiel priverait les vues des clés qu'elles
+déstructurent.
+
+Deux chemins d'import distincts dans l'UI (« Restaurer » / « Fusionner »), avec
+leur conséquence écrite sous le libellé. La fusion est **sans confirmation** :
+rien n'est écrasé, il n'y a rien à confirmer. `BackupCard` dépassait les 80
+lignes avec un troisième bouton → `BackupButton.jsx` extrait.
+
+### Régression trouvée en écrivant les tests
+
+Le test de non-vacuité de la semaine (`hasAnyData`) et celui du jour avaient
+divergé : la version semaine ignorait le sommeil **et** la dépense en kcal. Une
+semaine où seules les nuits étaient renseignées s'annonçait « Aucune donnée
+saisie pour cette semaine » alors que le rapport contenait ses relevés. Prédicat
+unique désormais, partagé par les deux appels.
+
+### Vérification
+
+`npm test` **149/149** ✅ (111 → 149, +38) · `vite build` ✅ · **contrôle au
+rendu** en Chromium 390 px avec un jeu de 36 jours déclenchant la tension :
+verdict correct dans la bande, carte Semaine présente, pill chantier mesurée à
+44 px de haut (cible tactile DESIGN.md §5), trois boutons de backup lisibles,
+**zéro erreur console, zéro débordement horizontal**. Le repo a deux précédents
+de régressions invisibles au build et trouvées seulement au rendu — d'où le
+contrôle systématique.
