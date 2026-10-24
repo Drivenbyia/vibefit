@@ -16,7 +16,7 @@ export default function TargetsView({ data, setData }) {
     useTargetsManager(data, setData);
   const { signals, canRecalibrate, delta, blockedReason, recalibrate } =
     useAdaptiveTargets(data, setData);
-  const { phase, canClose, closePhase } = usePhaseManager(data, setData);
+  const { phase, canClose, closePhase, setPlannedEnd } = usePhaseManager(data, setData);
   const suspended = phase ? ' · suspendu pendant la phase' : '';
 
   return (
@@ -27,6 +27,7 @@ export default function TargetsView({ data, setData }) {
           single={computeSingleTarget(presetId, baseTDEE, targets)}
           canClose={canClose}
           onClose={closePhase}
+          onPlannedEndChange={setPlannedEnd}
         />
       )}
       <PresetPickerCard

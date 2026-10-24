@@ -35,6 +35,7 @@ export const STATUS_KIND = {
   SLEEP_STRAIN: 'SLEEP_STRAIN',
   SLEEP_DEBT: 'SLEEP_DEBT',
   WATER_RETENTION: 'WATER_RETENTION',
+  CALIBRATING: 'CALIBRATING',
   LOW_ADHERENCE: 'LOW_ADHERENCE',
   PROGRESSING: 'PROGRESSING',
   TREND: 'TREND',
@@ -153,6 +154,13 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
 
   if (sleep?.status === SLEEP.STRAIN) {
     return verdict(TONE.ALERT, STATUS_KIND.SLEEP_STRAIN, 'Récupération dégradée', sleep.detail);
+  }
+
+  // Calibration : remplace le diagnostic nutritionnel. Placée à la place du
+  // plateau — les signaux de pas et de sommeil restent des instruments
+  // distincts, qui ont leurs propres garde-fous.
+  if (diagnosis?.status === DIAGNOSIS.CALIBRATING) {
+    return verdict(TONE.IDLE, STATUS_KIND.CALIBRATING, 'Calibration en cours', diagnosis.detail);
   }
 
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {

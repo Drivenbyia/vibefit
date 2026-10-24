@@ -19,12 +19,14 @@ export function useAdaptiveTargets(data, setData) {
   const signals = useMemo(() => extractSignals(data), [data]);
 
   const baseTDEE = data?.baseTDEE ?? null;
-  const { adaptiveTDEE, hasEnoughData, overlapDays, windowStart, excludedDays } = signals;
+  const { adaptiveTDEE, hasEnoughData, overlapDays, windowStart, excludedDays, calibration } = signals;
   const delta =
     adaptiveTDEE !== null && baseTDEE !== null ? adaptiveTDEE - baseTDEE : null;
 
   let blockedReason = null;
-  if (windowStart === null && excludedDays > 0) {
+  if (calibration?.active) {
+    blockedReason = `Calibration en cours — ${calibration.crossedDays}/${calibration.requiredDays} jours croisant poids et apport. TDEE de départ : ${calibration.seedTDEE} kcal.`;
+  } else if (windowStart === null && excludedDays > 0) {
     blockedReason = 'Fenêtre de 14 jours pas encore complète depuis la période non suivie';
   } else if (adaptiveTDEE === null || !hasEnoughData) {
     blockedReason = `Données insuffisantes — ${overlapDays} j croisant poids et apport sur 14`;

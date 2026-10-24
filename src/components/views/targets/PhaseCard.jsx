@@ -8,7 +8,7 @@ const fr = (key) => key.split('-').reverse().join('/');
  * La cible n'est pas éditable ici : elle DÉRIVE du preset et du TDEE de base
  * (milieu TRAIN/OFF, plancher 1600). On la change en changeant de preset.
  */
-export default function PhaseCard({ phase, single, canClose, onClose }) {
+export default function PhaseCard({ phase, single, canClose, onClose, onPlannedEndChange }) {
   return (
     <Card style={{ borderColor: PALETTE.ink }}>
       <div className="vf-display" style={{ fontSize: 11, color: PALETTE.muted, letterSpacing: '0.1em' }}>
@@ -17,8 +17,25 @@ export default function PhaseCard({ phase, single, canClose, onClose }) {
       <div className="vf-gothic" style={{ fontSize: 25, color: PALETTE.ink }}>{phase.label ?? phase.type}</div>
       <div style={{ fontSize: 12, color: PALETTE.muted, marginTop: 2 }}>
         Depuis le {fr(phase.start)}
-        {phase.plannedEnd ? ` · fin prévue le ${fr(phase.plannedEnd)}` : ''}
       </div>
+
+      {/* Fin prévue éditable : l'épreuve d'effort peut être déplacée. Changer
+          cette date ne clôt rien et ne rouvre rien. */}
+      <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 12, color: PALETTE.muted }}>
+        Fin prévue
+        <input
+          type="date"
+          value={phase.plannedEnd ?? ''}
+          min={phase.start}
+          onChange={(e) => onPlannedEndChange(e.target.value)}
+          className="vf-mono"
+          style={{
+            flex: 1, minHeight: 44, padding: '0 10px', borderRadius: 12,
+            background: PALETTE.surfaceRaised, color: PALETTE.ink,
+            border: `1px solid ${PALETTE.line}`, fontSize: 13, colorScheme: 'dark',
+          }}
+        />
+      </label>
 
       <div className="vf-tabular" style={{ marginTop: 12, fontSize: 24, fontWeight: 900, color: PALETTE.ink }}>
         {single.kcal}

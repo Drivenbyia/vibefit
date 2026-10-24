@@ -8,7 +8,7 @@ last_updated: 2026-10-24
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/arret-medical-etape-1`
-- **Suite de tests : Vitest, 204 tests** — `npm test`
+- **Suite de tests : Vitest, 217 tests** — `npm test`
 
 ### Session 2026-10-24 — Reprise après 2 mois : arrêt médical, coupure, Apple Watch
 Contexte : aucune saisie du 20/08 au 23/10/2026, arrêt médical (tout effort
@@ -51,10 +51,18 @@ validé étape par étape.
   guide de tendance calculés sur la cible unique. Export : « Cible unique ».
   **Solde de la semaine** limité aux jours hors coupure (demande du
   2026-10-24), dénominateur « x / y jours saisis · hors période non suivie ».
-- **À venir** : 4 recalibration (2050 kcal, 14 j croisés — la cible affiche
-  2000 jusque-là, TDEE stocké) · 5 suspensions (plateau, rappel hebdo) ·
-  6 sources et références Apple, calories montre hors solde net · 7 saisie
-  Apple (option A).
+- **Étape 4 — faite** : calibration du TDEE. Champ racine `calibration`
+  `{ start, seedTDEE, requiredDays: 14 }` (sanitize, migration, restauration).
+  `extractSignals` n'utilise aucune donnée antérieure à `start` et ne publie
+  aucun TDEE tant que 14 jours croisés poids × apport (cumulés, coupures
+  exclues) ne sont pas réunis — `signals.calibration`. Statut
+  `DIAGNOSIS.CALIBRATING` (remplace tout verdict nutritionnel), bande d'état
+  « Calibration en cours n/14 », carte TDEE et export idem. Données : fichier
+  de protocole v2 (TDEE 2050, cibles Maintenance 2050, calibration au 24/10).
+  Phase : clôture disponible à tout moment (confirmée, rappelle la fin
+  prévue), fin prévue éditable dans Cibles (refusée avant le début).
+- **À venir** : 5 suspensions (plateau, rappel hebdo) · 6 sources et
+  références Apple, calories montre hors solde net · 7 saisie Apple (option A).
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
 Quatre chantiers, tous issus d'un même constat : plusieurs données étaient

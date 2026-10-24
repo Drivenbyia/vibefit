@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Calibration du TDEE : 14 jours croisés cumulés, valeur de départ 2050
+- **Décision** : Après une reprise, le TDEE mesuré n'est publié qu'une fois 14 jours croisés poids × apport réunis depuis le début de calibration (cumulés sur tout l'historique, coupures exclues). D'ici là : « Calibration en cours n/14 » à la place du diagnostic, cible servie sur le TDEE de départ. Aucune donnée antérieure au début de calibration n'entre dans le TDEE.
+- **Contexte** : dernier TDEE fiable ~2330, mesuré avec entraînement et chantiers. Valeur de départ validée : 2050 (−90 à −110 kcal/j de séances, −130 à −210 de chantiers).
+- **Alternatives considérées** : (1) seuil ordinaire de 10 jours croisés dans une fenêtre de 14 — trop tôt pour un changement de mode de vie ; (2) 14 jours croisés CONSÉCUTIFS — une pesée oubliée relancerait tout le compteur.
+- **Raison du choix** : un TDEE affiché est un TDEE sur lequel on recalibre ; il ne doit apparaître qu'une fois crédible. Le compte cumulé est monotone et ne punit pas un oubli.
+- **Impact** : la recalibration reste opt-in (bouton) une fois la calibration terminée.
+- **Réversibilité** : Facile — `calibration: null`.
+
 ### 2026-10-24 — Phase sans cyclage : type de jour `rest` et cible unique dérivée
 - **Décision** : Pendant une phase `medical_stop`, tous les jours sont de type `rest` (priorité absolue dans `dayType`). Leur cible est `computeSingleTarget` : milieu (TRAIN+OFF)/2 des formules BRUTES du preset, plancher 1600 appliqué directement, protéines du preset (≥ 160). Dérivée à la volée par `resolveTargets`, jamais stockée.
 - **Contexte** : arrêt médical, tout effort interdit. Le calendrier lun/mer/ven servait encore des cibles TRAIN sans entraînement.

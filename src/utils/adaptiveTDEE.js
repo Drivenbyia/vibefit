@@ -7,7 +7,7 @@ import {
   MAX_DAILY_WEIGHT_JUMP_KG,
 } from '../constants/config.js';
 import { toKey, addDays } from './dateUtils.js';
-import { isExcluded } from '../models/protocol.js';
+import { isExcluded, sanitizeProtocol } from '../models/protocol.js';
 
 const SMOOTHING_WINDOW = 7;
 const HISTORY_SCAN_DAYS = 30;  // horizon de scan pour la fenêtre glissante
@@ -196,6 +196,38 @@ function findBestWindow(entries) {
   return { startIdx: bestStart, endIdx: bestStart + WINDOW_SIZE - 1, size: WINDOW_SIZE };
 }
 
+/** Poids et apport valides (bornes de plausibilité) d'un jour, ou null. */
+function crossedValues(day) {
+  const w = day?.weight != null ? parseFloat(day.weight) : NaN;
+  const kc = day?.intake?.kcal != null ? parseFloat(day.intake.kcal) : NaN;
+  return {
+    weight: !isNaN(w) && w >= WEIGHT_MIN_KG && w <= WEIGHT_MAX_KG ? w : null,
+    intake: !isNaN(kc) && kc >= INTAKE_MIN_KCAL && kc <= INTAKE_MAX_KCAL ? kc : null,
+  };
+}
+
+/**
+ * État de la calibration : jours croisés poids × apport depuis son début,
+ * sur TOUT l'historique (pas seulement l'horizon de 30 jours), coupures exclues.
+ * Le compte est monotone : une fois atteint, le seuil reste atteint.
+ */
+function calibrationState(days, periods, calibration, today) {
+  if (!calibration) return null;
+  let crossedDays = 0;
+  for (const [key, day] of Object.entries(days)) {
+    if (key < calibration.start || key > today || isExcluded(key, periods, 'nutrition')) continue;
+    const { weight, intake } = crossedValues(day);
+    if (weight !== null && intake !== null) crossedDays += 1;
+  }
+  return {
+    start: calibration.start,
+    seedTDEE: calibration.seedTDEE,
+    requiredDays: calibration.requiredDays,
+    crossedDays,
+    active: crossedDays < calibration.requiredDays,
+  };
+}
+
 /**
  * Extrait les signaux physiologiques clés sur la fenêtre optimale (≤30 jours).
  *
@@ -218,26 +250,30 @@ function findBestWindow(entries) {
 export function extractSignals(data) {
   const days = data?.days ?? {};
   const periods = data?.periods ?? [];
+  const { calibration: calib } = sanitizeProtocol(data ?? {});
 
   // Historique brut sur HISTORY_SCAN_DAYS jours (J-29 → J0).
   // toKey/addDays produisent une date locale, alignée sur les clés de saisie.
   const today = toKey(new Date());
+  const calibration = calibrationState(days, periods, calib, today);
   const rawEntries = [];
   for (let i = HISTORY_SCAN_DAYS - 1; i >= 0; i--) {
     const key = addDays(today, -i);
     const day = days[key] ?? null;
 
-    const w = day?.weight != null ? parseFloat(day.weight) : NaN;
-    const kc = day?.intake?.kcal != null ? parseFloat(day.intake.kcal) : NaN;
+    const { weight, intake } = crossedValues(day);
     // Jour de coupure nutritionnelle : neutralisé AVANT tout calcul, même si
     // une valeur y a été saisie — elle n'entre ni dans le TDEE, ni dans la
-    // confiance, ni dans la tendance.
-    const excluded = isExcluded(key, periods, 'nutrition');
+    // confiance, ni dans la tendance. Même traitement pour les jours
+    // antérieurs au début d'une calibration : le TDEE repart de zéro, il ne
+    // doit pas mélanger l'avant (entraînement, chantiers) et l'après.
+    const excluded = isExcluded(key, periods, 'nutrition')
+      || (calibration !== null && key < calibration.start);
 
     rawEntries.push({
       date: key,
-      weight: !excluded && !isNaN(w) && w >= WEIGHT_MIN_KG && w <= WEIGHT_MAX_KG ? w : null,
-      intake: !excluded && !isNaN(kc) && kc >= INTAKE_MIN_KCAL && kc <= INTAKE_MAX_KCAL ? kc : null,
+      weight: excluded ? null : weight,
+      intake: excluded ? null : intake,
       heavyWork: !excluded && !!day?.heavyWork,
       excluded,
     });
@@ -307,8 +343,12 @@ export function extractSignals(data) {
 
   // TDEE adaptatif : apport moyen − déséquilibre énergétique journalier.
   // La pente OLS est déjà en kg/JOUR — aucune division par la taille de fenêtre.
+  //
+  // Calibration en cours : AUCUNE valeur publiée, même si une fenêtre à 10
+  // jours croisés existe déjà. Un TDEE affiché trop tôt serait lu, et une
+  // valeur lue est une valeur sur laquelle on recalibre.
   let adaptiveTDEE = null;
-  if (hasEnoughData && slopeKgPerDay !== null && avgIntake !== null) {
+  if (!calibration?.active && hasEnoughData && slopeKgPerDay !== null && avgIntake !== null) {
     adaptiveTDEE = Math.round(avgIntake - slopeKgPerDay * KCAL_PER_KG);
   }
 
@@ -326,16 +366,19 @@ export function extractSignals(data) {
     smoothedWeight,
     weightSeries,
     adaptiveTDEE,
+    // null sans calibration ; sinon { start, seedTDEE, requiredDays, crossedDays, active }
+    calibration,
     weightTrendPerWeek,
     avgIntake,
     confidence,
-    hasEnoughData,
+    hasEnoughData: hasEnoughData && !calibration?.active,
     overlapDays,
     heavyWorkDays,
     interpolatedCount,
     windowStart,
     windowEnd,
     windowAgeDays,
-    excludedDays: entries.filter((e) => e.excluded).length,
+    // Jours neutralisés par une COUPURE (pas par le début de calibration).
+    excludedDays: entries.filter((e) => isExcluded(e.date, periods, 'nutrition')).length,
   };
 }

@@ -22,6 +22,11 @@ export const MEASURE_SOURCES = {
 export const PHASE_TYPES = {
   medical_stop: { label: 'Arrêt médical', cycling: false, training: false },
 };
+// Calibration du TDEE après une reprise : aucune valeur mesurée n'est publiée
+// avant ce nombre de jours croisant poids ET apport depuis le début de la
+// calibration. Strict à dessein — 14 et non les 10 du moteur ordinaire.
+export const CALIBRATION_REQUIRED_DAYS = 14;
+
 // Type de jour pendant une phase sans cyclage — clé de la cible unique.
 export const REST_DAY_TYPE = 'rest';
 

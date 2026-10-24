@@ -160,9 +160,12 @@ export function getHistoricalWeeks(data, n = 8) {
   const currentWeekStart = startOfWeek(today);
 
   const signals = extractSignals(data);
-  const tdeeStr = signals.adaptiveTDEE !== null
-    ? `${signals.adaptiveTDEE} kcal`
-    : 'N/A (recouvrement poids × apport insuffisant)';
+  const tdeeStr = signals.calibration?.active
+    ? `calibration en cours (${signals.calibration.crossedDays}/${signals.calibration.requiredDays} j croisés` +
+      ` depuis le ${signals.calibration.start}) — TDEE de départ ${signals.calibration.seedTDEE} kcal`
+    : signals.adaptiveTDEE !== null
+      ? `${signals.adaptiveTDEE} kcal`
+      : 'N/A (recouvrement poids × apport insuffisant)';
   const trendStr = signals.weightTrendPerWeek !== null
     ? `${signals.weightTrendPerWeek >= 0 ? '+' : ''}${signals.weightTrendPerWeek} kg/sem`
     : 'N/A';

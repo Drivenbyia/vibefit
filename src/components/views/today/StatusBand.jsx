@@ -33,6 +33,7 @@ const ICONS = {
   [STATUS_KIND.LOW_ADHERENCE]: AlertTriangle,
   [STATUS_KIND.PROGRESSING]: TrendingDown,
   [STATUS_KIND.TREND]: Activity,
+  [STATUS_KIND.CALIBRATING]: Activity,
 };
 
 // Échantillon de trait repris à l'identique du tracé (même épaisseur, mêmes

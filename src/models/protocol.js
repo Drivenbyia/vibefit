@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, MEASURE_SOURCES, PHASE_TYPES } from '../constants/config.js';
+import { SCHEMA_VERSION, MEASURE_SOURCES, PHASE_TYPES, CALIBRATION_REQUIRED_DAYS } from '../constants/config.js';
 
 /**
  * Protocole daté de l'app : coupures, phases et montres.
@@ -17,6 +17,11 @@ import { SCHEMA_VERSION, MEASURE_SOURCES, PHASE_TYPES } from '../constants/confi
  *     la phase. Une date prévue n'autorise rien à elle seule.
  *   devices — chronologie des montres, pour dater la source d'une mesure.
  *     { source, from, to }   (from/to inclusifs, null = ouvert)
+ *   calibration — recalibration du TDEE (objet unique, ou null).
+ *     { start, seedTDEE, requiredDays }
+ *     Avant `start`, aucune donnée n'entre dans le TDEE ; tant que
+ *     `requiredDays` jours croisés poids × apport ne sont pas réunis depuis
+ *     `start`, aucun TDEE mesuré n'est publié.
  *
  * Toutes les dates sont des clés de jour `YYYY-MM-DD` : la comparaison
  * lexicographique est alors une comparaison chronologique.
@@ -37,6 +42,9 @@ const isValidPhase = (p) =>
 const isValidDevice = (d) =>
   d && Object.hasOwn(MEASURE_SOURCES, d.source) && isDayOrNull(d.from) && isDayOrNull(d.to);
 
+const isValidCalibration = (c) =>
+  c && isDay(c.start) && Number.isFinite(c.seedTDEE) && c.seedTDEE > 0;
+
 const keepValid = (list, predicate) => (Array.isArray(list) ? list.filter(predicate) : []);
 
 /**
@@ -48,6 +56,15 @@ export function sanitizeProtocol(raw = {}) {
     periods: keepValid(raw.periods, isValidPeriod),
     phases: keepValid(raw.phases, isValidPhase),
     devices: keepValid(raw.devices, isValidDevice),
+    calibration: isValidCalibration(raw.calibration)
+      ? {
+        start: raw.calibration.start,
+        seedTDEE: raw.calibration.seedTDEE,
+        requiredDays: Number.isInteger(raw.calibration.requiredDays) && raw.calibration.requiredDays > 0
+          ? raw.calibration.requiredDays
+          : CALIBRATION_REQUIRED_DAYS,
+      }
+      : null,
   };
 }
 
@@ -81,6 +98,8 @@ export function restorableProtocol(parsed) {
   for (const key of ['periods', 'phases', 'devices']) {
     if (Array.isArray(parsed?.[key])) out[key] = clean[key];
   }
+  // `calibration: null` explicite dans le fichier = pas de calibration.
+  if (parsed && Object.hasOwn(parsed, 'calibration')) out.calibration = clean.calibration;
   return out;
 }
 

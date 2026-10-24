@@ -1152,3 +1152,23 @@ débordement, jours intacts en localStorage ; 19/08 : sélecteur TRAIN/OFF
 présent ; 01/12/2026 : pas de bouton de clôture ; 02/03/2027 : bouton,
 confirmation, `endedAt` écrit.
 
+### Étape 4 — calibration du TDEE et corrections de phase
+- `config.CALIBRATION_REQUIRED_DAYS = 14`, champ `calibration` dans le schéma.
+- `adaptiveTDEE` : `crossedValues`, `calibrationState` (compte cumulé,
+  monotone), jours < `start` neutralisés, `adaptiveTDEE` et `hasEnoughData`
+  forcés à null/false tant que la calibration est active.
+- `plateauProtocol` : `DIAGNOSIS.CALIBRATING` en tête ; semaines commencées
+  avant `start` jamais jugées. `vibeStatus` : `STATUS_KIND.CALIBRATING`.
+- `useAdaptiveTargets`, export : message de calibration avec TDEE de départ.
+- Phase (demande du 2026-10-24) : « Clore la phase » disponible à tout moment,
+  confirmation rappelant la fin prévue ; fin prévue éditable (input date,
+  refus si antérieure au début, vide = sans date).
+- Fichier de données hors dépôt : protocole v2 (TDEE 2050, cibles
+  Maintenance recalculées, calibration au 24/10). La v1 est conservée.
+
+Vérification : `npm test` **217/217** (+13) · `vite build` ✅ · rendu
+Chromium 390 px sur copie + protocole v2 : badge « cible unique 2050 », bande
+« Calibration en cours 1/14 », carte TDEE idem, édition de la fin prévue
+(15/03/2027 écrite, 01/08/2026 refusée), clôture anticipée annulée sans
+effet, jours intacts, zéro erreur, zéro débordement.
+
