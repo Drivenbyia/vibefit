@@ -16,6 +16,7 @@ import KcalTrendCard from './week/KcalTrendCard.jsx';
 import AveragesCard from './week/AveragesCard.jsx';
 import WaistCard from './week/WaistCard.jsx';
 import WeightCard from './week/WeightCard.jsx';
+import LongTrendCard from './week/LongTrendCard.jsx';
 import ReminderCard from './week/ReminderCard.jsx';
 import ExportButton from './week/ExportButton.jsx';
 
@@ -54,6 +55,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
       />
       <WaistCard waistSeries={waistSeries} />
       <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} />
+      <LongTrendCard data={data} targets={resolvedTargets} />
       <ReminderCard
         presetId={data.presetId}
         targetGap={weekly.targetGap}

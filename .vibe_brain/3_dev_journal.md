@@ -1452,3 +1452,32 @@ PR #21 (linter) : CI verte, mergée.
   suivant / retour à aujourd'hui OK.
 
 Vérification : `npm run lint` ✅ · `npm test` 292/292 · `vite build` ✅.
+
+## Session 2026-10-24 (soir) — PR n°6 : tendance sur 12 semaines
+
+PR #22 (n°8) : CI verte, mergée. Règle du développeur : aucune modification
+du modèle de données ni du stockage — tenue : aucun champ, aucune écriture.
+
+- **Forme** (méthode dataviz) : trois mesures d'unités différentes ⇒ trois
+  petits graphiques à un seul axe sur les mêmes colonnes, jamais de double
+  axe. Poids et taille en courbes (`WeekLine`, coupées aux semaines vides,
+  plancher d'amplitude 1 kg / 2 cm) ; écart en barres de part et d'autre du
+  zéro (`GapBars`, plancher d'échelle ±400 kcal/j, bande ±100 = tolérance du
+  rappel hebdo).
+- **Couleur** : validateur dataviz sur deep/warn/alert (surface sombre) —
+  vert ↔ or ΔE 2,7 en protanopie, FAIL. Donc la POSITION porte le sens
+  (haut = surplus, bas = manque, bande = dans la cible), la couleur ne fait
+  que renforcer ; légende textuelle « au-dessus (haut) / en dessous (bas) ».
+  Le même défaut existe dans `KcalTrendCard` (non traité ici).
+- **Interaction** : tap sur une colonne = lecture de la semaine (état
+  d'affichage seulement) ; vue tabulaire dans un `<details>`.
+- **Poids « lissé »** : moyenne des pesées de la semaine (le lissage d'une
+  semaine), libellé tel quel plutôt qu'un lissage 7 j glissant inventé.
+- **Retouches au rendu** : ligne de lecture sur 2 lignes à 390 px (« Sem.
+  du » retiré) ; sélection grisée confondue avec « non suivie » ⇒ point
+  agrandi + trait sous la colonne.
+
+Vérification : `npm run lint` ✅ · `npm test` **300/300** (+8) · `vite build`
+✅ · Chromium 390 px, état réel reconstitué (coupure ombrée, août lisible)
+et scénario synthétique 12 semaines avec une semaine vide : taps, tableau,
+zéro erreur, zéro débordement, **stockage identique avant/après usage**.
