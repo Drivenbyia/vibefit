@@ -7,10 +7,18 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/linter`
+- Branche active : `claude/decoupage-header-statusband`
 - **Suite de tests : Vitest, 292 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (soir) — PR n°8 : découpage Header / StatusBand
+- `Header.jsx` 116 → 54 lignes : `layout/Skyline.jsx` (silhouette + palmiers),
+  `layout/DateNav.jsx` (navigation jour par jour).
+- `StatusBand.jsx` 155 → 67 lignes : `today/StatusTrend.jsx` (légende +
+  tracé), `today/statusBandTheme.js` (tonalités et icônes).
+- Aucun changement de comportement : rendu statique de 206 variantes
+  identique à l'octet près avant/après.
 
 ### Session 2026-10-24 (soir) — PR linter
 - ESLint 9 en devDependency, `eslint.config.js`, script `lint`, étape CI.
@@ -158,8 +166,8 @@ validé étape par étape.
   → Fusionner Apple → Fusionner 12/10, zéro jour d'origine modifié.
 - **Améliorations futures (non traitées)** :
   - ~~**Historiser les cibles**~~ → traité par la PR n°4 (`targetHistory`).
-  - `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.) dépassent la règle des
-    80 lignes — déjà au-delà avant ce chantier.
+  - ~~`Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.) dépassent la règle des
+    80 lignes~~ → découpés (PR n°8).
   - Option B (Raccourci iOS → JSON → Fusionner) pour la saisie Apple.
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
@@ -453,7 +461,7 @@ src/
                          contre trajectoire prévue par le preset, plancher d'amplitude minSpan),
                          Label, SectionLabel, FontStyles (affectation des 5 rôles typo + .vf-chrome),
                          Bar (PISTE LUMINEUSE — signature, remplissage rond + glow + marqueur de cible)
-    layout/            — Header, DayTypeSwitcher, BottomNav
+    layout/            — Header (+ DateNav, Skyline), DayTypeSwitcher, PhaseBadge, BottomNav
     views/             — chaque vue = orchestrateur pur ≤ 50 lignes + sous-composants ≤ 80 lignes
       TodayView.jsx    + today/   (StatusBand = le verdict des diagnostics remonté au-dessus de
                                    la saisie, jour courant uniquement, tap → WeekView ; BalanceCard, BalanceRing = la piste refermée en anneau lumineux, EnergyStat, MacrosCard, IntakeCard, ExpenditureCard, WorkoutCard, BodyCards, NotesCard)
@@ -510,7 +518,7 @@ src/
   `4_business_decisions.md`.
 
 **En attente**
-- [ ] **Linter** (S) : *en cours — `claude/linter`*. PR séparée. `CLAUDE.md` cite `npm run lint`, absent de
+- [x] **Linter** (S) : *mergée — PR #21*. PR séparée. `CLAUDE.md` cite `npm run lint`, absent de
   `package.json`. Ajoute une devDependency ⇒ décision à documenter.
 - [ ] **n°5 — Raccourci iOS → JSON → Fusionner** (M–L, option B) : à
   vérifier d'abord que Raccourcis lit le RMSSD.
@@ -519,8 +527,8 @@ src/
 - [ ] **n°7 — Sortie de phase** (S) : rappel J−7 avant l'épreuve d'effort du
   01/03/2027, puis clôture → recalibration → 4 semaines de référence VFC. En
   février.
-- [ ] **n°8 — Dette** (S) : `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.)
-  au-delà des 80 lignes.
+- [ ] **n°8 — Dette** (S) : *en cours — `claude/decoupage-header-statusband`*.
+  `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.) au-delà des 80 lignes.
 
 **Écarté** : R2/R4/R5 (gelées, sans objet pendant l'arrêt — spec § 7) ·
 facteur Garmin ↔ Apple (décision 2026-10-24) · page d'accueil (décision

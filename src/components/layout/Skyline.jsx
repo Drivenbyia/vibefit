@@ -1,0 +1,40 @@
+import { PALETTE } from '../../constants/config.js';
+
+// Palmier stylisé : tronc + 5 palmes. Silhouette pure (fill uni), pensée pour
+// se découper sur le dégradé coucher de soleil — voir DESIGN.md §3.
+function Palm({ x, scale = 1 }) {
+  return (
+    <g transform={`translate(${x} 0) scale(${scale})`} fill={PALETTE.bg}>
+      <path d="M19 40 Q17 24 20 15 Q23 24 21 40 Z" />
+      <path d="M20 16 Q6 10 2 2 Q14 6 20 16 Z" />
+      <path d="M20 16 Q10 4 12 -6 Q22 4 20 16 Z" />
+      <path d="M20 16 Q20 2 20 -8 Q26 2 20 16 Z" />
+      <path d="M20 16 Q30 4 28 -6 Q20 4 20 16 Z" />
+      <path d="M20 16 Q34 10 38 2 Q26 6 20 16 Z" />
+    </g>
+  );
+}
+
+// L'horizon de Los Santos : silhouette d'immeubles bas + palmiers, découpée
+// sur la bande basse du dégradé SUNSET. Purement décoratif — voir DESIGN.md §3.
+export default function Skyline() {
+  return (
+    <svg
+      viewBox="0 0 390 40"
+      preserveAspectRatio="none"
+      style={{ position: 'absolute', left: 0, right: 0, bottom: -1, width: '100%', height: 30 }}
+    >
+      <g fill={PALETTE.bg}>
+        <rect x="0" y="18" width="26" height="22" />
+        <rect x="30" y="10" width="18" height="30" />
+        <rect x="140" y="14" width="22" height="26" />
+        <rect x="250" y="8" width="16" height="32" />
+        <rect x="270" y="20" width="30" height="20" />
+        <rect x="360" y="12" width="20" height="28" />
+      </g>
+      <Palm x={70} scale={0.75} />
+      <Palm x={190} scale={0.6} />
+      <Palm x={310} scale={0.85} />
+    </svg>
+  );
+}
