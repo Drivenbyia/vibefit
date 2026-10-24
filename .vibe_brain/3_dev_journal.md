@@ -1256,3 +1256,21 @@ Fusionner Apple 19–24/10 (6 jours ajoutés) → Fusionner 12/10 (1 jour ajout�
 Vérification : `npm test` **252/252** · `vite build` ✅ · zéro erreur console,
 zéro débordement.
 
+
+## Session 2026-10-24 (suite) — Backlog priorisé, PR n°3 : CI
+
+Après le merge de la PR #16, backlog d'améliorations priorisé (impact pour le
+suivi / effort), validé par le développeur et inscrit dans
+`2_project_overview.md`. Ordre : CI → protection des données → visibilité de
+la calibration → historique des cibles ; les deux derniers avant le 06/11
+(premier TDEE mesuré possible). Linter reporté à une PR séparée.
+
+### n°3 — CI
+- `.github/workflows/ci.yml` : `npm ci`, `npm test`, `npm run build`, sur
+  chaque PR et chaque push sur `main`. Node 20, aligné sur `netlify.toml`.
+  Permissions en lecture seule, annulation des runs dépassés.
+- Constat : aucune CI ni aucun linter jusqu'ici ; `npm run lint`, cité dans
+  `CLAUDE.md`, n'existe pas.
+
+Vérification locale des mêmes étapes : `npm ci` ✅ · `npm test` **252/252** ·
+`vite build` ✅.
