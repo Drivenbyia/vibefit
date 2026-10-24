@@ -1215,3 +1215,24 @@ seulement) : source « Apple Watch » déduite, bascule iPhone seul aller-retour
 « ÉCART CIBLE −10 », rappel « ⚠ Protéines 148 g/j… sous le plancher » puis
 « Pas montre 8 427/j sur 4 jours », zéro erreur, zéro débordement.
 
+### Étape 7 — saisie Apple (option A)
+- `AppleEntryGuide` (`<details>` replié) : pas, durée, RMSSD nuit, SDNN,
+  FC repos ; rappel du bouton « Pas iPhone seul ». Affiché les jours où la
+  chronologie dit Apple Watch. Libellés des écrans Santé non cités : à
+  confirmer sur l'iPhone plutôt qu'inventés.
+- `protocol.formatInfoActivities`, `InfoActivitiesCard`, ligne d'export
+  « Activités (info) ». Champ hors `emptyDay()` : forme d'un jour inchangée.
+- Fichiers d'import (scratchpad, hors dépôt) : Apple 19–24/10 (pas 24/10
+  exclus, journée en cours ; nuits attribuées à la date de réveil ; VFC =
+  moyenne des échantillons pendant le sommeil) et activités du 12/10.
+- Vérification hors phase (demandée) : 12/08 et après clôture affichent
+  `targetGapReminderCopy` ; `weeklyReminderCopy` n'est plus appelée.
+
+**Défaut de test trouvé** : mon script de rendu ciblait le premier
+`input[type=file]` (Restaurer, confirm refusé ⇒ rien importé). Le second est
+Fusionner. Corrigé dans l'outillage, pas dans l'app.
+
+Vérification : `npm test` **252/252** (+6) · `vite build` ✅ · fusion par
+l'UI sur copie : 6 jours ajoutés, jours d'origine intacts, carte « Activités
+enregistrées · info », guide présent, zéro erreur, zéro débordement.
+

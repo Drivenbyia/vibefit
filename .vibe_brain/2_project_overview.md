@@ -8,7 +8,7 @@ last_updated: 2026-10-24
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/arret-medical-etape-1`
-- **Suite de tests : Vitest, 246 tests** — `npm test`
+- **Suite de tests : Vitest, 252 tests** — `npm test`
 
 ### Session 2026-10-24 — Reprise après 2 mois : arrêt médical, coupure, Apple Watch
 Contexte : aucune saisie du 20/08 au 23/10/2026, arrêt médical (tout effort
@@ -80,9 +80,18 @@ validé étape par étape.
   l'en-tête Semaine publie l'ÉCART À LA CIBLE (`targetGap`). Rappel hebdo de
   phase : protéines vs plancher (alerte écrite) et pas MONTRE vs 8000 avant
   les calories (demande du 2026-10-24). Protocole v3 : 5 jours partiels.
-- **Nettoyage prévu après l'étape 7** : découpage de `WeekView.jsx` (88 l.),
-  `weeklyReminderCopy` désormais inutilisée (suppression à valider).
-- **À venir** : 7 saisie Apple (option A) et import des mesures listées.
+- **Étape 7 — faite (code)** : saisie Apple option A — guide repliable des
+  5 valeurs (`AppleEntryGuide`, jours Apple Watch seulement), champ optionnel
+  `infoActivities` (séances Santé à titre d'info : carte en lecture seule,
+  ligne d'export, lu par aucun calcul). Fichiers d'import hors dépôt, à passer
+  par « Fusionner » après validation de la liste : mesures Apple 19–24/10 et
+  activités du 12/10. Test de fusion par l'UI sur copie : 6 jours ajoutés,
+  aucun jour existant modifié.
+- **Nettoyage prévu après l'étape 7** : découpage de `WeekView.jsx` (88 l.) ;
+  `weeklyReminderCopy` à RÉÉCRIRE (sans Garmin ni calories montre) et à
+  rebrancher hors phase — décision du 2026-10-24, ne pas supprimer.
+  Constat : hors phase, le rappel actuel est `targetGapReminderCopy`, et les
+  semaines passées sont comparées aux cibles COURANTES (non historisées).
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
 Quatre chantiers, tous issus d'un même constat : plusieurs données étaient

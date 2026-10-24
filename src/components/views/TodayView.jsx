@@ -9,6 +9,8 @@ import WorkoutCard from './today/WorkoutCard.jsx';
 import PhaseRestCard from './today/PhaseRestCard.jsx';
 import { usePhase } from '../../hooks/usePhase.js';
 import { deviceAt } from '../../models/protocol.js';
+import InfoActivitiesCard from './today/InfoActivitiesCard.jsx';
+import AppleEntryGuide from './today/AppleEntryGuide.jsx';
 import { WeightCard, WaistCard } from './today/BodyCards.jsx';
 import SleepCard from './today/SleepCard.jsx';
 import NotesCard from './today/NotesCard.jsx';
@@ -38,8 +40,10 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
       {trainingSuspended
         ? <PhaseRestCard label={phase.label ?? phase.type} stepsTarget={stepsTarget} />
         : <WorkoutCard day={day} updateDay={updateDay} />}
+      <InfoActivitiesCard activities={day.infoActivities} />
       <WeightCard day={day} updateDay={updateDay} />
       {(isMonday || day.waist) && <WaistCard day={day} updateDay={updateDay} isMonday={isMonday} />}
+      {deviceAt(dateKey, data?.devices ?? []) === 'apple_watch' && <AppleEntryGuide />}
       <SleepCard day={day} updateDay={updateDay} />
       <NotesCard day={day} updateDay={updateDay} />
     </div>

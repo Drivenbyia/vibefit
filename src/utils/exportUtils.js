@@ -1,7 +1,7 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
-import { isExcluded, measureSource, isCyclingSuspended } from '../models/protocol.js';
+import { isExcluded, measureSource, isCyclingSuspended, formatInfoActivities } from '../models/protocol.js';
 import { computeSingleTarget, DEFAULT_TDEE } from './presetUtils.js';
 
 /**
@@ -121,6 +121,7 @@ function hasAnyData(day) {
     day && (
       day.intake?.kcal || day.workout || day.expenditure?.kcal || day.expenditure?.steps
       || day.weight || day.waist || day.heavyWork || day.notes || formatSleep(day.sleep)
+      || formatInfoActivities(day.infoActivities)
     )
   );
 }
@@ -154,6 +155,9 @@ function formatDay(key, day, data) {
   }
   if (day.workout) parts.push(`Séance: ${day.workout === 'none' ? 'aucune (repos déclaré)' : day.workout}`);
   if (day.heavyWork) parts.push('Chantier: oui');
+  // Séances Apple Santé : info seulement, publiées pour le lecteur, lues par aucun calcul.
+  const infoActs = formatInfoActivities(day.infoActivities);
+  if (infoActs) parts.push(`Activités (info): ${infoActs}`);
   if (day.weight) parts.push(`Poids: ${day.weight} kg`);
   if (day.waist) parts.push(`Tour de taille: ${day.waist} cm`);
   if (sleepStr) parts.push(`Sommeil: ${sleepStr}${sourceTag(measureSource(key, day, 'sleep', devices))}`);

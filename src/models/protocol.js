@@ -177,3 +177,20 @@ export function measureSource(key, day, measure, devices = []) {
   if (explicit && Object.hasOwn(MEASURE_SOURCES, explicit)) return explicit;
   return deviceAt(key, devices);
 }
+
+// --- Activités d'information (Apple Santé) ---------------------------------
+// Champ OPTIONNEL d'un jour : `infoActivities: [{ type, durationMin, source }]`.
+// Gardé à titre d'info uniquement — aucun calcul (type de jour, cible, TDEE,
+// règles) ne le lit. Absent d'`emptyDay()` à dessein : la forme d'un jour vide
+// ne change pas.
+const ACTIVITY_LABELS = { cycling: 'vélo', walking: 'marche' };
+
+/** « vélo 23 min (Fitness) · marche 4 min (Fitness) » — chaîne vide si rien. */
+export function formatInfoActivities(activities) {
+  if (!Array.isArray(activities)) return '';
+  return activities
+    .filter((a) => a && typeof a.type === 'string' && Number.isFinite(a.durationMin))
+    .map((a) => `${ACTIVITY_LABELS[a.type] ?? a.type} ${Math.round(a.durationMin)} min${a.source ? ` (${a.source})` : ''}`)
+    .join(' · ');
+}
+
