@@ -1432,3 +1432,23 @@ a posé un `typeOverride` (sans effet de calcul, jour dans la coupure).
 Vérification : `npm run lint` ✅ 0 · `npm test` 292/292 · `vite build` ✅ ·
 rendu 390 px des 4 onglets sur copie de l'état reconstitué : zéro erreur,
 zéro débordement.
+
+## Session 2026-10-24 (soir) — PR n°8 : découpage Header / StatusBand
+
+PR #21 (linter) : CI verte, mergée.
+
+- `Header.jsx` 116 → 54 : `Skyline` (+ `Palm`) et `DateNav` extraits tels
+  quels (styles, libellés, `aria-label` inchangés). `today` reste calculé
+  dans `Header` et passé à `DateNav`.
+- `StatusBand.jsx` 155 → 67 : `StatusTrend` (Swatch, LegendItem, légende,
+  Sparkline) et `statusBandTheme.js` (TONES, ICONS) — commentaires de
+  justification déplacés avec le code qu'ils expliquent.
+- **Preuve d'équivalence** : script hors dépôt rendant en statique
+  (`renderToStaticMarkup`) Header × 5 dates/phases × 2 overrides et
+  StatusBand × 5 tonalités × 13 types × 3 variantes (+ `null`), soit 206
+  rendus, 465 158 octets : `cmp` identique avant/après.
+- Navigateur 390 px : 4 onglets sans erreur ni débordement, hauteurs de
+  page identiques à la mesure d'avant découpage ; navigation précédent /
+  suivant / retour à aujourd'hui OK.
+
+Vérification : `npm run lint` ✅ · `npm test` 292/292 · `vite build` ✅.
