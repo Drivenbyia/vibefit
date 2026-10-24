@@ -160,7 +160,9 @@ export function getHistoricalWeeks(data, n = 8) {
     signals.windowStart && signals.windowEnd
       ? `${signals.windowStart} → ${signals.windowEnd}` +
         (signals.windowAgeDays > 7 ? ` ⚠ fenêtre vieille de ${signals.windowAgeDays} j` : '')
-      : 'N/A';
+      : signals.excludedDays > 0
+        ? 'N/A (aucune fenêtre de 14 j hors période non suivie)'
+        : 'N/A';
   // Le nombre de jours de chantier dans la fenêtre qualifie la REPRÉSENTATIVITÉ
   // du TDEE : une fenêtre riche en effort lourd décrit une quinzaine chargée,
   // et recalibrer dessus fixerait des cibles trop hautes pour une quinzaine

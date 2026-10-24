@@ -8,7 +8,7 @@ last_updated: 2026-10-24
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/arret-medical-etape-1`
-- **Suite de tests : Vitest, 172 tests** — `npm test`
+- **Suite de tests : Vitest, 182 tests** — `npm test`
 
 ### Session 2026-10-24 — Reprise après 2 mois : arrêt médical, coupure, Apple Watch
 Contexte : aucune saisie du 20/08 au 23/10/2026, arrêt médical (tout effort
@@ -25,9 +25,23 @@ validé étape par étape.
   (chronologie des montres), source de mesure explicite ou déduite. Restauration
   qui garde ces listes, export horodaté à la minute, phase/coupure/montre et
   sources publiées dans le rapport. **Aucun calcul n'est encore branché.**
-- **À venir** : 2 coupure dans les calculs · 3 phase arrêt médical (cible
-  unique) · 4 recalibration (2050 kcal, 14 j croisés) · 5 suspensions ·
-  6 sources et références Apple · 7 saisie Apple (option A).
+- **Étape 2 — faite** : la coupure (périmètre nutrition) est branchée.
+  `extractSignals` neutralise les jours coupés, traite chaque segment
+  séparément (rejet des aberrants, interpolation, lissage) et n'accepte que des
+  fenêtres de 14 jours sans jour coupé — plus de fenêtre tronquée. Tracé et
+  poids courant limités au dernier segment. `computeWeeklyHistory` vide les
+  champs nutritionnels des jours coupés (pas et sommeil intacts) et expose
+  `excludedDays` ; `diagnose()` ne juge que les semaines postérieures à la
+  dernière semaine coupée.
+- **Arbitrages validés pour la suite** : cible unique = (TRAIN+OFF)/2 puis
+  plancher 1600 (Maintenance = TDEE) · pas iPhone du 29/09 au 18/10 étiquetés
+  sous-estimés, période exclue de tout · VFC : RMSSD nocturne en principal,
+  SDNN en complément, nouvelle référence Apple · séances Santé (vélo 12/10, 2
+  marches) gardées à titre d'info seulement · ECG ignoré · jours partiels
+  (20/08, 21/08, 05/09, 28/09, 19/10) exclus de toute référence.
+- **À venir** : 3 phase arrêt médical (cible unique) · 4 recalibration (2050
+  kcal, 14 j croisés) · 5 suspensions · 6 sources et références Apple ·
+  7 saisie Apple (option A).
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
 Quatre chantiers, tous issus d'un même constat : plusieurs données étaient

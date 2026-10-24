@@ -1108,3 +1108,26 @@ données réelles : 56 jours et réglages strictement identiques après migratio
 restauration du fichier de protocole, `extractSignals` identique, aller-retour
 JSON stable. ESLint : aucune config dans le dépôt, non exécutable.
 
+### Étape 2 — la coupure dans les calculs nutritionnels
+- `adaptiveTDEE.bySegment` : rejet des aberrants, interpolation et lissage
+  appliqués **par segment** continu hors coupure. Sans coupure, un seul segment
+  ⇒ résultat strictement identique (testé).
+- `findBestWindow` écarte toute fenêtre contenant un jour coupé et renvoie
+  `null` s'il n'en reste aucune : la dégradation « fenêtre tronquée » aurait
+  publié un TDEE sur 3 jours de reprise.
+- `computeWeeklyHistory` : nutrition vidée sur les jours coupés, pas/sommeil
+  intacts (leur exclusion relèvera de la source, étape 6), `excludedDays`.
+- `diagnose()` : seules les semaines après la dernière semaine coupée.
+- **Défaut trouvé au rejeu sur copie** : à J10 de la reprise, le diagnostic
+  annonçait « 0 jours croisant poids et apport » (aucune fenêtre ⇒ overlap 0)
+  alors que 10 jours étaient saisis. Message dédié dans `diagnose()` et
+  `useAdaptiveTargets`.
+- **Effet de bord voulu** : le TDEE ne peut plus paraître avant 14 jours
+  calendaires après la coupure (avant : dès 10 jours croisés). La règle stricte
+  « 14 jours croisés » reste l'objet de l'étape 4.
+
+Vérification : `npm test` **182/182** · `vite build` ✅ · contre-épreuve :
+4 tests de coupure échouent sur l'ancien moteur · rejeu sur copie réelle au
+19/08 (identique avec/sans coupure), 10/09, 24/10, et sur une reprise FICTIVE
+de 14 jours (J10 : pas de TDEE ; J14 : 2050, fenêtre 24/10 → 06/11).
+

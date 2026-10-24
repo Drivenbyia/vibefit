@@ -71,13 +71,30 @@ export function diagnose({ signals, weeklyHistory = [] }) {
   // 7 jours écoulés, et la compter ferait passer tout début de semaine pour un
   // défaut d'adhérence. (`elapsedDays` absent ⇒ semaine déjà complète.)
   const complete = weeklyHistory.filter((w) => (w?.elapsedDays ?? 7) >= 7);
+  // Coupure : seules les semaines complètes POSTÉRIEURES à la dernière semaine
+  // touchée par une période non suivie sont jugées. Une semaine coupée n'est
+  // ni un défaut d'adhérence, ni un point de comparaison — le TDEE implicite
+  // calculé entre une semaine d'août et une semaine d'octobre n'a pas de sens.
+  const lastCutIdx = complete.map((w) => (w?.excludedDays ?? 0) > 0).lastIndexOf(true);
+  const sinceCut = complete.slice(lastCutIdx + 1);
+  const cutSuffix = lastCutIdx >= 0 ? ' depuis la période non suivie' : '';
   // Une semaine de recul supplémentaire sert à calculer le TDEE implicite
   // de la plus ancienne semaine évaluée.
-  const tail = complete.slice(-(PLATEAU_MIN_WEEKS + 1));
+  const tail = sinceCut.slice(-(PLATEAU_MIN_WEEKS + 1));
   const recent = tail.length > PLATEAU_MIN_WEEKS ? tail.slice(1) : tail;
   const weeksEvaluated = recent.length;
 
   // 1. Porte de données — priorité absolue (R1 de la spec)
+  // Reprise après une coupure : tant qu'aucune fenêtre complète de 14 jours
+  // n'existe après elle, le compte « 0 jour croisé » serait faux — des jours
+  // ont bien été saisis, c'est la fenêtre qui n'est pas encore formée.
+  if (signals?.windowStart == null && (signals?.excludedDays ?? 0) > 0) {
+    return result(
+      DIAGNOSIS.INSUFFICIENT_DATA,
+      'Fenêtre de 14 jours pas encore complète depuis la période non suivie.',
+      weeksEvaluated
+    );
+  }
   if (!signals?.hasEnoughData || signals?.adaptiveTDEE == null) {
     return result(
       DIAGNOSIS.INSUFFICIENT_DATA,
@@ -88,7 +105,7 @@ export function diagnose({ signals, weeklyHistory = [] }) {
   if (weeksEvaluated < PLATEAU_MIN_WEEKS) {
     return result(
       DIAGNOSIS.INSUFFICIENT_DATA,
-      `${weeksEvaluated} semaine(s) d’historique — il en faut ${PLATEAU_MIN_WEEKS} pour conclure.`,
+      `${weeksEvaluated} semaine(s) complète(s) d’historique${cutSuffix} — il en faut ${PLATEAU_MIN_WEEKS} pour conclure.`,
       weeksEvaluated
     );
   }

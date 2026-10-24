@@ -1,5 +1,6 @@
 import { dayType } from '../models/day.js';
 import { toKey, startOfWeek, addDays } from './dateUtils.js';
+import { isExcluded } from '../models/protocol.js';
 
 export const num = (v) => {
   const n = parseFloat(v);
@@ -85,9 +86,18 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
     // défaut d'adhérence (1 jour saisi sur 7 attendus).
     const elapsedDays = days.filter(({ key }) => key <= todayKey).length;
 
-    const weekly = calculateWeeklyBalance(days, targets);
-    const { avgWeight } = calculateWeightStats(days);
-    const waists = days
+    // Périmètre NUTRITION : les jours d'une coupure sont vidés pour l'apport,
+    // le poids, la taille, l'adhérence et le chantier. Les pas et le sommeil
+    // gardent `days` — leur exclusion dépend de la source (étape montres), pas
+    // de la coupure : une nuit Apple Watch du 19/10 reste une vraie mesure.
+    const periods = data?.periods ?? [];
+    const nutritionDays = days.map(({ key, day }) =>
+      (isExcluded(key, periods, 'nutrition') ? { key, day: null } : { key, day }));
+    const excludedDays = days.filter(({ key }) => isExcluded(key, periods, 'nutrition')).length;
+
+    const weekly = calculateWeeklyBalance(nutritionDays, targets);
+    const { avgWeight } = calculateWeightStats(nutritionDays);
+    const waists = nutritionDays
       .map(({ day }) => (day?.waist ? num(day.waist) : null))
       .filter((v) => v !== null);
 
@@ -110,7 +120,10 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
       // Même logique que les pas : le sommeil vient de la montre et continue
       // d'être remonté les semaines où rien n'est loggé côté nutrition.
       sleep: aggregateSleep(days),
-      heavyWorkDays: days.filter(({ day }) => day?.heavyWork).length,
+      heavyWorkDays: nutritionDays.filter(({ day }) => day?.heavyWork).length,
+      // Jours de la semaine neutralisés par une coupure — une semaine qui en
+      // contient n'est jamais jugée par le protocole de plateau.
+      excludedDays,
     };
   });
 };
