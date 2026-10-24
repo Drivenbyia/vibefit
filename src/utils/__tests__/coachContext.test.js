@@ -65,4 +65,42 @@ describe('formatCoachContext', () => {
     formatCoachContext(data, { today: TODAY });
     expect(JSON.stringify(data)).toBe(before);
   });
+
+  describe('coupure : mesures d’avant marquées « avant coupure »', () => {
+    const CUT = { id: 'c', type: 'untracked', start: '2026-08-20', end: '2026-10-23', scope: 'nutrition' };
+    const before = {
+      '2026-08-03': { waist: '91', weight: '78.6' },
+      '2026-08-10': { waist: '88.5', weight: '78.3' },
+      '2026-08-17': { waist: '90.5', weight: '78', sleep: { hrv: '52', rhr: '57', durationMin: '420' },
+        intake: { kcal: '2100', protein: '165' }, expenditure: { steps: '9100' } },
+    };
+    const DEVICES = [{ source: 'garmin', from: null, to: '2026-10-18' }, { source: 'apple_watch', from: '2026-10-19', to: null }];
+    const base = { periods: [CUT], devices: DEVICES };
+
+    it('aucune mesure depuis la reprise : « — (dernière : …, avant coupure) », montre nommée pour la VFC', () => {
+      const lines = formatCoachContext({ ...base, days: before }, { today: TODAY });
+      expect(field(lines, 'Tour de taille (3 dernières mesures)')).toBe('— (dernière : 90,5 cm le 17/08, avant coupure)');
+      expect(field(lines, 'Poids lissé')).toBe('— (dernière : 78,0 kg le 17/08, avant coupure)');
+      expect(field(lines, 'Pas montre (7 j)')).toMatch(/^— \(dernière : 9\s100 pas le 17\/08, avant coupure\)$/);
+      expect(field(lines, 'Protéines (7 j)')).toBe('— (dernière : 165 g le 17/08, avant coupure)');
+      expect(field(lines, 'Sommeil (7 j)')).toBe('— (dernière : 7 h 00 le 17/08, avant coupure)');
+      expect(field(lines, 'VFC RMSSD (nuit)')).toBe('— (dernière : 52 ms (Garmin) le 17/08, avant coupure)');
+      expect(field(lines, 'FC repos')).toBe('— (dernière : 57 bpm (Garmin) le 17/08, avant coupure)');
+    });
+
+    it('une mesure depuis la reprise : listée en premier, les anciennes marquées', () => {
+      vi.setSystemTime(new Date(2026, 9, 26, 20));
+      const days = { ...before, '2026-10-26': { waist: '87' } };
+      const lines = formatCoachContext({ ...base, days }, { today: '2026-10-26' });
+      expect(field(lines, 'Tour de taille (3 dernières mesures)'))
+        .toBe('87,0 cm (26/10) · 90,5 cm (17/08, avant coupure) · 88,5 cm (10/08, avant coupure)');
+    });
+
+    it('moyenne 7 j qui inclut un jour d’avant une coupure courte : signalé', () => {
+      const short = { id: 's', type: 'untracked', start: '2026-10-22', end: '2026-10-23', scope: 'nutrition' };
+      const days = { '2026-10-20': { expenditure: { steps: '9000' } }, '2026-10-24': { expenditure: { steps: '8000' } } };
+      const lines = formatCoachContext({ days, periods: [short], devices: DEVICES }, { today: TODAY });
+      expect(field(lines, 'Pas montre (7 j)')).toMatch(/inclut des jours avant coupure$/);
+    });
+  });
 });

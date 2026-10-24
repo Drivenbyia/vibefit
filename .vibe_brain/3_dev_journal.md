@@ -1594,3 +1594,25 @@ Vérification : `npm run lint` ✅ · `npm test` **323/323** (+2) · `vite build
 ✅ · Chromium 390 px : état réel ⇒ action calibration ; 12 semaines sans
 taille ni calibration ⇒ action tour de taille (avant la recalibration +384) ;
 zéro erreur, stockage inchangé.
+
+## Session 2026-10-24 (nuit) — PR lundi et coupure
+
+PR #28 : CI verte, mergée.
+
+- **Lundi** : `isMonday && waistMissing` ⇒ action tour de taille AVANT la
+  calibration (le lundi est le jour de la mesure à jeun ; un jour de
+  calibration se rattrape). Les autres jours, ordre inchangé.
+- **Avant coupure** (`coachContext`) : `lastCut` = période `untracked` la
+  plus récente commencée au plus tard aujourd'hui ; `lastBeforeCut` =
+  dernière mesure datée d'avant son DÉBUT. Taille : 3 dernières mesures,
+  celles d'avant marquées ; aucune depuis la reprise ⇒ « — (dernière : …,
+  avant coupure) ». Même repli pour poids, pas, protéines, sommeil, VFC et
+  FC repos — les deux dernières avec la montre nommée (Garmin ≠ Apple
+  Watch). Moyenne 7 j avec un jour d'avant ⇒ « inclut des jours avant
+  coupure ».
+
+Vérification : `npm run lint` ✅ · `npm test` **327/327** (+4) · `vite build`
+✅ · Chromium 390 px : rapport copié sur l'état reconstitué (« — (dernière :
+90,5 cm le 17/08, avant coupure) ») ; horloge fixée au lundi 26/10 ⇒ action
+tour de taille, lundi avec mesure ⇒ calibration, mardi ⇒ calibration ;
+zéro erreur, stockage inchangé.

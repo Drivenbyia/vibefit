@@ -48,6 +48,7 @@ export function useWeeklyCheckIn(data, targets, stepsTarget) {
       week,
       inProgress: idx === last,
       waistMissing,
+      isMonday: now.getDay() === 1,
       prevWeek: weeks[idx - 1],
       protein: { days: logged.length, underDays: logged.filter(({ day }) => num(day.intake.protein) < floor).length, floor },
       steps: watchStepsAverage(days, { devices: data?.devices ?? [], periods }),

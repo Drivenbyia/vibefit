@@ -7,10 +7,20 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/bilan-tour-de-taille`
-- **Suite de tests : Vitest, 323 tests** — `npm test`
+- Branche active : `claude/lundi-et-coupure`
+- **Suite de tests : Vitest, 327 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (nuit) — PR lundi et coupure
+- Bilan : le LUNDI, sans tour de taille saisi, le rappel passe AVANT la
+  calibration ; les autres jours, il reste juste après.
+- Contexte courant : dernière coupure = période non suivie la plus récente.
+  Toute mesure datée d'avant son début est marquée « avant coupure » ; sans
+  mesure depuis la reprise, « — (dernière : 90,5 cm le 17/08, avant
+  coupure) » — pour tous les champs mesurés (taille, poids, pas, protéines,
+  sommeil, VFC et FC repos, ces deux-là avec la montre nommée). Une moyenne
+  7 j qui inclut un jour d'avant la coupure le signale.
 
 ### Session 2026-10-24 (nuit) — PR bilan : tour de taille (n°12)
 - `weeklyCheckIn` : action « Mesure ton tour de taille à jeun » quand aucune
@@ -594,8 +604,10 @@ src/
   pendant l'arrêt (décision du 2026-10-24).
 - [x] **n°3bis — Bilan du dimanche** : *mergée — PR #26*.
 - [x] **n°11 — Export : contexte courant pour le coach** : *mergée — PR #27*.
-- [ ] **n°12 — Bilan : tour de taille du lundi** : *en cours —
-  `claude/bilan-tour-de-taille`*. la semaine écoulée en une carte —
+- [x] **n°12 — Bilan : tour de taille du lundi** : *mergée — PR #28* ; le lundi,
+  avant la calibration (PR lundi et coupure).
+- [ ] **n°13 — Contexte courant : mesures « avant coupure »** : *en cours —
+  `claude/lundi-et-coupure`*. la semaine écoulée en une carte —
   TDEE mesuré et recalibration proposée avec sa raison, verdicts, une
   seule action. Rien n'est stocké.
 - [ ] **n°7 — Sortie de phase** (S) : rappel J−7 avant l'épreuve d'effort du
