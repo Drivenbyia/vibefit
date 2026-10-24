@@ -1,45 +1,57 @@
 /**
- * Texte du "Rappel hebdo" adapté au type d'objectif du preset actif.
- * Logique métier pure — aucune dépendance UI.
+ * Rappel hebdo HORS PHASE, adapté à l'objectif du preset.
+ *
+ * Réécrit le 2026-10-24 : l'ancienne version raisonnait sur le solde
+ * « apport − calories totales Garmin » et renvoyait vers la montre en cas
+ * d'écart. Les calories de la montre ne pilotent plus rien ; la cible du jour
+ * porte déjà le déficit ou le surplus du preset. Le constat se fait donc sur
+ * l'ÉCART À LA CIBLE (apport − cible, jours saisis), et l'objectif du preset
+ * explique ce que cet écart signifie.
+ *
+ * Le chiffre (`targetGapReminderCopy`) est affiché à côté ; `hint` n'ajoute
+ * que la conséquence propre au preset quand l'écart sort de ±100 kcal/j.
+ *
+ * @param {string} presetId
+ * @param {number} targetGap      — écart cumulé apport − cible (kcal)
+ * @param {number} comparableDays — jours saisis comparés à une cible
+ * @returns {{ goal: string, hint: string }}
  */
-export function weeklyReminderCopy(presetId, netBalance, recordedDays) {
+export function weeklyReminderCopy(presetId, targetGap, comparableDays) {
+  const perDay = comparableDays > 0 ? targetGap / comparableDays : 0;
+  const above = comparableDays > 0 && perDay > ON_TARGET_KCAL;
+  const below = comparableDays > 0 && perDay < -ON_TARGET_KCAL;
+
   if (presetId === 'bulk') {
     return {
-      goal: 'Le surplus hebdo cible est ≈ +1900 kcal.',
-      hint: netBalance > 0 && netBalance < 1000 && recordedDays > 0
-        ? " Continue, c'est bon."
-        : netBalance <= 0 && recordedDays > 0
-        ? ' Vérifie que tu saisis bien les calories totales Garmin.'
-        : netBalance >= 2500
-        ? ' Surplus important : surveille la prise de masse pour rester propre.'
-        : '',
+      goal: 'Prise de masse : le surplus est déjà inclus dans tes cibles — tenir la cible du jour suffit.',
+      hint: below ? ' Sous la cible, le surplus prévu n’est pas atteint.'
+        : above ? ' Au-dessus de la cible, le surplus dépasse ce que prévoit le preset.' : '',
     };
   }
   if (presetId === 'cut_light' || presetId === 'cut_strong') {
     return {
-      goal: 'Le déficit hebdo cible est ≈ −1900 kcal.',
-      hint: netBalance > -1000 && netBalance < 0 && recordedDays > 0
-        ? " Continue, c'est bon."
-        : netBalance >= 0 && recordedDays > 0
-        ? ' Vérifie que tu saisis bien les calories totales Garmin.'
-        : netBalance <= -2500
-        ? ' Déficit important : assure-toi de bien recharger les jours TRAIN.'
-        : '',
+      goal: 'Sèche : le déficit est déjà inclus dans tes cibles — tenir la cible du jour suffit.',
+      hint: above ? ' Au-dessus de la cible, le déficit prévu fond d’autant.'
+        : below ? ' Sous la cible : le plancher reste 1600 kcal et les protéines du preset.' : '',
     };
   }
-  // maintenance & diet_break — objectif d'équilibre, pas de cyclage actif
+  if (presetId === 'diet_break') {
+    return {
+      goal: 'Diet break : apport au niveau du TDEE, sans cyclage.',
+      hint: above || below ? ' L’écart éloigne du maintien visé.' : '',
+    };
+  }
+  // maintenance (et preset personnalisé) — cyclage TRAIN/OFF autour du TDEE
   return {
-    goal: "L'objectif est un solde proche de l'équilibre (≈ 0 kcal) — pas de cyclage actif.",
-    hint: Math.abs(netBalance) <= 700 && recordedDays > 0
-      ? ' Tu es dans la cible, tout va bien.'
-      : Math.abs(netBalance) > 1500 && recordedDays > 0
-      ? ' Écart marqué par rapport à ton TDEE — vérifie tes saisies Garmin si besoin.'
-      : '',
+    goal: 'Maintenance : cyclage TRAIN/OFF autour du TDEE — tenir la cible de chaque jour.',
+    hint: above || below ? ' L’écart éloigne du maintien visé.' : '',
   };
 }
 
 // En deçà, l'écart moyen apport − cible est sous la précision de la saisie.
-const PHASE_ON_TARGET_KCAL = 100;
+// Partagé par les rappels de phase et hors phase.
+const ON_TARGET_KCAL = 100;
+const PHASE_ON_TARGET_KCAL = ON_TARGET_KCAL;
 
 /**
  * Rappel hebdo pendant une phase sans cyclage (arrêt médical).

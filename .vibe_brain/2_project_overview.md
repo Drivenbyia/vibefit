@@ -87,11 +87,20 @@ validé étape par étape.
   par « Fusionner » après validation de la liste : mesures Apple 19–24/10 et
   activités du 12/10. Test de fusion par l'UI sur copie : 6 jours ajoutés,
   aucun jour existant modifié.
-- **Nettoyage prévu après l'étape 7** : découpage de `WeekView.jsx` (88 l.) ;
-  `weeklyReminderCopy` à RÉÉCRIRE (sans Garmin ni calories montre) et à
-  rebrancher hors phase — décision du 2026-10-24, ne pas supprimer.
-  Constat : hors phase, le rappel actuel est `targetGapReminderCopy`, et les
-  semaines passées sont comparées aux cibles COURANTES (non historisées).
+- **Nettoyage — fait** : `weeklyReminderCopy` réécrite (objectif par preset,
+  constat sur l'écart à la cible, plus de Garmin ni de calories montre) et
+  rebranchée hors phase ; `WeekView.jsx` 88 → 77 lignes (`WeekDiagnostics`).
+  Procédure finale rejouée sur la sauvegarde brute : migration → Restaurer v3
+  → Fusionner Apple → Fusionner 12/10, zéro jour d'origine modifié.
+- **Améliorations futures (non traitées)** :
+  - **Historiser les cibles** : les semaines passées sont comparées aux cibles
+    COURANTES (écart à la cible, rappel, tendance calorique). Une semaine
+    d'août est jugée contre la cible 2050 d'octobre. Piste : journaliser
+    `{ date, presetId, baseTDEE, targets }` à chaque changement et résoudre la
+    cible d'un jour à sa date.
+  - `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.) dépassent la règle des
+    80 lignes — déjà au-delà avant ce chantier.
+  - Option B (Raccourci iOS → JSON → Fusionner) pour la saisie Apple.
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
 Quatre chantiers, tous issus d'un même constat : plusieurs données étaient

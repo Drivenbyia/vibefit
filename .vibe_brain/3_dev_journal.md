@@ -1236,3 +1236,23 @@ Vérification : `npm test` **252/252** (+6) · `vite build` ✅ · fusion par
 l'UI sur copie : 6 jours ajoutés, jours d'origine intacts, carte « Activités
 enregistrées · info », guide présent, zéro erreur, zéro débordement.
 
+### Nettoyage
+- `weeklyReminderCopy(presetId, targetGap, comparableDays)` réécrite à la
+  demande du développeur (ne pas supprimer) : objectif propre au preset,
+  conséquence seulement hors ±100 kcal/j, plus aucune mention de Garmin, du
+  solde ni des calories montre. Rebranchée dans `ReminderCard` hors phase,
+  à côté de `targetGapReminderCopy` (le chiffre). Le test d'étape 5 qui
+  figeait l'ancien texte est remplacé par un test du nouveau contrat.
+- `WeekDiagnostics.jsx` extrait de `WeekView.jsx` (88 → 77 lignes).
+- Amélioration future notée : cibles non historisées.
+
+**Procédure finale rejouée** dans Chromium à partir de la sauvegarde brute
+(`vibefit_v1` v1) : migration (jours identiques) → Restaurer protocole v3
+(TDEE 2050, 1 phase, 6 périodes, calibration 24/10, jours identiques) →
+Fusionner Apple 19–24/10 (6 jours ajoutés) → Fusionner 12/10 (1 jour ajouté)
+→ 0 jour d'origine modifié, 63 jours. Badge « cible unique 2050 », bande
+« Calibration en cours 0/14 », rappel avec pas montre 8 427/j sur 4 jours.
+
+Vérification : `npm test` **252/252** · `vite build` ✅ · zéro erreur console,
+zéro débordement.
+

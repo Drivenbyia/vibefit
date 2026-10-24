@@ -1,16 +1,17 @@
 import { PALETTE } from '../../../constants/config.js';
-import { phaseReminderCopy, phaseLeversCopy, targetGapReminderCopy } from '../../../utils/reminderUtils.js';
+import { phaseReminderCopy, phaseLeversCopy, targetGapReminderCopy, weeklyReminderCopy } from '../../../utils/reminderUtils.js';
 import Card from '../../ui/Card.jsx';
 
 /**
  * Rappel hebdo.
  *   - Pendant une phase (`phase`) : leviers prioritaires d'abord (protéines,
  *     pas montre), puis la cible unique.
- *   - Hors phase : écart cumulé à la cible.
+ *   - Hors phase : objectif du preset, écart cumulé à la cible, conséquence.
  * Plus aucune référence aux calories de la montre : elles ne pilotent rien.
  */
-export default function ReminderCard({ targetGap, comparableDays, phase = null, levers = null }) {
+export default function ReminderCard({ presetId, targetGap, comparableDays, phase = null, levers = null }) {
   const phaseCopy = phase ? phaseReminderCopy(phase) : null;
+  const presetCopy = phase ? null : weeklyReminderCopy(presetId, targetGap, comparableDays);
   const leverLines = phase && levers ? phaseLeversCopy(levers) : [];
 
   return (
@@ -36,7 +37,7 @@ export default function ReminderCard({ targetGap, comparableDays, phase = null, 
           <div style={{ fontSize: 13, color: PALETTE.ink, lineHeight: 1.5, marginTop: leverLines.length ? 6 : 0 }}>
             {phaseCopy
               ? `${phaseCopy.lead}${phaseCopy.week}${phaseCopy.hint}`
-              : targetGapReminderCopy(targetGap, comparableDays)}
+              : `${presetCopy.goal} ${targetGapReminderCopy(targetGap, comparableDays)}${presetCopy.hint}`}
           </div>
         </div>
       </div>

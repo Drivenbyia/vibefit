@@ -90,7 +90,20 @@ describe('rappel hebdo — pendant la phase', () => {
       });
   });
 
-  it('hors phase, le rappel ordinaire est inchangé', () => {
-    expect(weeklyReminderCopy('maintenance', 0, 5).goal).toContain('pas de cyclage actif');
+  it('hors phase : rappel par preset, sans Garmin ni calories montre', () => {
+    for (const preset of ['maintenance', 'cut_light', 'cut_strong', 'bulk', 'diet_break', 'custom']) {
+      for (const gap of [-1400, 0, 1400]) {
+        const { goal, hint } = weeklyReminderCopy(preset, gap, 5);
+        expect(goal + hint).not.toMatch(/Garmin|montre|solde|totales/i);
+      }
+    }
+    // Dans la cible (±100 kcal/j) : aucune conséquence ajoutée.
+    expect(weeklyReminderCopy('cut_light', 300, 5).hint).toBe('');
+    // Écart : la conséquence dépend de l'objectif du preset.
+    expect(weeklyReminderCopy('cut_light', 1400, 5).hint).toBe(' Au-dessus de la cible, le déficit prévu fond d’autant.');
+    expect(weeklyReminderCopy('bulk', -1400, 5).hint).toBe(' Sous la cible, le surplus prévu n’est pas atteint.');
+    expect(weeklyReminderCopy('maintenance', 0, 5).goal).toBe('Maintenance : cyclage TRAIN/OFF autour du TDEE — tenir la cible de chaque jour.');
+    // Semaine vide : pas de conséquence inventée.
+    expect(weeklyReminderCopy('bulk', 0, 0).hint).toBe('');
   });
 });

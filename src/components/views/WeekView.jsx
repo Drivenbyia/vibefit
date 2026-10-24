@@ -6,9 +6,7 @@ import { useNeatDrift } from '../../hooks/useNeatDrift.js';
 import { useSleepDiagnosis } from '../../hooks/useSleepDiagnosis.js';
 import { useClipboardCopy } from '../../hooks/useClipboardCopy.js';
 import { usePhase } from '../../hooks/usePhase.js';
-import DiagnosisCard from './week/DiagnosisCard.jsx';
-import NeatCard from './week/NeatCard.jsx';
-import SleepDiagnosisCard from './week/SleepDiagnosisCard.jsx';
+import WeekDiagnostics from './week/WeekDiagnostics.jsx';
 import Card from '../ui/Card.jsx';
 import WeekSummary from './week/WeekSummary.jsx';
 import WeekCalendar from './week/WeekCalendar.jsx';
@@ -41,25 +39,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
         <WeekSummary start={start} recordedDays={weekly.recordedDays} trackedDays={trackedDays} targetGap={weekly.targetGap} comparableDays={weekly.comparableDays} />
         <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} />
       </Card>
-      <DiagnosisCard
-        status={diagnosis.status}
-        label={diagnosis.label}
-        detail={diagnosis.detail}
-        weeksEvaluated={diagnosis.weeksEvaluated}
-      />
-      <NeatCard
-        status={neat.status}
-        label={neat.label}
-        detail={neat.detail}
-        currentSteps={neat.currentSteps}
-        baselineSteps={neat.baselineSteps}
-      />
-      <SleepDiagnosisCard
-        status={sleepDiagnosis.status}
-        label={sleepDiagnosis.label}
-        detail={sleepDiagnosis.detail}
-        avgDurationMin={sleepDiagnosis.avgDurationMin}
-      />
+      <WeekDiagnostics diagnosis={diagnosis} neat={neat} sleep={sleepDiagnosis} />
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} showSessions={!inPhase} />
       <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} phases={data.phases} />
       <AveragesCard
@@ -73,6 +53,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
       <WaistCard waistSeries={waistSeries} />
       <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} />
       <ReminderCard
+        presetId={data.presetId}
         targetGap={weekly.targetGap}
         comparableDays={weekly.comparableDays}
         phase={inPhase ? {
