@@ -1551,3 +1551,28 @@ Vérification : `npm run lint` ✅ · `npm test` **317/317** (+7) · `vite build
 ✅ · Chromium 390 px, état réel (semaine en cours, action calibration) et
 12 semaines synthétiques (recalibration proposée +384) : zéro erreur, zéro
 débordement, stockage inchangé.
+
+## Session 2026-10-24 (nuit) — PR export : contexte courant pour le coach
+
+PR #26 (bilan du dimanche) : CI verte, mergée.
+
+**Question du développeur — « Calibration 0/14 » malgré poids et apport le
+24/10 ?** Vérifié : pas un bug. Le compteur inclut le jour en cours dès que
+poids ET apport sont valides (sonde : « 77.0 / 1850 », « 77,0 / 1850 » et
+nombres ⇒ 1/14 ; rendu navigateur avec ces valeurs ⇒ « 1/14 j »). Le 0/14
+du récapitulatif venait de ma copie de test, sans apport le 24/10. Seul cas
+où un vrai jour ne compte pas : apport < 500 kcal (borne de plausibilité
+`INTAKE_MIN_KCAL`) — une saisie partielle (petit-déjeuner seul) le soir n'est
+pas encore un jour croisé.
+
+### Export
+- `formatCoachContext` : 13 lignes fixes, « — » pour toute donnée absente ;
+  aucun zéro qui passerait pour une mesure, aucun verdict VFC/FC repos.
+- Inséré dans `getHistoricalWeeks` après le protocole et le contexte daté,
+  avant les semaines.
+
+Vérification : `npm run lint` ✅ · `npm test` **321/321** (+4) · `vite build`
+✅ · Chromium 390 px : bouton « Partager au Coach » → presse-papiers lu,
+bloc complet sur l'état reconstitué (calibration 1/14, cible unique 2 050,
+pas 8 427/j sur 4 j, RMSSD 55 ms sur 5 nuits), zéro erreur, stockage
+inchangé.
