@@ -1332,3 +1332,78 @@ Vérification : `npm test` **273/273** (+10) · `vite build` ✅ · Chromium
 bande « 1/14 … au plus tôt le 05/11. À compléter : 23/10 (apport), 22/10
 (pesée + apport) et 1 autre. », 5 cases annotées pour lecteur d'écran,
 légende, zéro erreur console, zéro débordement.
+
+## Session 2026-10-24 (suite) — PR n°4 : historique des cibles
+
+PR #19 mergée par le développeur. Exigences : (1) amorcer avec les cibles
+réellement en vigueur avant la coupure, puis la cible unique 2050 dès le
+24/10, périodes montrées AVANT écriture ; (2) une ancienne sauvegarde sans
+historique doit se restaurer sans erreur.
+
+- **Source des réglages d'avant la coupure** : aucun export daté d'avant le
+  20/08 dans le conteneur. Seule source : la sauvegarde brute de l'étape 0
+  (`vibefit_v1` du 24/10, dernier jour saisi 20/08) — `maintenance`, base
+  **2000** = `DEFAULT_TDEE`, cibles = `DEFAULT_TARGETS` (2200/1800/2040). Elle
+  dit ce qui était en vigueur au 20/08, pas si les réglages ont bougé entre
+  mai et août ; les valeurs par défaut le suggèrent. Soumis au développeur.
+- **Modèle `until` plutôt que `from`** : avec `from`, la dernière entrée doit
+  égaler les réglages courants — invariant qu'une restauration casse en
+  silence. Avec `until`, l'historique ne décrit que le passé.
+- **Pas de figeage à la restauration** : un appareil neuf figerait ses
+  réglages par défaut sur tout le passé restauré.
+- **Retour en arrière sur `computeWeeklyHistory`** : branché puis retiré —
+  aucun de ses champs ne dépend des cibles (adhérence = jours saisis). Le
+  test qui devait le prouver ne prouvait rien ; supprimé avec lui.
+
+Vérification : `npm test` **286/286** (+13) · `vite build` ✅ · Chromium
+360 px sur build de prod : sauvegarde brute (sans historique) restaurée sur
+copie, « Importé 56 jour(s) », `targetHistory: []`, zéro erreur ; fichier
+d'historique restauré ⇒ écart de la semaine du 10/08 +350 kcal (7 jours ×
+50 kcal de cible en moins), en-tête du 12/08 « OFF 1800 » au lieu de 1850,
+phase et réglages courants intacts.
+
+### Correction du développeur et enquête sur le preset perdu
+Le développeur suivait **Sèche légère, base 2000** (TRAIN 2000 / OFF 1600)
+jusqu'à la coupure — pas Maintenance. Ligne recalculée par
+`computePresetTargets('cut_light', 2000)` : WE 1840 (moyenne pondérée
+3 TRAIN + 2 OFF), protéines 160 tous les jours, lipides 70.
+
+Pourquoi la sauvegarde du 24/10 contenait Maintenance aux cibles par défaut :
+- **Datation** : WE 2040 / glucides 188 n'existent que depuis la règle « WE
+  dérivé » (29/07). Les cibles ont donc été ÉCRITES après le 29/07 — aucune
+  migration ne réécrit des cibles stockées (vérifié dans `ef78e6b`, `7cb82e7`).
+- **Purge + Fusion exclue** : la fusion recrée chaque jour sur `emptyDay()`
+  courant (avec `heavyWork`) ; 38 jours sur 56 n'ont pas `heavyWork` — ce
+  sont les jours d'avant le 03/08 dans leur forme d'origine. Init par défaut
+  exclu aussi (il aurait vidé les jours).
+- **Chemin restant** : `applyPreset('maintenance')` à base 2000 produit
+  EXACTEMENT `DEFAULT_TARGETS` (vérifié), en un tap, sans confirmation ni
+  trace. « Restaurer les cibles par défaut » donne le même état mais demande
+  confirmation. Les données ne disent ni quand ni pourquoi (tap égaré, ou
+  bascule volontaire à l'arrêt médical, alors oubliée).
+- **Correctif** : confirmation au changement de preset ; et l'historique des
+  cibles fige désormais le preset sortant — le passé n'est plus réécrit.
+
+Vérification : `npm test` **289/289** (+3) · `vite build` ✅ · Chromium :
+annuler ⇒ Sèche légère intacte ; accepter ⇒ Maintenance, et `targetHistory`
+= `[{ until: hier, cut_light, 2000, 2000/1600/1840 }]` ; retaper le preset
+actif ⇒ aucun dialogue.
+
+### Amorçage validé — deux périodes
+Demande du développeur : avant le 29/07, aucune cible WE n'existait ; ces
+week-ends ne doivent être jugés contre rien. Fichier d'amorçage (hors dépôt)
+généré PAR le code (`computePresetTargets('cut_light', 2000)`, passé au
+`sanitizeTargetHistory` sans modification) :
+`until 2026-07-28` — WE `{ kcal: null, … }` ; `until 2026-10-23` — WE 1840.
+Un WE à `kcal: null` est exclu des deux côtés de la comparaison apport/cible
+(test ajouté). Faux départ du test : le vendredi est TRAIN (lun/mer/ven), pas
+OFF — corrigé dans le test, pas dans l'app.
+
+**Preuve de non-régression de la restauration** (Chromium, build de la PR,
+copie) : sauvegarde brute → Restaurer protocole v3 → Fusionner Apple 19–24/10
+→ Fusionner 12/10 → export de sécurité → Restaurer le fichier d'amorçage.
+« Importé 0 jour(s) » ; 63 jours avant/après ; état strictement identique
+hormis `targetHistory` (preset, base 2050, phase, calibration,
+`lastBackupAt` inchangés) ; samedi 25/07 « PAS DE CIBLE » ; zéro erreur.
+
+Vérification : `npm test` **292/292** (+3) · `vite build` ✅.

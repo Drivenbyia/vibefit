@@ -1,5 +1,5 @@
 import { PALETTE } from '../../../constants/config.js';
-import { dayType } from '../../../models/day.js';
+import { dayTarget } from '../../../utils/mathUtils.js';
 import Card from '../../ui/Card.jsx';
 import SectionLabel from '../../ui/SectionLabel.jsx';
 import DayBar from './DayBar.jsx';
@@ -11,14 +11,14 @@ const LEGEND = [
   { color: PALETTE.line, label: 'Non saisi' },
 ];
 
-export default function KcalTrendCard({ days, dateKey, setDateKey, resolvedTargets, phases = [] }) {
+export default function KcalTrendCard({ days, dateKey, setDateKey, targetsOn, phases = [] }) {
   return (
     <Card>
       <SectionLabel>Tendance calorique</SectionLabel>
       <div style={{ display: 'flex', gap: 0, alignItems: 'flex-end' }}>
         {days.map(({ key, day }) => {
-          const t = dayType(key, day, phases);
-          const target = resolvedTargets[t]?.kcal ?? resolvedTargets.off.kcal;
+          // Cible du jour à SA date — une semaine passée garde ses cibles.
+          const target = dayTarget(targetsOn, key, day, phases).kcal;
           return (
             <DayBar
               key={key}

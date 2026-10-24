@@ -3,6 +3,16 @@ import { toKey, startOfWeek, addDays } from './dateUtils.js';
 import { isExcluded, isReferenceMeasure, measureSource, deviceAt } from '../models/protocol.js';
 import { WATCH_SOURCES } from '../constants/config.js';
 
+/**
+ * Cible d'un jour. `targets` est soit un objet de cibles résolues (toutes les
+ * dates jugées contre lui), soit un résolveur date → cibles résolues
+ * (`targetResolver`, historique des cibles).
+ */
+export function dayTarget(targets, key, day, phases = []) {
+  const resolved = typeof targets === 'function' ? targets(key) : targets;
+  return resolved[dayType(key, day, phases)] ?? resolved.off;
+}
+
 export const num = (v) => {
   const n = parseFloat(v);
   return isNaN(n) ? 0 : n;
@@ -46,7 +56,7 @@ export const calculateWeeklyBalance = (daysData, targets, phases = []) => {
   // plus les jours sans cible plaçait donc systématiquement l'utilisateur
   // « au-dessus de sa cible », même parfaitement adhérent en semaine.
   const comparable = daysData.filter(({ key, day }) => {
-    const t = targets[dayType(key, day, phases)] ?? targets.off;
+    const t = dayTarget(targets, key, day, phases);
     return day && num(day.intake?.kcal) > 0 && t?.kcal != null;
   });
   const comparableDays = comparable.length;
@@ -57,7 +67,7 @@ export const calculateWeeklyBalance = (daysData, targets, phases = []) => {
   // « apport − calories montre » à l'affichage : les calories de la montre ne
   // pilotent rien (décision du 2026-10-24), elles restent une info du jour.
   const targetGap = comparable.reduce(
-    (s, { key, day }) => s + num(day.intake?.kcal) - (targets[dayType(key, day, phases)] ?? targets.off).kcal,
+    (s, { key, day }) => s + num(day.intake?.kcal) - dayTarget(targets, key, day, phases).kcal,
     0
   );
 
@@ -79,7 +89,7 @@ export const calculateWeeklyBalance = (daysData, targets, phases = []) => {
     avgSteps: avg(totals.steps),
     comparableDays,
     avgIntakeComparable: meanOver(({ day }) => num(day.intake?.kcal)),
-    avgKcalTarget: meanOver(({ key, day }) => (targets[dayType(key, day, phases)] ?? targets.off).kcal),
+    avgKcalTarget: meanOver(({ key, day }) => dayTarget(targets, key, day, phases).kcal),
     recordedDays: count,
   };
 };

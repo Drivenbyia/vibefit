@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { PROTEIN_FLOOR } from '../constants/config.js';
 import { DEFAULT_TARGETS } from '../utils/presetUtils.js';
-import { addDays, startOfWeek } from '../utils/dateUtils.js';
+import { addDays, startOfWeek, toKey } from '../utils/dateUtils.js';
+import { targetResolver } from '../utils/targetHistory.js';
 import {
-  num, calculateWeeklyBalance, calculateWeightStats, aggregateSleep, nutritionScope,
+  num, calculateWeeklyBalance, dayTarget, calculateWeightStats, aggregateSleep, nutritionScope,
   watchStepsAverage, proteinAverage,
 } from '../utils/mathUtils.js';
 import { dayType } from '../models/day.js';
@@ -27,6 +28,17 @@ export function useWeekStats(dateKey, data, targets) {
 
   const phases = data?.phases;
   const periods = data?.periods;
+  // Cibles de chaque jour à SA date (historique) ; `resolvedTargets` reste
+  // les cibles courantes, celles des diagnostics qui parlent de maintenant.
+  const targetsOn = useMemo(
+    () => targetResolver(resolvedTargets, data?.targetHistory ?? []),
+    [resolvedTargets, data?.targetHistory]
+  );
+  // Référence de la semaine affichée (plancher, cible unique) : son dernier
+  // jour écoulé.
+  const today = toKey(new Date());
+  const lastKey = addDays(start, 6);
+  const weekTargets = targetsOn(lastKey < today ? lastKey : today);
   // Périmètre nutrition : une semaine à cheval sur une période non suivie ne
   // compte que les jours hors coupure — solde, moyennes, jours non saisis et
   // plancher protéines. `days` reste entier pour le calendrier et le sommeil.
@@ -34,8 +46,8 @@ export function useWeekStats(dateKey, data, targets) {
   const inScope = days.filter(({ key }) => !isExcluded(key, periods ?? [], 'nutrition'));
 
   const weekly = useMemo(
-    () => calculateWeeklyBalance(nutritionDays, resolvedTargets, phases ?? []),
-    [nutritionDays, resolvedTargets, phases]
+    () => calculateWeeklyBalance(nutritionDays, targetsOn, phases ?? []),
+    [nutritionDays, targetsOn, phases]
   );
 
   const plannedTrain = days.filter(({ key, day }) => dayType(key, day, phases ?? []) === 'train').length;
@@ -49,9 +61,7 @@ export function useWeekStats(dateKey, data, targets) {
   // Cibles macro moyennées sur les jours RÉELS de la semaine affichée, via
   // dayType — plutôt qu'une moyenne TRAIN/OFF qui ignorait le week-end et
   // recodait implicitement la composition du split.
-  const dayTargets = inScope.map(
-    ({ key, day }) => resolvedTargets[dayType(key, day, phases ?? [])] ?? resolvedTargets.off
-  );
+  const dayTargets = inScope.map(({ key, day }) => dayTarget(targetsOn, key, day, phases ?? []));
   const avgTarget = (field, fallback) => {
     const vs = dayTargets.map((t) => t?.[field]).filter((v) => v != null);
     return vs.length > 0 ? vs.reduce((a, b) => a + b, 0) / vs.length : fallback;
@@ -59,9 +69,9 @@ export function useWeekStats(dateKey, data, targets) {
 
   // Pendant une phase, le plancher est celui de la cible unique (170 g en
   // Sèche forte), pas celui de TRAIN.
-  const restTarget = resolvedTargets.rest;
+  const restTarget = weekTargets.rest;
   const inPhase = days.some(({ key, day }) => dayType(key, day, phases ?? []) === 'rest');
-  const proteinFloor = (inPhase ? restTarget?.protein : null) ?? resolvedTargets.train?.protein ?? PROTEIN_FLOOR;
+  const proteinFloor = (inPhase ? restTarget?.protein : null) ?? weekTargets.train?.protein ?? PROTEIN_FLOOR;
 
   const macroTargets = {
     protein: proteinFloor,
@@ -90,6 +100,7 @@ export function useWeekStats(dateKey, data, targets) {
 
   return {
     resolvedTargets,
+    targetsOn,
     protein,
     watchSteps,
     start,
