@@ -7,8 +7,16 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/arret-medical-etape-1`
+- Branche active : `claude/ci-tests-build`
 - **Suite de tests : Vitest, 252 tests** — `npm test`
+- **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (suite) — Backlog priorisé, PR n°3 : CI
+- Backlog d'améliorations priorisé (impact pour le suivi / effort) validé par
+  le développeur, inscrit dans la section **Backlog** ci-dessous. Une PR par
+  amélioration, feu vert du développeur entre chaque.
+- **n°3 — CI (cette PR)** : workflow GitHub Actions tests + build. Aucune
+  dépendance ajoutée, aucun code applicatif modifié.
 
 ### Session 2026-10-24 — Reprise après 2 mois : arrêt médical, coupure, Apple Watch
 Contexte : aucune saisie du 20/08 au 23/10/2026, arrêt médical (tout effort
@@ -428,7 +436,41 @@ src/
 - [ ] R2 PERTE_RAPIDE, R4 PLATEAU_STRICT, R5 WEEKEND_FAILURE, R6 CORTISOL_SPIKE
 
 ## Backlog
-- [ ] Historique graphique multi-semaines
+> Priorisé le 2026-10-24 (impact pour le suivi / effort). Une PR par
+> amélioration, feu vert du développeur entre chaque. Ordre d'exécution
+> validé : n°3 → n°1 → n°2 → n°4. **n°2 et n°4 mergés avant le 06/11/2026**
+> (premier TDEE mesuré possible, première recalibration). Le reste attend.
+
+**Engagé, dans l'ordre**
+- [ ] **n°3 — CI GitHub** (S) : tests + build sur chaque PR. *En cours — `claude/ci-tests-build`.*
+- [ ] **n°1 — Protection des données** (S) : `navigator.storage.persist()`,
+  date du dernier export affichée, rappel au-delà de 7 jours. L'export reste
+  manuel (Local First, décision 2026-05-04).
+- [ ] **n°2 — Visibilité de la calibration** (S) — *avant le 06/11* : marquer
+  les jours qui comptent (poids × apport) et signaler pesée ou apport
+  manquant. Aujourd'hui `WeekCalendar` marque « saisi » un jour à kcal, pas ou
+  séance, sans pesée.
+- [ ] **n°4 — Historique des cibles** (M) — *avant le 06/11* : journaliser
+  `{ date, presetId, baseTDEE, targets }` à chaque changement et résoudre la
+  cible d'un jour à sa date. Schéma additif ⇒ entrée dans
+  `4_business_decisions.md`.
+
+**En attente**
+- [ ] **Linter** (S) : PR séparée. `CLAUDE.md` cite `npm run lint`, absent de
+  `package.json`. Ajoute une devDependency ⇒ décision à documenter.
+- [ ] **n°5 — Raccourci iOS → JSON → Fusionner** (M–L, option B) : à
+  vérifier d'abord que Raccourcis lit le RMSSD.
+- [ ] **n°6 — Historique graphique multi-semaines** (M) : poids lissé, tour de
+  taille, écart à la cible sur 8–12 semaines. Après n°4.
+- [ ] **n°7 — Sortie de phase** (S) : rappel J−7 avant l'épreuve d'effort du
+  01/03/2027, puis clôture → recalibration → 4 semaines de référence VFC. En
+  février.
+- [ ] **n°8 — Dette** (S) : `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.)
+  au-delà des 80 lignes.
+
+**Écarté** : R2/R4/R5 (gelées, sans objet pendant l'arrêt — spec § 7) ·
+facteur Garmin ↔ Apple (décision 2026-10-24) · page d'accueil (décision
+2026-07-30).
 
 ## Spécifications V2 — AI Bridge (Export LLM)
 > Statut : **LIVRÉ — commit `d01d7c2` (2026-05-11)**
