@@ -23,6 +23,19 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Historique des cibles : réglages figés jusqu'à une date, le présent reste aux réglages courants
+- **Décision** : Nouveau champ racine `targetHistory` = `[{ until, presetId, baseTDEE, targets }]`. Chaque entrée fige les réglages valables jusqu'à `until` inclus ; tout ce qui suit la dernière entrée relève des réglages courants (`targets`, `presetId`, `baseTDEE`), qui restent l'unique source de vérité pour aujourd'hui. Tout changement de cibles (preset, édition, TDEE de maintenance, reset des cibles, recalibration) fige les réglages sortants jusqu'à HIER (`recordSettingsChange`). Un jour passé se résout contre les réglages de sa date (`targetResolver`), cible unique de phase recalculée depuis le preset et la base DE L'ENTRÉE.
+- **Contexte** : écart à la cible, rappel, tendance calorique et cible de l'en-tête jugeaient le passé contre les réglages du jour — une semaine d'août contre la cible 2050 d'octobre. La première recalibration possible (06/11) aurait réécrit tout l'historique d'un coup.
+- **Alternatives considérées** : (a) journal `{ from, … }` des nouveaux réglages — exige que la dernière entrée reste égale aux réglages courants, invariant qu'une restauration casse en silence ; (b) cibles écrites sur chaque jour — réécrit des saisies pour une règle de lecture, et 65 jours de coupure à remplir ; (c) figer aussi à la restauration — un appareil neuf figerait ses réglages par défaut sur tout le passé restauré.
+- **Raison du choix** : avec `until`, l'historique ne décrit que le passé ; aucune incohérence possible entre la dernière entrée et le présent. Liste vide ⇒ chaque jour jugé contre les réglages courants, exactement le comportement antérieur.
+- **Impact** :
+  - Restaurer : un fichier qui porte `targetHistory` le remplace, un fichier qui ne le porte pas (toute sauvegarde antérieure) le laisse intact et se restaure sans erreur. Fusion : non touché. Restaurer ne fige rien (transfert d'état, pas changement de réglage).
+  - Plusieurs changements le même jour ne figent que le premier état ; les réglages finaux valent pour la journée entière.
+  - `computeWeeklyHistory` (diagnostics) n'est pas modifié : aucun de ses champs ne dépend des cibles (adhérence = jours saisis).
+  - App : `dayTargets` (jour affiché) pour l'en-tête et Aujourd'hui ; Semaine résout chaque jour, plancher et cible unique pris au dernier jour écoulé de la semaine.
+  - Amorçage du développeur : une entrée `until 2026-10-23` (réglages de la sauvegarde brute du 24/10, dernier jour saisi le 20/08), fournie hors dépôt et appliquée par « Restaurer ».
+- **Réversibilité** : Facile — liste vide ⇒ comportement antérieur ; champ additif.
+
 ### 2026-10-24 — Protection des données : stockage persistant demandé, date du dernier export, rappel à 7 jours
 - **Décision** : (1) `navigator.storage.persist()` est demandé au lancement (`useStoragePersistence`, monté dans `App`) et sa réponse est affichée dans Données. (2) Nouveau champ racine `lastBackupAt` (ISO) dans `vibefit_v1`, écrit par l'export JSON — et seulement par lui, pas par l'export Markdown, qui ne se restaure pas. (3) Au-delà de 7 jours sans export (ou jamais, dès qu'un jour est saisi), carte de rappel sur Aujourd'hui, jour courant seulement, avec export en un tap.
 - **Contexte** : 63 jours de données n'existent que dans le stockage local de l'iPhone. Rien ne demandait au navigateur de ne pas purger, rien ne datait la dernière sauvegarde, et la seule consigne (« exporter chaque dimanche ») vivait dans une carte de l'onglet Données.

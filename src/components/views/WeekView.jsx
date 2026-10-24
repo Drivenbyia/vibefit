@@ -21,7 +21,7 @@ import ExportButton from './week/ExportButton.jsx';
 
 export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarget }) {
   const {
-    resolvedTargets, start, days, weekly, plannedTrain,
+    resolvedTargets, targetsOn, start, days, weekly, plannedTrain,
     waistSeries, avgWeight, weightDelta, weightSeries, macroTargets,
     proteinFloor, daysUnderProtein, daysNotLogged, sleep, trackedDays, inPhase, restTarget,
     protein, watchSteps,
@@ -43,7 +43,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
       </Card>
       <WeekDiagnostics diagnosis={diagnosis} neat={neat} sleep={sleepDiagnosis} />
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} showSessions={!inPhase} />
-      <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} phases={data.phases} />
+      <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} targetsOn={targetsOn} phases={data.phases} />
       <AveragesCard
         weekly={weekly}
         macroTargets={macroTargets}

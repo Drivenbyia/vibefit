@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { extractSignals } from '../utils/adaptiveTDEE.js';
 import { etaLabel } from '../utils/calibrationCopy.js';
+import { recordSettingsChange } from '../utils/targetHistory.js';
+import { toKey } from '../utils/dateUtils.js';
 import { computePresetTargets } from '../utils/presetUtils.js';
 
 // Au-delà de cet écart, la recalibration est bloquée : un tel saut trahit une
@@ -43,11 +45,13 @@ export function useAdaptiveTargets(data, setData) {
 
   const recalibrate = () => {
     if (!canRecalibrate) return;
-    setData((prev) => ({
-      ...prev,
+    // Recalibrer change la cible À PARTIR D'AUJOURD'HUI : les jours passés
+    // restent jugés contre la cible d'avant (historique des cibles).
+    const today = toKey(new Date());
+    setData((prev) => recordSettingsChange(prev, {
       baseTDEE: adaptiveTDEE,
       targets: computePresetTargets(prev.presetId, adaptiveTDEE),
-    }));
+    }, today));
   };
 
   return { signals, canRecalibrate, delta, blockedReason, recalibrate };

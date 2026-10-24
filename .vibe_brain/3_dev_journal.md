@@ -1332,3 +1332,32 @@ Vérification : `npm test` **273/273** (+10) · `vite build` ✅ · Chromium
 bande « 1/14 … au plus tôt le 05/11. À compléter : 23/10 (apport), 22/10
 (pesée + apport) et 1 autre. », 5 cases annotées pour lecteur d'écran,
 légende, zéro erreur console, zéro débordement.
+
+## Session 2026-10-24 (suite) — PR n°4 : historique des cibles
+
+PR #19 mergée par le développeur. Exigences : (1) amorcer avec les cibles
+réellement en vigueur avant la coupure, puis la cible unique 2050 dès le
+24/10, périodes montrées AVANT écriture ; (2) une ancienne sauvegarde sans
+historique doit se restaurer sans erreur.
+
+- **Source des réglages d'avant la coupure** : aucun export daté d'avant le
+  20/08 dans le conteneur. Seule source : la sauvegarde brute de l'étape 0
+  (`vibefit_v1` du 24/10, dernier jour saisi 20/08) — `maintenance`, base
+  **2000** = `DEFAULT_TDEE`, cibles = `DEFAULT_TARGETS` (2200/1800/2040). Elle
+  dit ce qui était en vigueur au 20/08, pas si les réglages ont bougé entre
+  mai et août ; les valeurs par défaut le suggèrent. Soumis au développeur.
+- **Modèle `until` plutôt que `from`** : avec `from`, la dernière entrée doit
+  égaler les réglages courants — invariant qu'une restauration casse en
+  silence. Avec `until`, l'historique ne décrit que le passé.
+- **Pas de figeage à la restauration** : un appareil neuf figerait ses
+  réglages par défaut sur tout le passé restauré.
+- **Retour en arrière sur `computeWeeklyHistory`** : branché puis retiré —
+  aucun de ses champs ne dépend des cibles (adhérence = jours saisis). Le
+  test qui devait le prouver ne prouvait rien ; supprimé avec lui.
+
+Vérification : `npm test` **286/286** (+13) · `vite build` ✅ · Chromium
+360 px sur build de prod : sauvegarde brute (sans historique) restaurée sur
+copie, « Importé 56 jour(s) », `targetHistory: []`, zéro erreur ; fichier
+d'historique restauré ⇒ écart de la semaine du 10/08 +350 kcal (7 jours ×
+50 kcal de cible en moins), en-tête du 12/08 « OFF 1800 » au lieu de 1850,
+phase et réglages courants intacts.

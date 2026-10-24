@@ -48,6 +48,32 @@ const isValidDevice = (d) =>
 const isValidCalibration = (c) =>
   c && isDay(c.start) && Number.isFinite(c.seedTDEE) && c.seedTDEE > 0;
 
+const hasKcal = (t) => t && typeof t === 'object' && Number.isFinite(t.kcal);
+const isValidSettingsEntry = (e) =>
+  e && isDay(e.until) && typeof e.presetId === 'string'
+  && Number.isFinite(e.baseTDEE) && e.baseTDEE > 0
+  && e.targets && typeof e.targets === 'object' && hasKcal(e.targets.train) && hasKcal(e.targets.off);
+
+/**
+ * Historique des cibles — réglages FIGÉS, chacun valable jusqu'à `until`
+ * inclus (et depuis le lendemain du précédent).
+ *
+ *   targetHistory — [{ until, presetId, baseTDEE, targets }]
+ *
+ * Ce qui suit la dernière entrée relève des réglages courants (`targets`,
+ * `presetId`, `baseTDEE`) : ils restent l'unique source de vérité pour
+ * aujourd'hui, l'historique ne décrit que le passé. Trié par `until`, une
+ * seule entrée par date (la dernière lue gagne). Liste vide ⇒ chaque jour est
+ * jugé contre les réglages courants, comme avant l'historique.
+ */
+export function sanitizeTargetHistory(list) {
+  const byDay = new Map();
+  for (const e of keepValid(list, isValidSettingsEntry)) {
+    byDay.set(e.until, { until: e.until, presetId: e.presetId, baseTDEE: e.baseTDEE, targets: e.targets });
+  }
+  return [...byDay.values()].sort((a, b) => (a.until < b.until ? -1 : 1));
+}
+
 const keepValid = (list, predicate) => (Array.isArray(list) ? list.filter(predicate) : []);
 
 /**
@@ -84,6 +110,7 @@ export function migrateData(raw) {
     ...base,
     ...sanitizeProtocol(base),
     lastBackupAt: isValidInstant(base.lastBackupAt) ? base.lastBackupAt : null,
+    targetHistory: sanitizeTargetHistory(base.targetHistory),
     schemaVersion: SCHEMA_VERSION,
   };
 }
@@ -105,6 +132,9 @@ export function restorableProtocol(parsed) {
   for (const key of ['periods', 'phases', 'devices']) {
     if (Array.isArray(parsed?.[key])) out[key] = clean[key];
   }
+  // Historique des cibles : même contrat. Une ancienne sauvegarde qui ne le
+  // porte pas laisse l'historique courant intact.
+  if (Array.isArray(parsed?.targetHistory)) out.targetHistory = sanitizeTargetHistory(parsed.targetHistory);
   // `calibration: null` explicite dans le fichier = pas de calibration.
   if (parsed && Object.hasOwn(parsed, 'calibration')) out.calibration = clean.calibration;
   return out;

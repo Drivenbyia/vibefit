@@ -7,9 +7,25 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/visibilite-calibration`
-- **Suite de tests : Vitest, 273 tests** — `npm test`
+- Branche active : `claude/historique-cibles`
+- **Suite de tests : Vitest, 286 tests** — `npm test`
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (suite) — PR n°4 : historique des cibles
+- Champ racine `targetHistory` (`models/protocol.js` : `sanitizeTargetHistory`,
+  migration, restauration — absent du fichier ⇒ historique intact).
+- `utils/targetHistory.js` : `settingsAt`, `targetResolver` (date → cibles
+  résolues, cible unique recalculée par entrée), `recordSettingsChange`
+  (fige les réglages sortants jusqu'à hier).
+- `mathUtils.dayTarget(targets, key, day, phases)` : `targets` objet ou
+  résolveur. `calculateWeeklyBalance` passe par lui.
+- `useResolvedTargets` (App) : `targets` courants + `dayTargets` du jour
+  affiché (en-tête, Aujourd'hui). `useWeekStats` résout chaque jour
+  (`targetsOn`, aussi pour `KcalTrendCard`).
+- Écritures : `useTargetsManager` (preset, édition, maintenance, reset) et
+  recalibration passent par `recordSettingsChange`.
+- Amorçage des périodes réelles : à valider par le développeur, puis fichier
+  hors dépôt à passer par « Restaurer ».
 
 ### Session 2026-10-24 (suite) — PR n°2 : visibilité de la calibration
 - `calibrationState` (adaptiveTDEE) parcourt chaque jour du début de
@@ -128,11 +144,7 @@ validé étape par étape.
   Procédure finale rejouée sur la sauvegarde brute : migration → Restaurer v3
   → Fusionner Apple → Fusionner 12/10, zéro jour d'origine modifié.
 - **Améliorations futures (non traitées)** :
-  - **Historiser les cibles** : les semaines passées sont comparées aux cibles
-    COURANTES (écart à la cible, rappel, tendance calorique). Une semaine
-    d'août est jugée contre la cible 2050 d'octobre. Piste : journaliser
-    `{ date, presetId, baseTDEE, targets }` à chaque changement et résoudre la
-    cible d'un jour à sa date.
+  - ~~**Historiser les cibles**~~ → traité par la PR n°4 (`targetHistory`).
   - `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.) dépassent la règle des
     80 lignes — déjà au-delà avant ce chantier.
   - Option B (Raccourci iOS → JSON → Fusionner) pour la saisie Apple.
@@ -475,11 +487,11 @@ src/
 - [x] **n°1 — Protection des données** (S) : *mergée — PR #18.* `navigator.storage.persist()`,
   date du dernier export affichée, rappel au-delà de 7 jours. L'export reste
   manuel (Local First, décision 2026-05-04).
-- [ ] **n°2 — Visibilité de la calibration** (S) — *avant le 06/11* — *en cours — `claude/visibilite-calibration`* : marquer
+- [x] **n°2 — Visibilité de la calibration** (S) — *avant le 06/11* — *mergée — PR #19* : marquer
   les jours qui comptent (poids × apport) et signaler pesée ou apport
   manquant. Aujourd'hui `WeekCalendar` marque « saisi » un jour à kcal, pas ou
   séance, sans pesée.
-- [ ] **n°4 — Historique des cibles** (M) — *avant le 06/11* : journaliser
+- [ ] **n°4 — Historique des cibles** (M) — *avant le 06/11* — *en cours — `claude/historique-cibles`* : journaliser
   `{ date, presetId, baseTDEE, targets }` à chaque changement et résoudre la
   cible d'un jour à sa date. Schéma additif ⇒ entrée dans
   `4_business_decisions.md`.

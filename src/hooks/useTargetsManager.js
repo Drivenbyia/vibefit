@@ -7,6 +7,8 @@ import {
   DEFAULT_TARGETS,
 } from '../utils/presetUtils.js';
 import { useTransientValue } from './useTransientValue.js';
+import { recordSettingsChange } from '../utils/targetHistory.js';
+import { toKey } from '../utils/dateUtils.js';
 
 /**
  * Logique métier de la vue Cibles : application des presets dynamiques
@@ -18,8 +20,15 @@ export function useTargetsManager(data, setData) {
   const [flash, trigger] = useTransientValue(1200);
   const savedFlash = !!flash;
 
+  // Tout changement de cibles passe par ici : les réglages sortants sont
+  // figés dans l'historique, le passé reste jugé contre eux.
+  const changeSettings = (patch) => {
+    const today = toKey(new Date());
+    setData((prev) => recordSettingsChange(prev, patch, today));
+  };
+
   const setTargets = (newTargets, newPresetId = 'custom') => {
-    setData((prev) => ({ ...prev, targets: newTargets, presetId: newPresetId }));
+    changeSettings({ targets: newTargets, presetId: newPresetId });
     trigger(true);
   };
 
@@ -34,13 +43,12 @@ export function useTargetsManager(data, setData) {
 
   const resetDefaults = () => {
     if (confirm('Restaurer les cibles VIBEFIT par défaut ?')) {
-      setData((prev) => ({
-        ...prev,
+      changeSettings({
         targets: DEFAULT_TARGETS,
         presetId: 'maintenance',
         stepsTarget: DEFAULT_STEPS_TARGET,
         baseTDEE: DEFAULT_TDEE,
-      }));
+      });
       trigger(true);
     }
   };
@@ -61,12 +69,11 @@ export function useTargetsManager(data, setData) {
     // plancher calorique et le cyclage s'effondrait à TRAIN = OFF.
     if (presetId === 'maintenance' && field === 'kcal' && (dayKey === 'train' || dayKey === 'off')) {
       const newTDEE = Math.max(MIN_BASE_TDEE, dayKey === 'train' ? v - 200 : v + 200);
-      setData((prev) => ({
-        ...prev,
+      changeSettings({
         baseTDEE: newTDEE,
         targets: computePresetTargets('maintenance', newTDEE),
         presetId: 'maintenance',
-      }));
+      });
       trigger(true);
       return;
     }
