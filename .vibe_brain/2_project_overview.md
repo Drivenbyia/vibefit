@@ -7,10 +7,20 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/decoupage-header-statusband`
-- **Suite de tests : Vitest, 292 tests** — `npm test`
+- Branche active : `claude/tendance-longue`
+- **Suite de tests : Vitest, 300 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (soir) — PR n°6 : tendance sur 12 semaines (lecture seule)
+- `utils/longTrend.js` : `computeLongTrend` — par semaine, poids moyen, tour
+  de taille moyen, écart apport − cible par jour comparable (cible de chaque
+  jour à SA date via l'historique), semaine entièrement non suivie. Aucune
+  écriture, aucun champ nouveau.
+- `LongTrendCard` (Semaine, sous la carte Poids) : trois petits graphiques à
+  un seul axe chacun (`ui/WeekLine`, `week/GapBars`), colonnes de semaines
+  communes, tap = lecture de la semaine, légende, tableau des valeurs.
+- `WeekView.jsx` à 81 lignes (+2) — une ligne au-delà du seuil indicatif.
 
 ### Session 2026-10-24 (soir) — PR n°8 : découpage Header / StatusBand
 - `Header.jsx` 116 → 54 lignes : `layout/Skyline.jsx` (silhouette + palmiers),
@@ -522,12 +532,13 @@ src/
   `package.json`. Ajoute une devDependency ⇒ décision à documenter.
 - [ ] **n°5 — Raccourci iOS → JSON → Fusionner** (M–L, option B) : à
   vérifier d'abord que Raccourcis lit le RMSSD.
-- [ ] **n°6 — Historique graphique multi-semaines** (M) : poids lissé, tour de
-  taille, écart à la cible sur 8–12 semaines. Après n°4.
+- [ ] **n°6 — Historique graphique multi-semaines** (M) : *en cours —
+  `claude/tendance-longue`*. Poids, tour de taille, écart à la cible sur 12
+  semaines, lecture seule.
 - [ ] **n°7 — Sortie de phase** (S) : rappel J−7 avant l'épreuve d'effort du
   01/03/2027, puis clôture → recalibration → 4 semaines de référence VFC. En
   février.
-- [ ] **n°8 — Dette** (S) : *en cours — `claude/decoupage-header-statusband`*.
+- [x] **n°8 — Dette** (S) : *mergée — PR #22*.
   `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.) au-delà des 80 lignes.
 
 **Écarté** : R2/R4/R5 (gelées, sans objet pendant l'arrêt — spec § 7) ·
