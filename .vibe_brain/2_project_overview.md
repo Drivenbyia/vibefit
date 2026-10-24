@@ -7,10 +7,21 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/lisibilite-semaine`
-- **Suite de tests : Vitest, 302 tests** — `npm test`
+- Branche active : `claude/reference-recuperation`
+- **Suite de tests : Vitest, 310 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (soir) — PR référence de récupération (n°4bis)
+- `utils/recoveryBaseline.js` : RMSSD et FC repos des nuits de la montre
+  portée aujourd'hui (jours partiels exclus, bornes de plausibilité),
+  28 nuits affichées, référence sur 60 jours, plage habituelle (moyenne ±
+  écart-type) à partir de 28 nuits ; moyenne des 7 derniers jours avec le
+  nombre réel de nuits.
+- `RecoveryCard` (Semaine, sous les diagnostics) : progression « en
+  construction n/28 », deux courbes nuit par nuit avec la plage en fond,
+  encre neutre, « Arrêt médical : mesures affichées, aucun verdict ».
+- `WeekLine` : option `band`, points réduits pour les séries > 14.
 
 ### Session 2026-10-24 (soir) — PR lisibilité de la Semaine (n°9, n°10)
 - **n°9** — Tendance calorique : repère de cible (100 %) sur chaque barre ;
@@ -544,13 +555,12 @@ src/
   vérifier d'abord que Raccourcis lit le RMSSD.
 - [x] **n°6 — Historique graphique multi-semaines** (M) : *mergée — PR #23*.
   Poids, tour de taille, écart à la cible sur 12 semaines, lecture seule.
-- [ ] **n°9 — Tendance calorique lisible sans la couleur** (S) : *en cours —
-  `claude/lisibilite-semaine`*.
-- [ ] **n°10 — Découpage de `WeekView.jsx`** (S) : *en cours —
-  `claude/lisibilite-semaine`*.
+- [x] **n°9 — Tendance calorique lisible sans la couleur** (S) : *mergée — PR #24*.
+- [x] **n°10 — Découpage de `WeekView.jsx`** (S) : *mergée — PR #24*.
 
 **Engagés ensuite (choix du développeur, 24/10 soir), lecture seule**
-- [ ] **n°4bis — Référence de récupération Apple Watch** : VFC (RMSSD) et FC
+- [ ] **n°4bis — Référence de récupération Apple Watch** : *en cours —
+  `claude/reference-recuperation`*. VFC (RMSSD) et FC
   repos nuit par nuit contre ta propre référence (montre courante, jours
   partiels exclus), « référence en construction n/28 », affichage seul
   pendant l'arrêt (décision du 2026-10-24).

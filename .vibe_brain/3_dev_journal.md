@@ -1505,3 +1505,25 @@ prochaine PR » :
 Vérification : `npm run lint` ✅ · `npm test` **302/302** (+2) · `vite build`
 ✅ · Chromium 390 px : repère visible, zone grise d'un bloc, zéro erreur,
 zéro débordement, stockage inchangé par l'usage.
+
+## Session 2026-10-24 (soir, suite) — PR référence de récupération (n°4bis)
+
+PR #24 : CI GitHub partie avec ~2 min de retard (Netlify seul visible
+d'abord), verte, mergée.
+
+- Calcul pur `computeRecovery` : la règle « une mesure ne se compare qu'à
+  elle-même » (décision du 2026-10-24) appliquée à la VFC/FC repos — montre
+  courante seulement (`deviceAt(today)` + `isReferenceMeasure`), jours
+  partiels exclus, bornes 5–250 ms / 30–120 bpm contre les fautes de frappe.
+- **Défaut trouvé au rendu, pas aux tests** : la référence exigeait 28 nuits
+  dans une fenêtre de 28 jours — inatteignable à la première nuit manquante
+  (scénario 40 nuits / 2 trous bloqué à 26/28). Fenêtres séparées : 28 jours
+  affichés, 60 jours de référence (comme les apps de récupération). Et
+  « · 7 nuits » affiché sur 5 nuits réelles ⇒ « 5 nuits sur 7 j ».
+- Pendant l'arrêt : aucun verdict, encre neutre, plage habituelle et chiffres
+  seulement (décision du 2026-10-24).
+
+Vérification : `npm run lint` ✅ · `npm test` **310/310** (+8) · `vite build`
+✅ · Chromium 390 px, état réel (5/28 nuits Apple Watch) et 40 nuits
+synthétiques (plage 44–51 ms) : zéro erreur, zéro débordement, stockage
+inchangé ; tendance 12 semaines inchangée.
