@@ -17,7 +17,7 @@ import AveragesCard from './week/AveragesCard.jsx';
 import WaistCard from './week/WaistCard.jsx';
 import WeightCard from './week/WeightCard.jsx';
 import LongTrendCard from './week/LongTrendCard.jsx';
-import ReminderCard from './week/ReminderCard.jsx';
+import WeekReminder from './week/WeekReminder.jsx';
 import ExportButton from './week/ExportButton.jsx';
 
 export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarget }) {
@@ -56,24 +56,10 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
       <WaistCard waistSeries={waistSeries} />
       <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} />
       <LongTrendCard data={data} targets={resolvedTargets} />
-      <ReminderCard
-        presetId={data.presetId}
-        targetGap={weekly.targetGap}
-        comparableDays={weekly.comparableDays}
-        phase={inPhase ? {
-          label: phase?.label ?? 'Phase en cours',
-          singleKcal: restTarget?.kcal,
-          avgIntake: weekly.avgIntakeComparable,
-          comparableDays: weekly.comparableDays,
-        } : null}
-        levers={inPhase ? {
-          proteinAvg: protein.avg,
-          proteinDays: protein.days,
-          proteinFloor,
-          stepsAvg: watchSteps.avg,
-          stepsDays: watchSteps.days,
-          stepsTarget,
-        } : null}
+      <WeekReminder
+        presetId={data.presetId} weekly={weekly} inPhase={inPhase} phaseLabel={phase?.label}
+        restTarget={restTarget} protein={protein} watchSteps={watchSteps}
+        proteinFloor={proteinFloor} stepsTarget={stepsTarget}
       />
       <ExportButton copied={copied} onExport={handleExport} />
     </div>

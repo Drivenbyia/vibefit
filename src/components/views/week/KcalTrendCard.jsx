@@ -5,8 +5,8 @@ import SectionLabel from '../../ui/SectionLabel.jsx';
 import DayBar from './DayBar.jsx';
 
 const LEGEND = [
+  { color: PALETTE.alert, label: 'Surplus (au-dessus du trait)' },
   { color: PALETTE.deep, label: 'Dans la cible' },
-  { color: PALETTE.alert, label: 'Surplus' },
   { color: PALETTE.warn, label: 'Sous la cible' },
   { color: PALETTE.line, label: 'Non saisi' },
 ];
@@ -39,6 +39,10 @@ export default function KcalTrendCard({ days, dateKey, setDateKey, targetsOn, ph
         gap: 12,
         flexWrap: 'wrap',
       }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div aria-hidden="true" style={{ width: 12, height: 2, borderRadius: 1, background: PALETTE.ink, opacity: 0.7 }} />
+          <span style={{ fontSize: 10, color: PALETTE.muted }}>Cible du jour</span>
+        </div>
         {LEGEND.map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 8, height: 8, borderRadius: 999, background: color }} />

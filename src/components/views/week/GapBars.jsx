@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { PALETTE } from '../../../constants/config.js';
-import { GAP_ON_TARGET_KCAL, gapStatus } from '../../../utils/longTrend.js';
+import { GAP_ON_TARGET_KCAL, gapStatus, shadedRuns } from '../../../utils/longTrend.js';
 
 const HALF = 28;          // px de chaque côté du zéro
 const SCALE_FLOOR = 400;  // kcal/j : un écart de 50 ne doit pas remplir la hauteur
@@ -21,13 +21,18 @@ function GapBars({ values, selected = null, shaded = [] }) {
   const band = (GAP_ON_TARGET_KCAL / max) * HALF;
   return (
     <div aria-hidden="true" style={{ position: 'relative', height: HALF * 2 }}>
+      {shadedRuns(shaded).map(({ start, len }) => (
+        <div key={start} style={{
+          position: 'absolute', top: 0, bottom: 0, background: 'rgba(61,44,64,0.45)',
+          left: `${(start / values.length) * 100}%`, width: `${(len / values.length) * 100}%`,
+        }} />
+      ))}
       <div style={{ position: 'absolute', left: 0, right: 0, top: HALF - band, height: band * 2, background: PALETTE.deepSoft }} />
       <div style={{ position: 'absolute', left: 0, right: 0, top: HALF, height: 1, background: PALETTE.tick }} />
       <div style={{ position: 'absolute', inset: 0, display: 'flex' }}>
         {values.map((v, i) => (
           <div key={i} style={{
             flex: 1, position: 'relative',
-            background: shaded[i] ? 'rgba(61,44,64,0.45)' : 'transparent',
             // Sélection : trait sous la colonne, distinct du fond « non suivi ».
             boxShadow: i === selected ? `inset 0 -2px 0 ${PALETTE.ink}` : 'none',
           }}>

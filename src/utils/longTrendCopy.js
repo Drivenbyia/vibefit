@@ -16,5 +16,7 @@ export function fmtGap(v) {
 export function weekReadout(w) {
   if (!w) return '';
   if (w.untracked) return `${ddmm(w.weekStart)} · période non suivie`;
-  return `${ddmm(w.weekStart)} · ${fmtKg(w.weight)} · ${fmtCm(w.waist)} · ${fmtGap(w.gapPerDay)}`;
+  // Une mesure absente est NOMMÉE : « — · — » ne disait pas quoi manquait.
+  const part = (label, v, fmt) => (v == null ? `${label} —` : fmt(v));
+  return `${ddmm(w.weekStart)} · ${part('poids', w.weight, fmtKg)} · ${part('taille', w.waist, fmtCm)} · ${part('écart', w.gapPerDay, fmtGap)}`;
 }

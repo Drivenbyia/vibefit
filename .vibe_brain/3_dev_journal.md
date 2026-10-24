@@ -1481,3 +1481,27 @@ Vérification : `npm run lint` ✅ · `npm test` **300/300** (+8) · `vite build
 ✅ · Chromium 390 px, état réel reconstitué (coupure ombrée, août lisible)
 et scénario synthétique 12 semaines avec une semaine vide : taps, tableau,
 zéro erreur, zéro débordement, **stockage identique avant/après usage**.
+
+## Session 2026-10-24 (soir, suite) — PR lisibilité de la Semaine (n°9, n°10)
+
+Le développeur a vu la tendance 12 semaines sur l'iPhone (OK) et validé deux
+nouveaux sujets en lecture seule, après recherche d'inspiration (MacroFactor :
+check-in hebdo ; Athlytic/Bevel : référence VFC/FC repos ; Happy Scale :
+prévision) : **référence de récupération** et **bilan du dimanche**. Le
+dossier cardiologue a été écarté par le développeur (« n'aide que le
+cardiologue »). Avant eux, cette PR solde ce qui était promis pour « la
+prochaine PR » :
+
+- **n°9** : `DayBar` reçoit un repère de cible à 100 % (même échelle
+  130 % = 52 px que la barre) ; légende « Cible du jour » et « Surplus
+  (au-dessus du trait) ». Même raisonnement que `GapBars`.
+- **n°10** : `WeekReminder` extrait de `WeekView` (81 → 67). Preuve : rendu
+  statique de `WeekView` sur 8 états (2 jeux de données × 4 semaines, dont
+  phase / hors phase / coupure) identique à l'octet près avant/après.
+- **Retours iPhone sur la tendance longue** : coutures verticales dans la
+  zone grise (un rectangle par semaine) ⇒ `shadedRuns`, une forme par plage ;
+  lecture « 19/10 · 77,0 kg · — · — » ⇒ « taille — · écart — ».
+
+Vérification : `npm run lint` ✅ · `npm test` **302/302** (+2) · `vite build`
+✅ · Chromium 390 px : repère visible, zone grise d'un bloc, zéro erreur,
+zéro débordement, stockage inchangé par l'usage.

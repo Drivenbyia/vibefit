@@ -57,3 +57,19 @@ export function gapStatus(gapPerDay) {
   if (gapPerDay < -GAP_ON_TARGET_KCAL) return 'under';
   return 'in';
 }
+
+/**
+ * Plages consécutives de colonnes marquées : [{ start, len }]. Une seule
+ * forme par plage, plutôt qu'un rectangle par semaine — des rectangles
+ * adjacents laissent des coutures d'anticrénelage visibles à l'écran.
+ */
+export function shadedRuns(flags) {
+  const runs = [];
+  flags.forEach((on, i) => {
+    if (!on) return;
+    const last = runs[runs.length - 1];
+    if (last && last.start + last.len === i) last.len += 1;
+    else runs.push({ start: i, len: 1 });
+  });
+  return runs;
+}
