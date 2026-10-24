@@ -1,8 +1,9 @@
 import { DEFAULT_STEPS_TARGET } from '../constants/config.js';
 import { DEFAULT_TDEE, DEFAULT_TARGETS } from '../utils/presetUtils.js';
-import { exportBackup, importBackup, mergeDays } from '../utils/backupUtils.js';
+import { importBackup, mergeDays, latestInstant } from '../utils/backupUtils.js';
 import { restorableProtocol, migrateData } from '../models/protocol.js';
 import { useTransientValue } from './useTransientValue.js';
+import { useBackupExport } from './useBackupExport.js';
 
 /**
  * Logique métier de la vue Données : export JSON, import avec restauration
@@ -11,7 +12,7 @@ import { useTransientValue } from './useTransientValue.js';
 export function useBackupManager(data, setData) {
   const [importStatus, setImportStatus] = useTransientValue(3000);
 
-  const handleExport = () => exportBackup(data);
+  const handleExport = useBackupExport(data, setData);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -38,6 +39,9 @@ export function useBackupManager(data, setData) {
             ...(typeof parsed.baseTDEE === 'number' ? { baseTDEE: parsed.baseTDEE } : {}),
             // Coupures, phases et montres : même contrat que les réglages.
             ...restorableProtocol(parsed),
+            // Le fichier prouve une sauvegarde à sa date : `lastBackupAt`
+            // avance jusqu'à `exportedAt`, sans jamais reculer.
+            lastBackupAt: latestInstant(prev.lastBackupAt, parsed.exportedAt),
           }));
           setImportStatus({ ok: true, msg: `Importé ${Object.keys(parsed.days).length} jour(s)` });
         } catch (err) {

@@ -83,9 +83,13 @@ export function migrateData(raw) {
   return {
     ...base,
     ...sanitizeProtocol(base),
+    lastBackupAt: isValidInstant(base.lastBackupAt) ? base.lastBackupAt : null,
     schemaVersion: SCHEMA_VERSION,
   };
 }
+
+/** Horodatage ISO lisible — `lastBackupAt`, `exportedAt`. */
+export const isValidInstant = (v) => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 
 /**
  * Champs de protocole d'un fichier de RESTAURATION — même contrat que les

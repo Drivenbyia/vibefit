@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { PALETTE } from './constants/config.js';
 import { useVibefitStorage } from './hooks/useVibefitStorage.js';
 import { useCurrentDateKey } from './hooks/useCurrentDateKey.js';
+import { useDataProtection } from './hooks/useDataProtection.js';
 import { emptyDay } from './models/day.js';
 import { resolveTargets } from './utils/presetUtils.js';
 import FontStyles from './components/ui/FontStyles.jsx';
@@ -18,6 +19,7 @@ export default function VibeFit() {
   const [tab, setTab] = useState('today');
 
   const openWeek = useCallback(() => setTab('week'), []);
+  const { storageStatus, backup, exportBackupNow } = useDataProtection(data, setData, dateKey);
 
   // Cibles EFFECTIVES (stockées + cible unique de phase) — une seule source
   // pour l'en-tête, Aujourd'hui et Semaine.
@@ -70,10 +72,10 @@ export default function VibeFit() {
     >
       <FontStyles />
       <Header dateKey={dateKey} setDateKey={setDateKey} day={day} updateDay={updateDay} targets={targets} phases={data.phases} />
-      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={targets} stepsTarget={data.stepsTarget} data={data} onOpenWeek={openWeek} />}
+      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={targets} stepsTarget={data.stepsTarget} data={data} onOpenWeek={openWeek} backup={backup} onExportBackup={exportBackupNow} />}
       {tab === 'week' && <WeekView dateKey={dateKey} data={data} setDateKey={setDateKey} targets={targets} stepsTarget={data.stepsTarget} />}
       {tab === 'targets' && <TargetsView data={data} setData={setData} />}
-      {tab === 'data' && <DataView data={data} setData={setData} />}
+      {tab === 'data' && <DataView data={data} setData={setData} backup={backup} storageStatus={storageStatus} />}
       <BottomNav tab={tab} setTab={setTab} />
     </div>
   );

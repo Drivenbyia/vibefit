@@ -23,6 +23,18 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Protection des données : stockage persistant demandé, date du dernier export, rappel à 7 jours
+- **Décision** : (1) `navigator.storage.persist()` est demandé au lancement (`useStoragePersistence`, monté dans `App`) et sa réponse est affichée dans Données. (2) Nouveau champ racine `lastBackupAt` (ISO) dans `vibefit_v1`, écrit par l'export JSON — et seulement par lui, pas par l'export Markdown, qui ne se restaure pas. (3) Au-delà de 7 jours sans export (ou jamais, dès qu'un jour est saisi), carte de rappel sur Aujourd'hui, jour courant seulement, avec export en un tap.
+- **Contexte** : 63 jours de données n'existent que dans le stockage local de l'iPhone. Rien ne demandait au navigateur de ne pas purger, rien ne datait la dernière sauvegarde, et la seule consigne (« exporter chaque dimanche ») vivait dans une carte de l'onglet Données.
+- **Alternatives considérées** : (a) clé de stockage séparée pour la date — écartée, `vibefit_v1` reste l'unique source de vérité (décision 2026-05-04) ; (b) sauvegarde automatique hors appareil — écartée, contraire au Local First et au principe « aucune donnée ne quitte l'appareil sans action explicite » ; (c) rappel dans l'onglet Données seulement — écarté pour la même raison que la bande d'état (2026-07-30) : un avertissement qu'il faut aller chercher ne prévient personne ; (d) `alert` pour le rappel — écarté, une sauvegarde en retard est un manque (`warn`).
+- **Raison du choix** : l'export reste la seule vraie protection, et il reste manuel. L'app se contente de demander au navigateur ce qu'il peut garantir et de rendre visible l'âge de la dernière copie.
+- **Impact** :
+  - L'âge se compte en jours CALENDAIRES locaux depuis `todayKey` (`backupStatus`, pur) : un export à 23 h vaut « hier » le lendemain matin.
+  - Restaurer un fichier fait avancer `lastBackupAt` jusqu'à son `exportedAt`, sans jamais reculer (`latestInstant`). La Fusion ne le touche pas.
+  - Limite assumée : la date est celle de l'export LANCÉ. Un téléchargement annulé dans la feuille de partage iOS n'est pas détectable.
+  - `useBackupExport` est l'unique chemin d'export JSON (Aujourd'hui et Données).
+- **Réversibilité** : Facile — champ additif (`null` par défaut via `migrateData`), carte et hook retirables sans migration.
+
 ### 2026-10-24 — Références par montre, calories montre hors calcul
 - **Décision** : (1) Une référence (NEAT, sommeil) n'admet que les mesures de la montre portée AUJOURD'HUI, hors jours partiels ; pas iPhone seul jamais admis. (2) VFC/FC repos en affichage seul pendant l'arrêt médical, puis 4 semaines de la montre courante avant tout seuil. (3) Calories de la montre : saisies et affichées « à titre d'info », sorties du solde ; l'en-tête Semaine publie l'écart apport − cible.
 - **Contexte** : Garmin → Apple Watch le 19/10. Garmin RMSSD nocturne, Apple RMSSD + SDNN : algorithmes différents. iPhone seul ≈ 49 % des pas Garmin mesurés le même jour.

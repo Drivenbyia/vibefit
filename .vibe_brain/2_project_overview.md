@@ -7,9 +7,20 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/ci-tests-build`
-- **Suite de tests : Vitest, 252 tests** — `npm test`
+- Branche active : `claude/protection-donnees`
+- **Suite de tests : Vitest, 263 tests** — `npm test`
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (suite) — PR n°1 : protection des données
+- `navigator.storage.persist()` demandé au lancement (`useStoragePersistence`),
+  réponse affichée dans la carte **PROTECTION** de Données (protégé / non
+  garanti).
+- Champ racine `lastBackupAt` écrit par l'export JSON (`useBackupExport`,
+  chemin unique), avancé par la restauration jusqu'à `exportedAt` du fichier,
+  jamais reculé. `migrateData` l'initialise à `null`.
+- `BackupReminderCard` sur Aujourd'hui (jour courant) au-delà de 7 jours sans
+  export ou si jamais exporté, en `warn`, avec « Exporter maintenant ».
+- `useDataProtection` regroupe les trois dans `App` (80 → 82 lignes).
 
 ### Session 2026-10-24 (suite) — Backlog priorisé, PR n°3 : CI
 - Backlog d'améliorations priorisé (impact pour le suivi / effort) validé par
@@ -392,6 +403,8 @@ src/
     usePlateauDiagnosis.js— croisement TDEE / poids / adhérence pour WeekView
     useNeatDrift.js       — surveillance de l'effondrement du NEAT pour WeekView
     useBackupManager.js   — export/import/reset des données
+    useDataProtection.js  — stockage persistant (useStoragePersistence), âge de la dernière
+                            sauvegarde (backupStatus), export daté (useBackupExport)
     useTransientValue.js  — feedback éphémère avec cleanup ; useClipboardCopy.js — copie + feedback
   components/
     ui/                — Card, StatCard, NumberInput (local state + onBlur différé), Pill,
@@ -442,8 +455,8 @@ src/
 > (premier TDEE mesuré possible, première recalibration). Le reste attend.
 
 **Engagé, dans l'ordre**
-- [ ] **n°3 — CI GitHub** (S) : tests + build sur chaque PR. *En cours — `claude/ci-tests-build`.*
-- [ ] **n°1 — Protection des données** (S) : `navigator.storage.persist()`,
+- [x] **n°3 — CI GitHub** (S) : tests + build sur chaque PR. *Mergée — PR #17.*
+- [ ] **n°1 — Protection des données** (S) : *en cours — `claude/protection-donnees`.* `navigator.storage.persist()`,
   date du dernier export affichée, rappel au-delà de 7 jours. L'export reste
   manuel (Local First, décision 2026-05-04).
 - [ ] **n°2 — Visibilité de la calibration** (S) — *avant le 06/11* : marquer
