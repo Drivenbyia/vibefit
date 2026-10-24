@@ -1527,3 +1527,27 @@ Vérification : `npm run lint` ✅ · `npm test` **310/310** (+8) · `vite build
 ✅ · Chromium 390 px, état réel (5/28 nuits Apple Watch) et 40 nuits
 synthétiques (plage 44–51 ms) : zéro erreur, zéro débordement, stockage
 inchangé ; tendance 12 semaines inchangée.
+
+## Session 2026-10-24 (soir, suite) — PR bilan du dimanche (n°3bis)
+
+PR #25 (référence de récupération) : CI verte, mergée.
+
+- **Principe** (inspiré du check-in hebdo des coachs adaptatifs, sans leur
+  automatisme) : des lignes déjà calculées ailleurs, puis UNE action ; la
+  recalibration est proposée et renvoie vers Cibles, jamais appliquée.
+- **Deux défauts trouvés au rendu sur l'état réel** :
+  1. un samedi, la « dernière semaine complète » (12/10) est entièrement
+     dans la coupure ⇒ bilan d'une semaine vide. Règle : semaine non suivie
+     ⇒ semaine en cours, titrée « en cours ».
+  2. « Rien à corriger » affiché à calibration 0/14 sans apport saisi ⇒ la
+     calibration active donne toujours l'action (jours à rattraper, sinon
+     « pesée et apport chaque jour, 14/14 au plus tôt le 06/11 »).
+- Ligne Calibration raccourcie (« 0/14 j · au plus tôt le 06/11 ») : la
+  version longue passait sur deux lignes à 390 px.
+- Test : séparateur des milliers fr-FR = espace insécable fine (U+202F) ;
+  attente en regex `\s`.
+
+Vérification : `npm run lint` ✅ · `npm test` **317/317** (+7) · `vite build`
+✅ · Chromium 390 px, état réel (semaine en cours, action calibration) et
+12 semaines synthétiques (recalibration proposée +384) : zéro erreur, zéro
+débordement, stockage inchangé.

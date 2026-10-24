@@ -18,6 +18,7 @@ import WaistCard from './week/WaistCard.jsx';
 import WeightCard from './week/WeightCard.jsx';
 import LongTrendCard from './week/LongTrendCard.jsx';
 import RecoveryCard from './week/RecoveryCard.jsx';
+import CheckInCard from './week/CheckInCard.jsx';
 import WeekReminder from './week/WeekReminder.jsx';
 import ExportButton from './week/ExportButton.jsx';
 
@@ -39,6 +40,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <CheckInCard data={data} targets={resolvedTargets} stepsTarget={stepsTarget} />
       <Card>
         <WeekSummary start={start} recordedDays={weekly.recordedDays} trackedDays={trackedDays} targetGap={weekly.targetGap} comparableDays={weekly.comparableDays} />
         <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} calibration={calibrationDays} />
