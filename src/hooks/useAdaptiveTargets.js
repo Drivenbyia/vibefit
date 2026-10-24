@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { extractSignals } from '../utils/adaptiveTDEE.js';
+import { etaLabel } from '../utils/calibrationCopy.js';
 import { computePresetTargets } from '../utils/presetUtils.js';
 
 // Au-delà de cet écart, la recalibration est bloquée : un tel saut trahit une
@@ -25,7 +26,9 @@ export function useAdaptiveTargets(data, setData) {
 
   let blockedReason = null;
   if (calibration?.active) {
-    blockedReason = `Calibration en cours — ${calibration.crossedDays}/${calibration.requiredDays} jours croisant poids et apport. TDEE de départ : ${calibration.seedTDEE} kcal.`;
+    const eta = etaLabel(calibration);
+    blockedReason = `Calibration en cours — ${calibration.crossedDays}/${calibration.requiredDays} jours croisant poids et apport` +
+      (eta ? ` (${eta})` : '') + `. TDEE de départ : ${calibration.seedTDEE} kcal.`;
   } else if (windowStart === null && excludedDays > 0) {
     blockedReason = 'Fenêtre de 14 jours pas encore complète depuis la période non suivie';
   } else if (adaptiveTDEE === null || !hasEnoughData) {

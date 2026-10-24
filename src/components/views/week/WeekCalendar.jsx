@@ -2,9 +2,19 @@ import { PALETTE } from '../../../constants/config.js';
 import { shortFr } from '../../../utils/dateUtils.js';
 import { dayType } from '../../../models/day.js';
 import { num } from '../../../utils/mathUtils.js';
+import { toKey } from '../../../utils/dateUtils.js';
+import CalibrationMark, { CalibrationLegend, CALIBRATION_ARIA } from './CalibrationMark.jsx';
 
-export default function WeekCalendar({ days, dateKey, setDateKey, phases = [] }) {
+/**
+ * `calibration` : statut de calibration par clé de jour, ou null hors
+ * calibration active. Le point garde son sens (type de jour, saisi ou non) ;
+ * la marque en dessous dit si le jour COMPTE — un jour à pas seuls est
+ * « saisi » sans faire avancer la calibration.
+ */
+export default function WeekCalendar({ days, dateKey, setDateKey, phases = [], calibration = null }) {
+  const realToday = toKey(new Date());
   return (
+    <>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
       {days.map(({ key, day }) => {
         const t = dayType(key, day, phases);
@@ -16,6 +26,7 @@ export default function WeekCalendar({ days, dateKey, setDateKey, phases = [] })
           <button
             key={key}
             onClick={() => setDateKey(key)}
+            aria-label={`${shortFr(key)} ${key.slice(8, 10)}${calibration?.[key] ? ` — ${CALIBRATION_ARIA[calibration[key]]}` : ''}`}
             style={{
               background: isToday ? PALETTE.ink : PALETTE.bg,
               border: `2px solid ${isToday ? PALETTE.ink : 'transparent'}`,
@@ -40,9 +51,14 @@ export default function WeekCalendar({ days, dateKey, setDateKey, phases = [] })
               background: recorded ? dotColor : 'transparent',
               border: `1.5px solid ${dotColor}`,
             }} />
+            {calibration && (
+              <CalibrationMark status={calibration[key]} selected={isToday} pending={key === realToday} />
+            )}
           </button>
         );
       })}
     </div>
+    {calibration && <CalibrationLegend />}
+    </>
   );
 }
