@@ -7,9 +7,25 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/protection-donnees`
-- **Suite de tests : Vitest, 263 tests** — `npm test`
+- Branche active : `claude/visibilite-calibration`
+- **Suite de tests : Vitest, 273 tests** — `npm test`
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (suite) — PR n°2 : visibilité de la calibration
+- `calibrationState` (adaptiveTDEE) parcourt chaque jour du début de
+  calibration à aujourd'hui et expose `incompleteDays` (jours PASSÉS sans
+  pesée et/ou apport — aujourd'hui jamais, la journée n'est pas finie),
+  `todayStatus` et `earliestCompletion` (date la plus proche de 14/14 si
+  chaque jour à venir est complet). Compte `crossedDays` inchangé.
+- `calibrationDayStatus` / `CALIBRATION_DAY` (counted, no_weight, no_intake,
+  empty) et `calibrationProgress(data)` pour le calendrier.
+- `utils/calibrationCopy.js` : textes partagés — diagnostic Semaine (« 14/14
+  au plus tôt le 06/11. À compléter : 25/10 (pesée)… »), bande d'état
+  (version courte, 2 jours au plus), carte TDEE des Cibles (date).
+- Calendrier Semaine : marque sous chaque jour pendant la calibration (coche
+  = compté, balance = pesée manquante, couverts = apport manquant ; forme =
+  sens, `warn` pour un manque), légende, `aria-label` par jour. Disparaît
+  une fois le seuil atteint.
 
 ### Session 2026-10-24 (suite) — PR n°1 : protection des données
 - `navigator.storage.persist()` demandé au lancement (`useStoragePersistence`),
@@ -456,10 +472,10 @@ src/
 
 **Engagé, dans l'ordre**
 - [x] **n°3 — CI GitHub** (S) : tests + build sur chaque PR. *Mergée — PR #17.*
-- [ ] **n°1 — Protection des données** (S) : *en cours — `claude/protection-donnees`.* `navigator.storage.persist()`,
+- [x] **n°1 — Protection des données** (S) : *mergée — PR #18.* `navigator.storage.persist()`,
   date du dernier export affichée, rappel au-delà de 7 jours. L'export reste
   manuel (Local First, décision 2026-05-04).
-- [ ] **n°2 — Visibilité de la calibration** (S) — *avant le 06/11* : marquer
+- [ ] **n°2 — Visibilité de la calibration** (S) — *avant le 06/11* — *en cours — `claude/visibilite-calibration`* : marquer
   les jours qui comptent (poids × apport) et signaler pesée ou apport
   manquant. Aujourd'hui `WeekCalendar` marque « saisi » un jour à kcal, pas ou
   séance, sans pesée.

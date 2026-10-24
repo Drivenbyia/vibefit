@@ -108,7 +108,7 @@ describe('diagnostic, bande d’état, export — « calibration en cours »', (
     const d = diagnose({ signals, weeklyHistory: [] });
     expect(d.status).toBe(DIAGNOSIS.CALIBRATING);
     expect(d.label).toBe('Calibration en cours');
-    expect(d.detail).toBe('7/14 jours croisant poids et apport depuis le 24/10/2026. TDEE de départ : 2050 kcal en attendant.');
+    expect(d.detail).toBe('7/14 jours croisant poids et apport depuis le 24/10/2026 — 14/14 au plus tôt le 06/11. TDEE de départ : 2050 kcal en attendant.');
   });
 
   it('la bande d’état publie la calibration au lieu de se masquer', () => {

@@ -206,26 +206,72 @@ function crossedValues(day) {
   };
 }
 
+/** Statut d'un jour au regard de la calibration. */
+export const CALIBRATION_DAY = {
+  COUNTED: 'counted',       // poids ET apport : le jour compte
+  NO_WEIGHT: 'no_weight',   // apport saisi, pesée manquante
+  NO_INTAKE: 'no_intake',   // pesée saisie, apport manquant
+  EMPTY: 'empty',           // ni l'un ni l'autre
+};
+
+/**
+ * Statut d'un jour pour la calibration, ou null s'il n'y participe pas
+ * (avant son début, dans le futur, ou neutralisé par une coupure).
+ */
+export function calibrationDayStatus(key, day, periods, calibration, today) {
+  if (!calibration || key < calibration.start || key > today) return null;
+  if (isExcluded(key, periods, 'nutrition')) return null;
+  const { weight, intake } = crossedValues(day);
+  if (weight !== null && intake !== null) return CALIBRATION_DAY.COUNTED;
+  if (weight === null && intake === null) return CALIBRATION_DAY.EMPTY;
+  return weight === null ? CALIBRATION_DAY.NO_WEIGHT : CALIBRATION_DAY.NO_INTAKE;
+}
+
 /**
  * État de la calibration : jours croisés poids × apport depuis son début,
  * sur TOUT l'historique (pas seulement l'horizon de 30 jours), coupures exclues.
  * Le compte est monotone : une fois atteint, le seuil reste atteint.
+ *
+ * Expose aussi ce qui MANQUE, pour que le compte se pilote au lieu de se
+ * subir : les jours passés incomplets (à rattraper) et la date la plus proche
+ * à laquelle le seuil peut être atteint si chaque jour à venir est complet.
+ * Aujourd'hui n'est jamais « incomplet » : la journée n'est pas finie.
  */
 function calibrationState(days, periods, calibration, today) {
   if (!calibration) return null;
   let crossedDays = 0;
-  for (const [key, day] of Object.entries(days)) {
-    if (key < calibration.start || key > today || isExcluded(key, periods, 'nutrition')) continue;
-    const { weight, intake } = crossedValues(day);
-    if (weight !== null && intake !== null) crossedDays += 1;
+  const incompleteDays = [];
+  let todayStatus = null;
+  for (let key = calibration.start; key <= today; key = addDays(key, 1)) {
+    const status = calibrationDayStatus(key, days[key], periods, calibration, today);
+    if (status === null) continue;
+    if (status === CALIBRATION_DAY.COUNTED) crossedDays += 1;
+    if (key === today) todayStatus = status;
+    else if (status !== CALIBRATION_DAY.COUNTED) incompleteDays.push({ key, status });
   }
+  const remaining = calibration.requiredDays - crossedDays;
+  const active = remaining > 0;
+  // Si aujourd'hui compte déjà, le prochain jour possible est demain.
+  const todayCounted = todayStatus === CALIBRATION_DAY.COUNTED;
   return {
     start: calibration.start,
     seedTDEE: calibration.seedTDEE,
     requiredDays: calibration.requiredDays,
     crossedDays,
-    active: crossedDays < calibration.requiredDays,
+    active,
+    incompleteDays,
+    todayStatus,
+    earliestCompletion: active ? addDays(today, todayCounted ? remaining : remaining - 1) : null,
   };
+}
+
+/**
+ * État de la calibration au jour réel, sans le reste des signaux — pour le
+ * calendrier de la Semaine. Même calcul que `extractSignals().calibration`.
+ */
+export function calibrationProgress(data, today = toKey(new Date())) {
+  const { calibration } = sanitizeProtocol(data ?? {});
+  return calibrationState(data?.days ?? {}, data?.periods ?? [], calibration, today);
 }
 
 /**

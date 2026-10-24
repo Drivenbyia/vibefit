@@ -1,6 +1,7 @@
 import { DIAGNOSIS } from './plateauProtocol.js';
 import { NEAT } from './neatDrift.js';
 import { SLEEP } from './sleepDiagnosis.js';
+import { etaLabel, incompleteLabel } from './calibrationCopy.js';
 
 /**
  * Bande d'état — LE VERDICT, PAS LE TABLEAU DE BORD.
@@ -107,6 +108,20 @@ function buildTrend(series, expectedKgPerWeek, trendPerWeek) {
 }
 
 /**
+ * Version courte de la calibration pour la bande : le compte, la date la plus
+ * proche, et les deux jours à rattraper les plus récents — le détail complet
+ * reste dans la Semaine, où le calendrier marque chaque jour.
+ */
+function calibrationDetail(calib, fallback) {
+  if (!calib?.active) return fallback;
+  const eta = etaLabel(calib);
+  const todo = incompleteLabel(calib, 2);
+  return `${calib.crossedDays}/${calib.requiredDays} jours croisant poids et apport` +
+    (eta ? ` · ${eta}.` : '.') +
+    (todo ? ` À compléter : ${todo}.` : '');
+}
+
+/**
  * Arbitre un verdict unique entre les deux diagnostics.
  *
  * Ordre de priorité, du plus coûteux au plus anodin :
@@ -161,7 +176,7 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
   // plateau — les signaux de pas et de sommeil restent des instruments
   // distincts, qui ont leurs propres garde-fous.
   if (diagnosis?.status === DIAGNOSIS.CALIBRATING) {
-    return verdict(TONE.IDLE, STATUS_KIND.CALIBRATING, 'Calibration en cours', diagnosis.detail);
+    return verdict(TONE.IDLE, STATUS_KIND.CALIBRATING, 'Calibration en cours', calibrationDetail(signals?.calibration, diagnosis.detail));
   }
 
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {

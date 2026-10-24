@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { getHistoricalWeeks } from '../../utils/exportUtils.js';
 import { useWeekStats } from '../../hooks/useWeekStats.js';
 import { usePlateauDiagnosis } from '../../hooks/usePlateauDiagnosis.js';
@@ -6,6 +6,7 @@ import { useNeatDrift } from '../../hooks/useNeatDrift.js';
 import { useSleepDiagnosis } from '../../hooks/useSleepDiagnosis.js';
 import { useClipboardCopy } from '../../hooks/useClipboardCopy.js';
 import { usePhase } from '../../hooks/usePhase.js';
+import { useCalibrationDays } from '../../hooks/useCalibrationDays.js';
 import WeekDiagnostics from './week/WeekDiagnostics.jsx';
 import Card from '../ui/Card.jsx';
 import WeekSummary from './week/WeekSummary.jsx';
@@ -31,13 +32,14 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
   const sleepDiagnosis = useSleepDiagnosis(data, resolvedTargets);
   const [copied, copy] = useClipboardCopy(2000);
   const { phase } = usePhase(data, dateKey);
+  const calibrationDays = useCalibrationDays(data, useMemo(() => days.map((d) => d.key), [days]));
   const handleExport = useCallback(() => copy(getHistoricalWeeks(data, 8)), [copy, data]);
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <Card>
         <WeekSummary start={start} recordedDays={weekly.recordedDays} trackedDays={trackedDays} targetGap={weekly.targetGap} comparableDays={weekly.comparableDays} />
-        <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} />
+        <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} calibration={calibrationDays} />
       </Card>
       <WeekDiagnostics diagnosis={diagnosis} neat={neat} sleep={sleepDiagnosis} />
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} showSessions={!inPhase} />

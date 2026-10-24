@@ -1301,3 +1301,34 @@ téléchargé (`vibefit-…_12h48.json`), rappel disparu, `lastBackupAt` écrit,
 carte PROTECTION « aujourd'hui (24 octobre) », zéro erreur console, zéro
 débordement. Stockage « non garanti » en headless (refus attendu du
 navigateur sans engagement), à constater sur l'iPhone.
+
+## Session 2026-10-24 (suite) — PR n°2 : visibilité de la calibration
+
+PR #18 mergée par le développeur ; limite « export annulé » acceptée.
+
+- **Ce qui manque, pas seulement le compte** : `calibrationState` boucle du
+  début de calibration à aujourd'hui (et non plus sur les seules entrées
+  existantes) pour voir aussi les jours JAMAIS saisis. `incompleteDays` ne
+  contient que des jours passés : aujourd'hui est en cours, le signaler
+  comme manque dès le matin serait faux.
+- **Date la plus proche** : `today + restant − 1`, ou `+ restant` si
+  aujourd'hui compte déjà. Cas réel vérifié : tout saisi depuis le 24/10 ⇒
+  06/11, la date fixée par le développeur. Rattraper un jour passé avance
+  la date — c'est le levier que le texte rend visible.
+- **Calendrier** : la forme porte le sens (coche / balance / couverts),
+  car la case sélectionnée passe tout en `inkSoft` ; `warn` pour un manque,
+  `muted` pour aujourd'hui pas encore complet. Le point du type de jour est
+  conservé tel quel.
+- Textes centralisés (`calibrationCopy.js`) : bande, diagnostic et carte
+  TDEE ne peuvent pas annoncer deux dates différentes.
+- Test d'étape 4 modifié (attente, pas suppression) : le détail du
+  diagnostic gagne « — 14/14 au plus tôt le 06/11 ».
+
+**Retouche au rendu** : « +1 » orphelin en fin de bande à 360 px, illisible
+hors contexte ⇒ « et 1 autre ».
+
+Vérification : `npm test` **273/273** (+10) · `vite build` ✅ · Chromium
+390 et 360 px sur build de prod (calibration au 20/10, 4 cas de jour) :
+bande « 1/14 … au plus tôt le 05/11. À compléter : 23/10 (apport), 22/10
+(pesée + apport) et 1 autre. », 5 cases annotées pour lecteur d'écran,
+légende, zéro erreur console, zéro débordement.

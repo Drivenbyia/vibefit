@@ -1,3 +1,4 @@
+import { etaLabel, incompleteLabel } from './calibrationCopy.js';
 /**
  * Protocole anti-rationalisation — diagnostic PUR, sans action.
  *
@@ -100,7 +101,9 @@ export function diagnose({ signals, weeklyHistory = [], trainingSuspended = fals
   if (calib?.active) {
     return result(
       DIAGNOSIS.CALIBRATING,
-      `${calib.crossedDays}/${calib.requiredDays} jours croisant poids et apport depuis le ${calib.start.split('-').reverse().join('/')}.` +
+      `${calib.crossedDays}/${calib.requiredDays} jours croisant poids et apport depuis le ${calib.start.split('-').reverse().join('/')}` +
+        (etaLabel(calib) ? ` — ${etaLabel(calib)}.` : '.') +
+        (incompleteLabel(calib, 3) ? ` À compléter : ${incompleteLabel(calib, 3)}.` : '') +
         ` TDEE de départ : ${calib.seedTDEE} kcal en attendant.`,
       weeksEvaluated
     );
