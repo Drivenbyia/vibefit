@@ -14,6 +14,8 @@ import { ddmm, fmtGap } from './longTrendCopy.js';
  * Ordre des actions — la première qui s'applique gagne :
  *   1. calibration en cours (le TDEE en dépend) : les jours à rattraper,
  *      sinon la consigne du jour — jamais « rien à corriger » à 0/14 ;
+ *   1bis. aucun tour de taille saisi dans la semaine CALENDAIRE en cours
+ *      (lundi ou après — donc toujours vrai pour la semaine courante) ;
  *   2. recalibration disponible (le chiffre le plus structurant) ;
  *   3. protéines sous le plancher au moins 2 jours ;
  *   4. écart à la cible hors ±100 kcal/j ;
@@ -24,7 +26,7 @@ const fmtInt = (n) => Math.round(n).toLocaleString('fr-FR');
 const signedKg = (n) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(1).replace('.', ',')} kg`;
 
 export function weeklyCheckIn({
-  week, inProgress = false, prevWeek = null, protein = { days: 0, underDays: 0, floor: 160 },
+  week, inProgress = false, waistMissing = false, prevWeek = null, protein = { days: 0, underDays: 0, floor: 160 },
   steps = { avg: null, days: 0 }, stepsTarget = 8000, calibration = null, tdee = null,
 }) {
   const lines = [];
@@ -35,7 +37,7 @@ export function weeklyCheckIn({
       note: delta != null ? `${signedKg(delta)} vs sem. préc.` : 'moyenne de la semaine' });
   }
   if (week.gapPerDay != null) {
-    lines.push({ label: 'Écart à la cible', value: fmtGap(week.gapPerDay), note: `${week.comparableDays} j comparables` });
+    lines.push({ label: 'Écart à la cible', value: fmtGap(week.gapPerDay), note: `${week.comparableDays} j comparable${week.comparableDays > 1 ? 's' : ''}` });
   }
   if (protein.days > 0) {
     lines.push({ label: 'Protéines', value: `${protein.days - protein.underDays}/${protein.days} j`, note: `≥ ${protein.floor} g` });
@@ -54,16 +56,19 @@ export function weeklyCheckIn({
       note: d ? `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))} vs cibles` : 'aligné sur les cibles' });
   }
 
-  return { title: `Semaine du ${ddmm(week.weekStart)}${inProgress ? ' · en cours' : ''}`, lines, action: pickAction({ week, protein, steps, stepsTarget, calibration, tdee }) };
+  return { title: `Semaine du ${ddmm(week.weekStart)}${inProgress ? ' · en cours' : ''}`, lines, action: pickAction({ week, waistMissing, protein, steps, stepsTarget, calibration, tdee }) };
 }
 
-function pickAction({ week, protein, steps, stepsTarget, calibration, tdee }) {
+function pickAction({ week, waistMissing, protein, steps, stepsTarget, calibration, tdee }) {
   if (calibration?.active) {
     const todo = incompleteLabel(calibration, 2);
     if (todo) return { kind: 'calibration', text: `Complète ${todo} : chaque jour croisé rapproche le TDEE mesuré.` };
     const eta = etaLabel(calibration);
     return { kind: 'calibration',
       text: `Calibration ${calibration.crossedDays}/${calibration.requiredDays} : pesée et apport chaque jour${eta ? `, ${eta}` : ''}.` };
+  }
+  if (waistMissing) {
+    return { kind: 'waist', text: 'Mesure ton tour de taille à jeun : aucune mesure cette semaine.' };
   }
   if (tdee?.canRecalibrate) {
     return { kind: 'recalibrate', tab: 'targets',

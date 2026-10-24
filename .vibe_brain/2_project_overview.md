@@ -7,10 +7,17 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/contexte-coach`
-- **Suite de tests : Vitest, 321 tests** — `npm test`
+- Branche active : `claude/bilan-tour-de-taille`
+- **Suite de tests : Vitest, 323 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (nuit) — PR bilan : tour de taille (n°12)
+- `weeklyCheckIn` : action « Mesure ton tour de taille à jeun » quand aucune
+  taille n'est saisie dans la semaine calendaire en cours (lundi →
+  aujourd'hui, hors coupure), placée juste après la calibration — donc
+  invisible tant que la calibration est active (jusqu'au 06/11 au plus tôt).
+- Accord « 1 j comparable ».
 
 ### Session 2026-10-24 (nuit) — PR export : bloc « Contexte courant »
 - `utils/coachContext.js` (pur) : bloc Markdown en tête du rapport, avant
@@ -586,10 +593,9 @@ src/
   partiels exclus), « référence en construction n/28 », affichage seul
   pendant l'arrêt (décision du 2026-10-24).
 - [x] **n°3bis — Bilan du dimanche** : *mergée — PR #26*.
-- [ ] **n°11 — Export : contexte courant pour le coach** : *en cours —
-  `claude/contexte-coach`*.
-- [ ] **n°12 — Bilan : tour de taille du lundi** : action « Mesure ton tour
-  de taille à jeun », juste après la calibration. la semaine écoulée en une carte —
+- [x] **n°11 — Export : contexte courant pour le coach** : *mergée — PR #27*.
+- [ ] **n°12 — Bilan : tour de taille du lundi** : *en cours —
+  `claude/bilan-tour-de-taille`*. la semaine écoulée en une carte —
   TDEE mesuré et recalibration proposée avec sa raison, verdicts, une
   seule action. Rien n'est stocké.
 - [ ] **n°7 — Sortie de phase** (S) : rappel J−7 avant l'épreuve d'effort du

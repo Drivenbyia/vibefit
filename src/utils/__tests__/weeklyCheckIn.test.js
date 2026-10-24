@@ -58,4 +58,18 @@ describe('weeklyCheckIn', () => {
     expect(r.action.kind).toBe('calibration');
     expect(r.action.text).toBe('Calibration 0/14 : pesée et apport chaque jour, 14/14 au plus tôt le 06/11.');
   });
+
+  it('tour de taille manquant : juste après la calibration, avant la recalibration', () => {
+    const tdee = { adaptiveTDEE: 2290, delta: 240, canRecalibrate: true };
+    const r = weeklyCheckIn({ week, waistMissing: true, protein: { days: 7, underDays: 4, floor: 160 }, tdee });
+    expect(r.action).toEqual({ kind: 'waist', text: 'Mesure ton tour de taille à jeun : aucune mesure cette semaine.' });
+    const calibration = { active: true, crossedDays: 3, requiredDays: 14, earliestCompletion: '2026-11-06', incompleteDays: [] };
+    expect(weeklyCheckIn({ week, waistMissing: true, calibration }).action.kind).toBe('calibration');
+    expect(weeklyCheckIn({ week, waistMissing: false, tdee }).action.kind).toBe('recalibrate');
+  });
+
+  it('accord : 1 j comparable, 7 j comparables', () => {
+    expect(weeklyCheckIn({ week: { ...week, comparableDays: 1 } }).lines[1].note).toBe('1 j comparable');
+    expect(weeklyCheckIn({ week }).lines[1].note).toBe('7 j comparables');
+  });
 });
