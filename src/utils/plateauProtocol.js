@@ -27,19 +27,23 @@ export const WAIST_NOISE_CM = 1;
 const KCAL_PER_KG = 7700;
 
 export const DIAGNOSIS = {
+  CALIBRATING: 'CALIBRATING',
   INSUFFICIENT_DATA: 'INSUFFICIENT_DATA',
   LOW_ADHERENCE: 'LOW_ADHERENCE',
   WATER_RETENTION_SUSPECTED: 'WATER_RETENTION_SUSPECTED',
   PLATEAU_CONFIRMED: 'PLATEAU_CONFIRMED',
   PROGRESSING: 'PROGRESSING',
+  PLATEAU_SUSPENDED: 'PLATEAU_SUSPENDED',
 };
 
 const LABELS = {
+  CALIBRATING: 'Calibration en cours',
   INSUFFICIENT_DATA: 'Données insuffisantes',
   LOW_ADHERENCE: 'Adhérence insuffisante',
   WATER_RETENTION_SUSPECTED: 'Rétention d’eau probable',
   PLATEAU_CONFIRMED: 'Plateau confirmé',
   PROGRESSING: 'Progression en cours',
+  PLATEAU_SUSPENDED: 'Plateau non évalué',
 };
 
 const result = (status, detail, weeksEvaluated) => ({
@@ -66,18 +70,52 @@ const spread = (values) => (values.length >= 2 ? Math.max(...values) - Math.min(
  *   weeklyHistory — sortie de computeWeeklyHistory(), plus ancienne → plus récente
  * @returns {{status, label, detail, weeksEvaluated}}
  */
-export function diagnose({ signals, weeklyHistory = [] }) {
+export function diagnose({ signals, weeklyHistory = [], trainingSuspended = false }) {
   // Seules les semaines COMPLÈTES sont jugées : la semaine en cours a moins de
   // 7 jours écoulés, et la compter ferait passer tout début de semaine pour un
   // défaut d'adhérence. (`elapsedDays` absent ⇒ semaine déjà complète.)
   const complete = weeklyHistory.filter((w) => (w?.elapsedDays ?? 7) >= 7);
+  // Coupure : seules les semaines complètes POSTÉRIEURES à la dernière semaine
+  // touchée par une période non suivie sont jugées. Une semaine coupée n'est
+  // ni un défaut d'adhérence, ni un point de comparaison — le TDEE implicite
+  // calculé entre une semaine d'août et une semaine d'octobre n'a pas de sens.
+  const lastCutIdx = complete.map((w) => (w?.excludedDays ?? 0) > 0).lastIndexOf(true);
+  // Les semaines commencées AVANT le début d'une calibration ne sont pas
+  // jugées non plus : le TDEE a été remis à zéro à cette date.
+  const calibStart = signals?.calibration?.start ?? null;
+  const sinceCut = complete
+    .slice(lastCutIdx + 1)
+    .filter((w) => calibStart === null || w.weekStart == null || w.weekStart >= calibStart);
+  const cutSuffix = lastCutIdx >= 0 ? ' depuis la période non suivie' : '';
   // Une semaine de recul supplémentaire sert à calculer le TDEE implicite
   // de la plus ancienne semaine évaluée.
-  const tail = complete.slice(-(PLATEAU_MIN_WEEKS + 1));
+  const tail = sinceCut.slice(-(PLATEAU_MIN_WEEKS + 1));
   const recent = tail.length > PLATEAU_MIN_WEEKS ? tail.slice(1) : tail;
   const weeksEvaluated = recent.length;
 
   // 1. Porte de données — priorité absolue (R1 de la spec)
+  // 0. Calibration en cours — remplace tout diagnostic : un verdict posé sur
+  // un TDEE qu'on ne publie pas encore n'aurait rien sur quoi s'appuyer.
+  const calib = signals?.calibration;
+  if (calib?.active) {
+    return result(
+      DIAGNOSIS.CALIBRATING,
+      `${calib.crossedDays}/${calib.requiredDays} jours croisant poids et apport depuis le ${calib.start.split('-').reverse().join('/')}.` +
+        ` TDEE de départ : ${calib.seedTDEE} kcal en attendant.`,
+      weeksEvaluated
+    );
+  }
+
+  // Reprise après une coupure : tant qu'aucune fenêtre complète de 14 jours
+  // n'existe après elle, le compte « 0 jour croisé » serait faux — des jours
+  // ont bien été saisis, c'est la fenêtre qui n'est pas encore formée.
+  if (signals?.windowStart == null && (signals?.excludedDays ?? 0) > 0) {
+    return result(
+      DIAGNOSIS.INSUFFICIENT_DATA,
+      'Fenêtre de 14 jours pas encore complète depuis la période non suivie.',
+      weeksEvaluated
+    );
+  }
   if (!signals?.hasEnoughData || signals?.adaptiveTDEE == null) {
     return result(
       DIAGNOSIS.INSUFFICIENT_DATA,
@@ -88,7 +126,7 @@ export function diagnose({ signals, weeklyHistory = [] }) {
   if (weeksEvaluated < PLATEAU_MIN_WEEKS) {
     return result(
       DIAGNOSIS.INSUFFICIENT_DATA,
-      `${weeksEvaluated} semaine(s) d’historique — il en faut ${PLATEAU_MIN_WEEKS} pour conclure.`,
+      `${weeksEvaluated} semaine(s) complète(s) d’historique${cutSuffix} — il en faut ${PLATEAU_MIN_WEEKS} pour conclure.`,
       weeksEvaluated
     );
   }
@@ -139,6 +177,19 @@ export function diagnose({ signals, weeklyHistory = [] }) {
     return result(
       DIAGNOSIS.WATER_RETENTION_SUSPECTED,
       `Poids +${weeklyRate.toFixed(2)} kg/sem mais tour de taille stable (${waistDelta >= 0 ? '+' : ''}${waistDelta.toFixed(1)} cm). Rétention d’eau probable — ne pas couper les calories sur ce signal.`,
+      weeksEvaluated
+    );
+  }
+
+  // Phase sans entraînement (arrêt médical) : la règle de plateau suppose un
+  // déficit tenu PAR l'entraînement. En cible unique de maintenance, un poids
+  // stable est l'objectif, pas un plateau. Les portes de données et
+  // d'adhérence et la rétention d'eau, elles, restent valables — d'où leur
+  // place AVANT ce point.
+  if (trainingSuspended) {
+    return result(
+      DIAGNOSIS.PLATEAU_SUSPENDED,
+      'Règle de plateau suspendue pendant l’arrêt médical : sans entraînement, la cible unique vise la stabilité du poids.',
       weeksEvaluated
     );
   }

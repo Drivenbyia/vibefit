@@ -23,6 +23,38 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Références par montre, calories montre hors calcul
+- **Décision** : (1) Une référence (NEAT, sommeil) n'admet que les mesures de la montre portée AUJOURD'HUI, hors jours partiels ; pas iPhone seul jamais admis. (2) VFC/FC repos en affichage seul pendant l'arrêt médical, puis 4 semaines de la montre courante avant tout seuil. (3) Calories de la montre : saisies et affichées « à titre d'info », sorties du solde ; l'en-tête Semaine publie l'écart apport − cible.
+- **Contexte** : Garmin → Apple Watch le 19/10. Garmin RMSSD nocturne, Apple RMSSD + SDNN : algorithmes différents. iPhone seul ≈ 49 % des pas Garmin mesurés le même jour.
+- **Alternatives considérées** : (1) facteur de conversion Garmin ↔ Apple — invérifiable, invente des données ; (2) garder le solde apport − dépense — repose sur une dépense que l'app déclare non fiable.
+- **Raison du choix** : sans séparation, le passage de 15 000 pas Garmin à 9 000 pas Apple déclenche « Activité en baisse » (vérifié). Une mesure ne se compare qu'à elle-même.
+- **Impact** : les références repartent de zéro au changement de montre. Ajout de `hrvSdnn` au sommeil.
+- **Réversibilité** : Facile — sans `devices`, aucun filtrage (comportement antérieur).
+
+### 2026-10-24 — Calibration du TDEE : 14 jours croisés cumulés, valeur de départ 2050
+- **Décision** : Après une reprise, le TDEE mesuré n'est publié qu'une fois 14 jours croisés poids × apport réunis depuis le début de calibration (cumulés sur tout l'historique, coupures exclues). D'ici là : « Calibration en cours n/14 » à la place du diagnostic, cible servie sur le TDEE de départ. Aucune donnée antérieure au début de calibration n'entre dans le TDEE.
+- **Contexte** : dernier TDEE fiable ~2330, mesuré avec entraînement et chantiers. Valeur de départ validée : 2050 (−90 à −110 kcal/j de séances, −130 à −210 de chantiers).
+- **Alternatives considérées** : (1) seuil ordinaire de 10 jours croisés dans une fenêtre de 14 — trop tôt pour un changement de mode de vie ; (2) 14 jours croisés CONSÉCUTIFS — une pesée oubliée relancerait tout le compteur.
+- **Raison du choix** : un TDEE affiché est un TDEE sur lequel on recalibre ; il ne doit apparaître qu'une fois crédible. Le compte cumulé est monotone et ne punit pas un oubli.
+- **Impact** : la recalibration reste opt-in (bouton) une fois la calibration terminée.
+- **Réversibilité** : Facile — `calibration: null`.
+
+### 2026-10-24 — Phase sans cyclage : type de jour `rest` et cible unique dérivée
+- **Décision** : Pendant une phase `medical_stop`, tous les jours sont de type `rest` (priorité absolue dans `dayType`). Leur cible est `computeSingleTarget` : milieu (TRAIN+OFF)/2 des formules BRUTES du preset, plancher 1600 appliqué directement, protéines du preset (≥ 160). Dérivée à la volée par `resolveTargets`, jamais stockée.
+- **Contexte** : arrêt médical, tout effort interdit. Le calendrier lun/mer/ven servait encore des cibles TRAIN sans entraînement.
+- **Alternatives considérées** : (1) moyenne de la semaine-type (3 TRAIN + 2 OFF)/5 — asymétrique, Maintenance à TDEE + 40 ; (2) milieu des cibles cyclées stockées — porte la correction de plancher du cyclage (Sèche forte à 2050 : 1800 au lieu de 1650) ; (3) écrire `workout: 'none'` / `typeOverride` sur les jours — réécrit des données pour une règle de lecture ; (4) preset verrouillé — refusé par le développeur.
+- **Raison du choix** : Maintenance = TDEE exactement, chaque preset garde son écart nominal (0 / −200 / −400 / +300). Une règle de lecture se défait à la clôture sans migration.
+- **Impact** : sélecteur TRAIN/OFF/WE remplacé par un badge non interactif, carte Séance et bouton chantier masqués pendant la phase. Les cibles TRAIN/OFF restent éditables et reprennent à la clôture.
+- **Réversibilité** : Facile — clôture manuelle (`endedAt`).
+
+### 2026-10-24 — Protocole daté au niveau racine : coupures, phases, montres
+- **Décision** : Schéma v2 additif sous la même clé `vibefit_v1`. Trois listes racine (`periods`, `phases`, `devices`) au lieu de marqueurs jour par jour. Une coupure porte un **périmètre** (`scope: 'nutrition'`) ; une phase a une fin **prévue** qui ne la ferme pas (seule `endedAt`, clôture manuelle, le fait) ; la source d'une mesure est écrite sur le jour quand elle diffère de la montre (iPhone seul), sinon **déduite** de la chronologie sans réécrire le jour.
+- **Contexte** : reprise après 2 mois sans saisie, arrêt médical daté, changement de montre Garmin → Apple Watch. Les VFC Garmin (RMSSD nocturne) et Apple ne se comparent pas ; rien dans le state ne permettait de les distinguer.
+- **Alternatives considérées** : (1) marquer chaque jour du trou — 65 jours vides qui passeraient pour des jours saisis ; (2) nouvelle clé de stockage — casse la restauration des anciens exports ; (3) backfill de la source sur tous les jours historiques — réécrit des saisies pour une information déductible.
+- **Raison du choix** : la migration ne peut ni perdre ni altérer une saisie (jours repris par référence, test sur copie réelle). Le périmètre de coupure permet d'exclure la nutrition sans perdre les nuits Apple Watch du 19 au 23/10. La fin prévue non bloquante empêche une date de rendez-vous de rouvrir les séances seule.
+- **Impact** : les listes sont restaurées par « Restaurer » ; la « Fusion » ne les touche pas (cohérent avec la décision du 2026-08-03 : un fichier de données ne change pas le protocole).
+- **Réversibilité** : Facile — listes vides ⇒ comportement v1.
+
 ### 2026-08-03 — Le sommeil devient un diagnostic, placé avant le plateau
 - **Décision** : Créer `utils/sleepDiagnosis.js` (module pur, sur le modèle de `neatDrift.js`) publiant deux statuts distincts — **DETTE** (durée moyenne < 6 h 30, seuil absolu) et **TENSION** (VFC < 85 % de sa ligne de base ou FC repos > baseline + 5 bpm, seuils relatifs). Non soumis à la porte d'adhérence. Dans `summarizeStatus`, **TENSION est arbitrée AVANT le plateau confirmé**.
 - **Contexte** : `SleepCard` structure 4 champs depuis fin juillet. Vérification par grep : ils n'apparaissaient que dans `aggregateSleep` (affichage) et `formatSleep` (export). Aucun des quatre diagnostics du produit ne les lisait. Le développeur saisissait donc score, durée, VFC et FC repos chaque matin sans qu'aucune conclusion n'en soit jamais tirée.

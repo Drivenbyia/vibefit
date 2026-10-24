@@ -1,5 +1,45 @@
 export const DEFAULT_STEPS_TARGET = 8000;
 export const STORAGE_KEY = 'vibefit_v1';
+// Version du schéma stocké sous STORAGE_KEY. La clé ne change pas : la
+// migration est additive (voir models/protocol.js), un ancien export reste lisible.
+//   1 — implicite : { days, targets, presetId, baseTDEE, stepsTarget }
+//   2 — + periods (coupures), phases (protocoles datés), devices (montres)
+export const SCHEMA_VERSION = 2;
+
+// Sources d'une mesure de montre. `iphone` = iPhone seul, pas sous-estimés
+// dès que le téléphone n'est pas sur soi : jamais mélangé à une référence montre.
+export const MEASURE_SOURCES = {
+  garmin: 'Garmin',
+  apple_watch: 'Apple Watch',
+  iphone: 'iPhone seul — sous-estimé',
+  manual: 'Saisie manuelle',
+};
+
+// Règles d'une phase datée (voir models/protocol.js). Une phase ne change
+// aucune donnée : elle change la LECTURE des jours qu'elle couvre.
+//   cycling: false  — cyclage TRAIN/OFF suspendu, cible unique tous les jours
+//   training: false — séance et chantier hors sujet : non saisissables
+export const PHASE_TYPES = {
+  medical_stop: { label: 'Arrêt médical', cycling: false, training: false },
+};
+// Sources qui comptent comme « pas montre » — les seules admises dans une
+// moyenne ou une référence de pas. `iphone` (sous-estimé dès que le téléphone
+// n'est pas porté) et `manual` (origine inconnue) en sont exclus.
+export const WATCH_SOURCES = ['garmin', 'apple_watch'];
+
+// Semaines complètes de la montre COURANTE exigées avant qu'un seuil VFC / FC
+// repos puisse s'appliquer. Une VFC ne se compare qu'à elle-même, mesurée par
+// le même capteur et le même algorithme : changer de montre remet ce compteur
+// à zéro.
+export const SLEEP_STRAIN_MIN_BASELINE_WEEKS = 4;
+
+// Calibration du TDEE après une reprise : aucune valeur mesurée n'est publiée
+// avant ce nombre de jours croisant poids ET apport depuis le début de la
+// calibration. Strict à dessein — 14 et non les 10 du moteur ordinaire.
+export const CALIBRATION_REQUIRED_DAYS = 14;
+
+// Type de jour pendant une phase sans cyclage — clé de la cible unique.
+export const REST_DAY_TYPE = 'rest';
 
 // 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
 export const KCAL_PER_KG = 7700;

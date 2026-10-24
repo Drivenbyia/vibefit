@@ -3,6 +3,9 @@ import { PALETTE, SUNSET } from '../../constants/config.js';
 import { toKey, addDays, fmtFr } from '../../utils/dateUtils.js';
 import { dayType } from '../../models/day.js';
 import DayTypeSwitcher from './DayTypeSwitcher.jsx';
+import PhaseBadge from './PhaseBadge.jsx';
+import { phaseAt } from '../../models/protocol.js';
+import { REST_DAY_TYPE } from '../../constants/config.js';
 
 // Palmier stylisé : tronc + 5 palmes. Silhouette pure (fill uni), pensée pour
 // se découper sur le dégradé coucher de soleil — voir DESIGN.md §3.
@@ -43,8 +46,9 @@ function Skyline() {
   );
 }
 
-export default function Header({ dateKey, setDateKey, day, updateDay, targets }) {
-  const t = dayType(dateKey, day);
+export default function Header({ dateKey, setDateKey, day, updateDay, targets, phases = [] }) {
+  const t = dayType(dateKey, day, phases);
+  const phase = t === REST_DAY_TYPE ? phaseAt(dateKey, phases) : null;
   const today = toKey(new Date());
 
   const navButtonStyle = {
@@ -96,11 +100,15 @@ export default function Header({ dateKey, setDateKey, day, updateDay, targets })
         </button>
       </div>
 
-      <DayTypeSwitcher
-        activeType={t}
-        targets={targets}
-        onToggle={(t2) => updateDay({ typeOverride: t === t2 ? null : t2 })}
-      />
+      {phase ? (
+        <PhaseBadge label={phase.label ?? phase.type} kcal={targets[REST_DAY_TYPE]?.kcal} plannedEnd={phase.plannedEnd} />
+      ) : (
+        <DayTypeSwitcher
+          activeType={t}
+          targets={targets}
+          onToggle={(t2) => updateDay({ typeOverride: t === t2 ? null : t2 })}
+        />
+      )}
 
       <Skyline />
     </div>

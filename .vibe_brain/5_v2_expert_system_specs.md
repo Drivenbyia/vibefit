@@ -238,6 +238,16 @@ Toute règle du moteur doit respecter l'interface suivante :
 ## 7. Définition des Règles Métiers (Phase B — GEL)
 
 > ⚠️ Les règles R2, R4, R5 et R6 restent GELées jusqu'au backtesting complet.
+>
+> 🩺 **Phase sans entraînement (arrêt médical, depuis le 2026-10-24).** Les règles
+> qui supposent de l'entraînement sont **non applicables** pendant une phase
+> `medical_stop` (`PHASE_TYPES.training === false`), dégelées ou non :
+> R2 (recharge des jours TRAIN), R4 (coupe des jours OFF), R5 (échec du
+> week-end — pas de week-end distinct en cible unique) et le plateau du
+> protocole anti-rationalisation (§ 11), qui renvoie `PLATEAU_SUSPENDED`.
+> R1, R3 et R6 ne supposent pas d'entraînement et restent hors de cette
+> suspension. Tout dégel futur doit tester `isTrainingSuspended` avant de se
+> déclencher.
 > R1 et R3 sont implémentées, en mode **diagnostic seul** — aucune ne modifie de cible.
 
 ### R1 — DATA_QUALITY [Priority: 100]

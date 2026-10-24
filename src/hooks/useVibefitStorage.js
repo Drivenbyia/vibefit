@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DEFAULT_STEPS_TARGET, STORAGE_KEY } from '../constants/config.js';
 import { deriveBaseTDEE, DEFAULT_TDEE, DEFAULT_TARGETS } from '../utils/presetUtils.js';
+import { migrateData } from '../models/protocol.js';
 
 export function useVibefitStorage() {
   const [data, setData] = useState(() => {
@@ -11,7 +12,10 @@ export function useVibefitStorage() {
         const parsed = JSON.parse(raw);
         const targets = parsed.targets || DEFAULT_TARGETS;
         const presetId = parsed.presetId || 'maintenance';
-        return {
+        // Migration additive : reprend periods/phases/devices s'ils existent,
+        // les initialise vides sinon. Les jours ne sont jamais réécrits.
+        return migrateData({
+          ...parsed,
           days: parsed.days || {},
           targets,
           stepsTarget: parsed.stepsTarget ?? DEFAULT_STEPS_TARGET,
@@ -21,18 +25,18 @@ export function useVibefitStorage() {
           baseTDEE: parsed.baseTDEE
             ?? (parsed.maintenanceKcal?.train != null ? parsed.maintenanceKcal.train - 200 : null)
             ?? deriveBaseTDEE(presetId, targets),
-        };
+        });
       }
     } catch (e) {
       // First run / SSR / privacy mode — fall through to defaults
     }
-    return {
+    return migrateData({
       days: {},
       targets: DEFAULT_TARGETS,
       stepsTarget: DEFAULT_STEPS_TARGET,
       presetId: 'maintenance',
       baseTDEE: DEFAULT_TDEE,
-    };
+    });
   });
 
   useEffect(() => {

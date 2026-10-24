@@ -7,6 +7,7 @@ import {
   MAX_DAILY_WEIGHT_JUMP_KG,
 } from '../constants/config.js';
 import { toKey, addDays } from './dateUtils.js';
+import { isExcluded, sanitizeProtocol } from '../models/protocol.js';
 
 const SMOOTHING_WINDOW = 7;
 const HISTORY_SCAN_DAYS = 30;  // horizon de scan pour la fenêtre glissante
@@ -116,6 +117,35 @@ function movingAverage7(entries) {
 }
 
 /**
+ * Applique `fn` à chaque SEGMENT continu de jours non exclus, séparément.
+ *
+ * Une coupure (période non suivie) n'est pas un trou de saisie ordinaire :
+ * l'interpolation, le rejet des aberrants et le lissage ne doivent jamais la
+ * traverser. Relier une pesée d'août à une pesée d'octobre fabriquerait deux
+ * mois de poids que personne n'a mesurés — exactement les données inventées
+ * que la coupure doit empêcher. Les jours exclus sont rendus tels quels.
+ *
+ * Sans coupure, il n'y a qu'un segment : `fn` reçoit la série entière et le
+ * résultat est strictement celui d'avant.
+ */
+function bySegment(entries, fn) {
+  const out = new Array(entries.length);
+  let start = 0;
+  const flush = (end) => {
+    if (end > start) fn(entries.slice(start, end)).forEach((e, i) => { out[start + i] = e; });
+  };
+  for (let i = 0; i < entries.length; i++) {
+    if (entries[i].excluded) {
+      flush(i);
+      out[i] = entries[i];
+      start = i + 1;
+    }
+  }
+  flush(entries.length);
+  return out;
+}
+
+/**
  * Data Quality Score d'une sous-fenêtre : nombre de jours où l'utilisateur
  * a saisi SIMULTANÉMENT un poids ET un apport calorique.
  *
@@ -141,9 +171,14 @@ function findBestWindow(entries) {
 
   let bestScore = -Infinity;
   let bestStart = n - WINDOW_SIZE; // défaut : fenêtre la plus récente
+  let found = false;
 
   for (let start = 0; start <= n - WINDOW_SIZE; start++) {
     const endIdx = start + WINDOW_SIZE - 1;
+    // Une fenêtre qui contient un jour exclu chevauche une coupure : sa pente
+    // relierait deux périodes que rien ne relie. Elle n'est pas candidate.
+    if (entries.slice(start, start + WINDOW_SIZE).some((e) => e.excluded)) continue;
+    found = true;
     const overlap = windowQualityScore(entries.slice(start, start + WINDOW_SIZE));
     const score = overlap - (n - 1 - endIdx) * RECENCY_PENALTY_PER_DAY;
     // >= pour que la fenêtre la plus récente l'emporte en cas d'égalité
@@ -153,7 +188,44 @@ function findBestWindow(entries) {
     }
   }
 
+  // Aucune fenêtre complète hors coupure (reprise de moins de 14 jours) :
+  // pas de fenêtre du tout, plutôt qu'une fenêtre tronquée qui publierait un
+  // TDEE sur 3 jours.
+  if (!found) return null;
+
   return { startIdx: bestStart, endIdx: bestStart + WINDOW_SIZE - 1, size: WINDOW_SIZE };
+}
+
+/** Poids et apport valides (bornes de plausibilité) d'un jour, ou null. */
+function crossedValues(day) {
+  const w = day?.weight != null ? parseFloat(day.weight) : NaN;
+  const kc = day?.intake?.kcal != null ? parseFloat(day.intake.kcal) : NaN;
+  return {
+    weight: !isNaN(w) && w >= WEIGHT_MIN_KG && w <= WEIGHT_MAX_KG ? w : null,
+    intake: !isNaN(kc) && kc >= INTAKE_MIN_KCAL && kc <= INTAKE_MAX_KCAL ? kc : null,
+  };
+}
+
+/**
+ * État de la calibration : jours croisés poids × apport depuis son début,
+ * sur TOUT l'historique (pas seulement l'horizon de 30 jours), coupures exclues.
+ * Le compte est monotone : une fois atteint, le seuil reste atteint.
+ */
+function calibrationState(days, periods, calibration, today) {
+  if (!calibration) return null;
+  let crossedDays = 0;
+  for (const [key, day] of Object.entries(days)) {
+    if (key < calibration.start || key > today || isExcluded(key, periods, 'nutrition')) continue;
+    const { weight, intake } = crossedValues(day);
+    if (weight !== null && intake !== null) crossedDays += 1;
+  }
+  return {
+    start: calibration.start,
+    seedTDEE: calibration.seedTDEE,
+    requiredDays: calibration.requiredDays,
+    crossedDays,
+    active: crossedDays < calibration.requiredDays,
+  };
 }
 
 /**
@@ -172,37 +244,51 @@ function findBestWindow(entries) {
  *   interpolatedCount   — poids reconstruits par interpolation sur la fenêtre
  *   windowStart/End     — dates ISO de la fenêtre retenue
  *   windowAgeDays       — ancienneté de windowEnd par rapport à aujourd'hui
+ *                         (null si aucune fenêtre complète hors coupure)
+ *   excludedDays        — jours de l'horizon neutralisés par une coupure
  */
 export function extractSignals(data) {
   const days = data?.days ?? {};
+  const periods = data?.periods ?? [];
+  const { calibration: calib } = sanitizeProtocol(data ?? {});
 
   // Historique brut sur HISTORY_SCAN_DAYS jours (J-29 → J0).
   // toKey/addDays produisent une date locale, alignée sur les clés de saisie.
   const today = toKey(new Date());
+  const calibration = calibrationState(days, periods, calib, today);
   const rawEntries = [];
   for (let i = HISTORY_SCAN_DAYS - 1; i >= 0; i--) {
     const key = addDays(today, -i);
     const day = days[key] ?? null;
 
-    const w = day?.weight != null ? parseFloat(day.weight) : NaN;
-    const kc = day?.intake?.kcal != null ? parseFloat(day.intake.kcal) : NaN;
+    const { weight, intake } = crossedValues(day);
+    // Jour de coupure nutritionnelle : neutralisé AVANT tout calcul, même si
+    // une valeur y a été saisie — elle n'entre ni dans le TDEE, ni dans la
+    // confiance, ni dans la tendance. Même traitement pour les jours
+    // antérieurs au début d'une calibration : le TDEE repart de zéro, il ne
+    // doit pas mélanger l'avant (entraînement, chantiers) et l'après.
+    const excluded = isExcluded(key, periods, 'nutrition')
+      || (calibration !== null && key < calibration.start);
 
     rawEntries.push({
       date: key,
-      weight: !isNaN(w) && w >= WEIGHT_MIN_KG && w <= WEIGHT_MAX_KG ? w : null,
-      intake: !isNaN(kc) && kc >= INTAKE_MIN_KCAL && kc <= INTAKE_MAX_KCAL ? kc : null,
-      heavyWork: !!day?.heavyWork,
+      weight: excluded ? null : weight,
+      intake: excluded ? null : intake,
+      heavyWork: !excluded && !!day?.heavyWork,
+      excluded,
     });
   }
 
-  const entries = rejectWeightOutliers(rawEntries);
+  const entries = bySegment(rawEntries, rejectWeightOutliers);
 
-  // Sélection de la fenêtre optimale par Data Quality Score
-  const { startIdx, endIdx, size } = findBestWindow(entries);
+  // Sélection de la fenêtre optimale par Data Quality Score. `null` ⇒ aucune
+  // fenêtre complète hors coupure : tout le reste se dégrade en « pas de TDEE ».
+  const best = findBestWindow(entries);
+  const { startIdx, endIdx, size } = best ?? { startIdx: 0, endIdx: -1, size: 0 };
   const bestWindow = entries.slice(startIdx, endIdx + 1);
   const windowStart = bestWindow[0]?.date ?? null;
   const windowEnd = bestWindow[bestWindow.length - 1]?.date ?? null;
-  const windowAgeDays = entries.length - 1 - endIdx;
+  const windowAgeDays = best ? entries.length - 1 - endIdx : null;
 
   // Qualité = recouvrement poids × apport sur la fenêtre
   const overlapDays = windowQualityScore(bestWindow);
@@ -212,14 +298,19 @@ export function extractSignals(data) {
   // contient quatre jours de chantier et l'autre zéro.
   const heavyWorkDays = bestWindow.filter((e) => e.heavyWork).length;
   const confidence = size > 0 ? Math.round((overlapDays / size) * 100) : 0;
-  const hasEnoughData = overlapDays >= Math.min(MIN_OVERLAP_DAYS, size);
+  const hasEnoughData = size > 0 && overlapDays >= Math.min(MIN_OVERLAP_DAYS, size);
 
   // Lissage sur l'historique complet pour une baseline plus robuste
-  const interpolated = interpolateWeights(entries);
-  const smoothedEntries = movingAverage7(interpolated);
+  const interpolated = bySegment(entries, interpolateWeights);
+  const smoothedEntries = bySegment(interpolated, movingAverage7);
 
   // Poids lissé courant = moyenne des 7 derniers jours smoothed
-  const recent7 = smoothedEntries.slice(-7).filter((e) => e.smoothed !== null);
+  // Limité au segment courant : le poids « actuel » ne mélange pas l'avant et
+  // l'après d'une coupure. Les jours exclus n'ont pas de `smoothed` (undefined).
+  const lastCut = entries.map((e) => e.excluded).lastIndexOf(true);
+  const recent7 = smoothedEntries
+    .slice(Math.max(lastCut + 1, smoothedEntries.length - 7))
+    .filter((e) => e.smoothed != null);
   const smoothedWeight =
     recent7.length > 0
       ? round2(recent7.reduce((s, e) => s + e.smoothed, 0) / recent7.length)
@@ -252,31 +343,42 @@ export function extractSignals(data) {
 
   // TDEE adaptatif : apport moyen − déséquilibre énergétique journalier.
   // La pente OLS est déjà en kg/JOUR — aucune division par la taille de fenêtre.
+  //
+  // Calibration en cours : AUCUNE valeur publiée, même si une fenêtre à 10
+  // jours croisés existe déjà. Un TDEE affiché trop tôt serait lu, et une
+  // valeur lue est une valeur sur laquelle on recalibre.
   let adaptiveTDEE = null;
-  if (hasEnoughData && slopeKgPerDay !== null && avgIntake !== null) {
+  if (!calibration?.active && hasEnoughData && slopeKgPerDay !== null && avgIntake !== null) {
     adaptiveTDEE = Math.round(avgIntake - slopeKgPerDay * KCAL_PER_KG);
   }
 
   // Série lissée destinée au TRACÉ seul (bande d'état). `x` est l'index réel
   // dans l'horizon de scan, jamais l'index après filtrage : un trou de pesée
   // doit s'afficher comme un segment plus long, pas comprimer le temps.
+  //
+  // Seul le DERNIER segment est tracé : une courbe qui joindrait l'avant et
+  // l'après d'une coupure dessinerait une évolution jamais mesurée.
   const weightSeries = smoothedEntries
-    .map((e, x) => ({ x, y: e.smoothed }))
-    .filter((p) => p.y !== null);
+    .map((e, x) => ({ x, y: e.smoothed ?? null }))
+    .filter((p) => p.x > lastCut && p.y !== null);
 
   return {
     smoothedWeight,
     weightSeries,
     adaptiveTDEE,
+    // null sans calibration ; sinon { start, seedTDEE, requiredDays, crossedDays, active }
+    calibration,
     weightTrendPerWeek,
     avgIntake,
     confidence,
-    hasEnoughData,
+    hasEnoughData: hasEnoughData && !calibration?.active,
     overlapDays,
     heavyWorkDays,
     interpolatedCount,
     windowStart,
     windowEnd,
     windowAgeDays,
+    // Jours neutralisés par une COUPURE (pas par le début de calibration).
+    excludedDays: entries.filter((e) => isExcluded(e.date, periods, 'nutrition')).length,
   };
 }

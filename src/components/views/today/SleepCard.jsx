@@ -39,13 +39,19 @@ export default function SleepCard({ day, updateDay }) {
         </div>
         <div>
           {/* Libellés alignés sur la montre (VFC nocturne, FC au repos). Les clés
-              de stockage restent `hrv` et `rhr`, termes standard côté code. */}
-          <Label>VFC</Label>
-          <NumberInput value={sleep.hrv ?? ''} onChange={(v) => patch({ hrv: v })} placeholder="ex. 46" suffix="ms" />
+              de stockage restent `hrv` et `rhr`, termes standard côté code.
+              `hrv` = RMSSD de la nuit (Garmin hier, Apple Watch aujourd'hui) ;
+              `hrvSdnn` = SDNN d'Apple Santé, en complément — jamais comparés. */}
+          <Label>VFC RMSSD nuit</Label>
+          <NumberInput value={sleep.hrv ?? ''} onChange={(v) => patch({ hrv: v })} placeholder="ex. 56" suffix="ms" />
         </div>
         <div>
           <Label>FC repos</Label>
           <NumberInput value={sleep.rhr ?? ''} onChange={(v) => patch({ rhr: v })} placeholder="ex. 52" suffix="bpm" />
+        </div>
+        <div style={{ gridColumn: 'span 2' }}>
+          <Label>VFC SDNN (complément)</Label>
+          <NumberInput value={sleep.hrvSdnn ?? ''} onChange={(v) => patch({ hrvSdnn: v })} placeholder="ex. 53" suffix="ms" />
         </div>
         <div>
           <Label>Durée — heures</Label>

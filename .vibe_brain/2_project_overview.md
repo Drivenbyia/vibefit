@@ -1,14 +1,106 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-08-01
+last_updated: 2026-10-24
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/vibefit-garmin-integration-e9iff0`
-- **Suite de tests : Vitest, 149 tests** — `npm test`
+- Branche active : `claude/arret-medical-etape-1`
+- **Suite de tests : Vitest, 252 tests** — `npm test`
+
+### Session 2026-10-24 — Reprise après 2 mois : arrêt médical, coupure, Apple Watch
+Contexte : aucune saisie du 20/08 au 23/10/2026, arrêt médical (tout effort
+interdit, marche autorisée) depuis le 29/08 jusqu'à l'épreuve d'effort du
+01/03/2027, Garmin remplacée par une Apple Watch le 19/10. Plan en 7 étapes
+validé étape par étape.
+
+- **Étape 0 — faite** : sauvegarde horodatée de `vibefit_v1` (56 jours) et de
+  l'export Apple Santé, inventaire des mesures du trou (hors dépôt : données
+  personnelles). Constats : la synchro Garmin → Santé s'arrête le 28/09, Garmin
+  n'écrit aucune VFC dans Santé, l'Apple Watch écrit SDNN **et** RMSSD.
+- **Étape 1 — faite** : schéma v2 additif (`models/protocol.js`) — `periods`
+  (coupures à périmètre), `phases` (fin prévue ≠ clôture), `devices`
+  (chronologie des montres), source de mesure explicite ou déduite. Restauration
+  qui garde ces listes, export horodaté à la minute, phase/coupure/montre et
+  sources publiées dans le rapport. **Aucun calcul n'est encore branché.**
+- **Étape 2 — faite** : la coupure (périmètre nutrition) est branchée.
+  `extractSignals` neutralise les jours coupés, traite chaque segment
+  séparément (rejet des aberrants, interpolation, lissage) et n'accepte que des
+  fenêtres de 14 jours sans jour coupé — plus de fenêtre tronquée. Tracé et
+  poids courant limités au dernier segment. `computeWeeklyHistory` vide les
+  champs nutritionnels des jours coupés (pas et sommeil intacts) et expose
+  `excludedDays` ; `diagnose()` ne juge que les semaines postérieures à la
+  dernière semaine coupée.
+- **Arbitrages validés pour la suite** : cible unique = (TRAIN+OFF)/2 puis
+  plancher 1600 (Maintenance = TDEE) · pas iPhone du 29/09 au 18/10 étiquetés
+  sous-estimés, période exclue de tout · VFC : RMSSD nocturne en principal,
+  SDNN en complément, nouvelle référence Apple · séances Santé (vélo 12/10, 2
+  marches) gardées à titre d'info seulement · ECG ignoré · jours partiels
+  (20/08, 21/08, 05/09, 28/09, 19/10) exclus de toute référence.
+- **Étape 3 — faite** : phase « Arrêt médical ». `dayType(key, day, phases)`
+  renvoie `rest` pendant une phase sans cyclage — avant la bascule manuelle et
+  la séance, rien ne rouvre TRAIN. `computeSingleTarget` = milieu
+  (TRAIN+OFF)/2 des formules brutes, plancher 1600 direct ; `resolveTargets`
+  l'ajoute sous `rest` (dérivée, jamais stockée) et devient la source unique
+  des cibles servies (App → Header/Today/Week). UI : badge de phase à la place
+  du sélecteur TRAIN/OFF/WE, carte « Séances suspendues » à la place de la
+  carte Séance, bouton chantier masqué, carte de phase dans Cibles avec
+  clôture manuelle proposée à partir de la fin prévue. Taux des presets et
+  guide de tendance calculés sur la cible unique. Export : « Cible unique ».
+  **Solde de la semaine** limité aux jours hors coupure (demande du
+  2026-10-24), dénominateur « x / y jours saisis · hors période non suivie ».
+- **Étape 4 — faite** : calibration du TDEE. Champ racine `calibration`
+  `{ start, seedTDEE, requiredDays: 14 }` (sanitize, migration, restauration).
+  `extractSignals` n'utilise aucune donnée antérieure à `start` et ne publie
+  aucun TDEE tant que 14 jours croisés poids × apport (cumulés, coupures
+  exclues) ne sont pas réunis — `signals.calibration`. Statut
+  `DIAGNOSIS.CALIBRATING` (remplace tout verdict nutritionnel), bande d'état
+  « Calibration en cours n/14 », carte TDEE et export idem. Données : fichier
+  de protocole v2 (TDEE 2050, cibles Maintenance 2050, calibration au 24/10).
+  Phase : clôture disponible à tout moment (confirmée, rappelle la fin
+  prévue), fin prévue éditable dans Cibles (refusée avant le début).
+- **Étape 5 — faite** : `diagnose({ trainingSuspended })` renvoie
+  `PLATEAU_SUSPENDED` à la place de PLATEAU_CONFIRMED / PROGRESSING pendant la
+  phase ; portes de données/adhérence, rétention d'eau et calibration restent
+  actives et prioritaires. Bande d'état : ligne neutre « Plateau non évalué ».
+  Rappel hebdo de phase (`phaseReminderCopy`) : cible unique, apport moyen des
+  jours saisis et écart — plus de Garmin, de solde ni de jours TRAIN. R2/R4/R5
+  marquées non applicables dans la spec (`5_v2_expert_system_specs.md` § 7).
+- **Étape 6 — faite** : sources et références montre. `isReferenceMeasure` :
+  seules les mesures de la montre portée aujourd'hui, hors jours partiels
+  (périodes `partial`, scope `recovery`), entrent dans les moyennes de pas et
+  de sommeil de l'historique (NEAT, sommeil) — les semaines Garmin ne
+  nourrissent aucune référence Apple, l'iPhone seul jamais. Sommeil : verdict
+  VFC/FC repos désactivé pendant la phase, puis 4 semaines de la montre
+  courante exigées ; dette de sommeil conservée. Saisie : RMSSD nuit
+  (principal) + SDNN (complément), bouton « Pas iPhone seul » avec source
+  affichée. Calories montre : « info » partout, hors de tout calcul affiché —
+  l'en-tête Semaine publie l'ÉCART À LA CIBLE (`targetGap`). Rappel hebdo de
+  phase : protéines vs plancher (alerte écrite) et pas MONTRE vs 8000 avant
+  les calories (demande du 2026-10-24). Protocole v3 : 5 jours partiels.
+- **Étape 7 — faite (code)** : saisie Apple option A — guide repliable des
+  5 valeurs (`AppleEntryGuide`, jours Apple Watch seulement), champ optionnel
+  `infoActivities` (séances Santé à titre d'info : carte en lecture seule,
+  ligne d'export, lu par aucun calcul). Fichiers d'import hors dépôt, à passer
+  par « Fusionner » après validation de la liste : mesures Apple 19–24/10 et
+  activités du 12/10. Test de fusion par l'UI sur copie : 6 jours ajoutés,
+  aucun jour existant modifié.
+- **Nettoyage — fait** : `weeklyReminderCopy` réécrite (objectif par preset,
+  constat sur l'écart à la cible, plus de Garmin ni de calories montre) et
+  rebranchée hors phase ; `WeekView.jsx` 88 → 77 lignes (`WeekDiagnostics`).
+  Procédure finale rejouée sur la sauvegarde brute : migration → Restaurer v3
+  → Fusionner Apple → Fusionner 12/10, zéro jour d'origine modifié.
+- **Améliorations futures (non traitées)** :
+  - **Historiser les cibles** : les semaines passées sont comparées aux cibles
+    COURANTES (écart à la cible, rappel, tendance calorique). Une semaine
+    d'août est jugée contre la cible 2050 d'octobre. Piste : journaliser
+    `{ date, presetId, baseTDEE, targets }` à chaque changement et résoudre la
+    cible d'un jour à sa date.
+  - `Header.jsx` (116 l.) et `StatusBand.jsx` (155 l.) dépassent la règle des
+    80 lignes — déjà au-delà avant ce chantier.
+  - Option B (Raccourci iOS → JSON → Fusionner) pour la saisie Apple.
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
 Quatre chantiers, tous issus d'un même constat : plusieurs données étaient

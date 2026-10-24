@@ -1065,3 +1065,194 @@ verdict correct dans la bande, carte Semaine présente, pill chantier mesurée �
 **zéro erreur console, zéro débordement horizontal**. Le repo a deux précédents
 de régressions invisibles au build et trouvées seulement au rendu — d'où le
 contrôle systématique.
+
+---
+
+## Session 2026-10-24 — Reprise : audit, sauvegarde, schéma v2
+
+### Contexte
+Aucune saisie du 20/08 au 23/10/2026. Arrêt médical depuis le 29/08 (effort
+interdit, marche autorisée) jusqu'à l'épreuve d'effort du 01/03/2027. Garmin
+remplacée par une Apple Watch le 19/10. Session menée en audit d'abord, puis une
+étape à la fois avec validation entre chaque.
+
+### Audit — constats principaux
+- « Intégration Garmin » = saisie manuelle uniquement, aucune source stockée.
+- TDEE aujourd'hui `null` (confiance 0 %) — juste, mais **par accident** : le
+  19/08 est sorti de l'horizon de 30 jours. Rien n'empêchait l'interpolation de
+  traverser un trou, et le seuil est 10 jours croisés, pas 14.
+- Les cibles suivent le calendrier lun/mer/ven = TRAIN même sans séance.
+- `baseTDEE` stocké : **2000** (défaut), pas les ~2330 de mémoire.
+- La restauration aurait perdu tout nouveau champ racine.
+
+### Étape 0 — sauvegarde et inventaire (hors dépôt)
+Copies en lecture seule + SHA-256. Inventaire `export.xml` : Garmin (« Connect »)
+présent jusqu'au **28/09** seulement (synchro interrompue, montre pourtant
+portée) ; Garmin n'écrit **aucune VFC** dans Santé ; iPhone seul ≈ 49 % des pas
+Garmin ; l'Apple Watch écrit SDNN **et** RMSSD. Rien importé.
+
+### Étape 1 — schéma v2
+`models/protocol.js` (pur) : `migrateData`, `sanitizeProtocol`,
+`restorableProtocol`, `isExcluded`, `periodAt`, `phaseAt`, `deviceAt`,
+`measureSource`. Branché au chargement, à la restauration et au reset ; export
+horodaté à la minute (`backupFileName`) avec `exportedAt` ; rapport enrichi
+(`formatContext`, source des pas/sommeil, marque de coupure).
+
+**Écart corrigé en cours de route** : ajouter `source` à `emptyDay()` cassait
+4 tests de forme. Le champ reste optionnel (absent ⇒ déduit) plutôt que de
+réécrire ces tests — la forme d'un jour vide n'a pas à changer.
+
+### Vérification
+`npm test` **172/172** (149 → 172) · `vite build` ✅ · test sur **copie** des
+données réelles : 56 jours et réglages strictement identiques après migration et
+restauration du fichier de protocole, `extractSignals` identique, aller-retour
+JSON stable. ESLint : aucune config dans le dépôt, non exécutable.
+
+### Étape 2 — la coupure dans les calculs nutritionnels
+- `adaptiveTDEE.bySegment` : rejet des aberrants, interpolation et lissage
+  appliqués **par segment** continu hors coupure. Sans coupure, un seul segment
+  ⇒ résultat strictement identique (testé).
+- `findBestWindow` écarte toute fenêtre contenant un jour coupé et renvoie
+  `null` s'il n'en reste aucune : la dégradation « fenêtre tronquée » aurait
+  publié un TDEE sur 3 jours de reprise.
+- `computeWeeklyHistory` : nutrition vidée sur les jours coupés, pas/sommeil
+  intacts (leur exclusion relèvera de la source, étape 6), `excludedDays`.
+- `diagnose()` : seules les semaines après la dernière semaine coupée.
+- **Défaut trouvé au rejeu sur copie** : à J10 de la reprise, le diagnostic
+  annonçait « 0 jours croisant poids et apport » (aucune fenêtre ⇒ overlap 0)
+  alors que 10 jours étaient saisis. Message dédié dans `diagnose()` et
+  `useAdaptiveTargets`.
+- **Effet de bord voulu** : le TDEE ne peut plus paraître avant 14 jours
+  calendaires après la coupure (avant : dès 10 jours croisés). La règle stricte
+  « 14 jours croisés » reste l'objet de l'étape 4.
+
+Vérification : `npm test` **182/182** · `vite build` ✅ · contre-épreuve :
+4 tests de coupure échouent sur l'ancien moteur · rejeu sur copie réelle au
+19/08 (identique avec/sans coupure), 10/09, 24/10, et sur une reprise FICTIVE
+de 14 jours (J10 : pas de TDEE ; J14 : 2050, fenêtre 24/10 → 06/11).
+
+### Étape 3 — phase « Arrêt médical » et cible unique
+- `config.PHASE_TYPES` (règles `cycling`/`training`), `REST_DAY_TYPE`.
+- `protocol.isCyclingSuspended` / `isTrainingSuspended`.
+- `dayType(key, day, phases)` : `rest` en priorité absolue pendant la phase.
+- `presetUtils.computeSingleTarget`, `resolveTargets`, taux `{ cycling: false }`.
+- `mathUtils.nutritionScope` partagé par l'historique et `useWeekStats` :
+  le solde de l'onglet Semaine ne compte que les jours hors coupure
+  (demandé le 2026-10-24), dénominateur « x / y jours saisis ».
+- UI : `PhaseBadge`, `PhaseRestCard`, `PhaseCard` (+ `usePhase`,
+  `usePhaseManager`, clôture confirmée à partir de la fin prévue).
+
+**Défaut trouvé au rendu** : l'onglet Semaine affichait « 1 / 7 jours saisis »
+sur la semaine du 19/10, dont 5 jours sont dans la coupure. Corrigé.
+
+Vérification : `npm test` **204/204** (+22) · `vite build` ✅ · rendu Chromium
+390 px sur copie réelle + protocole : badge, carte « Séances suspendues »,
+carte de phase, taux des presets en cible unique, zéro erreur console, zéro
+débordement, jours intacts en localStorage ; 19/08 : sélecteur TRAIN/OFF
+présent ; 01/12/2026 : pas de bouton de clôture ; 02/03/2027 : bouton,
+confirmation, `endedAt` écrit.
+
+### Étape 4 — calibration du TDEE et corrections de phase
+- `config.CALIBRATION_REQUIRED_DAYS = 14`, champ `calibration` dans le schéma.
+- `adaptiveTDEE` : `crossedValues`, `calibrationState` (compte cumulé,
+  monotone), jours < `start` neutralisés, `adaptiveTDEE` et `hasEnoughData`
+  forcés à null/false tant que la calibration est active.
+- `plateauProtocol` : `DIAGNOSIS.CALIBRATING` en tête ; semaines commencées
+  avant `start` jamais jugées. `vibeStatus` : `STATUS_KIND.CALIBRATING`.
+- `useAdaptiveTargets`, export : message de calibration avec TDEE de départ.
+- Phase (demande du 2026-10-24) : « Clore la phase » disponible à tout moment,
+  confirmation rappelant la fin prévue ; fin prévue éditable (input date,
+  refus si antérieure au début, vide = sans date).
+- Fichier de données hors dépôt : protocole v2 (TDEE 2050, cibles
+  Maintenance recalculées, calibration au 24/10). La v1 est conservée.
+
+Vérification : `npm test` **217/217** (+13) · `vite build` ✅ · rendu
+Chromium 390 px sur copie + protocole v2 : badge « cible unique 2050 », bande
+« Calibration en cours 1/14 », carte TDEE idem, édition de la fin prévue
+(15/03/2027 écrite, 01/08/2026 refusée), clôture anticipée annulée sans
+effet, jours intacts, zéro erreur, zéro débordement.
+
+### Étape 5 — suspensions pendant la phase
+- `plateauProtocol.diagnose` : paramètre `trainingSuspended` (alimenté par
+  `isTrainingSuspended(aujourd'hui)` dans `usePlateauDiagnosis`). Placé APRÈS
+  les portes de données et d'adhérence et la rétention d'eau, qui ne
+  supposent pas d'entraînement ; remplace plateau ET progression.
+- `vibeStatus` : `STATUS_KIND.PLATEAU_SUSPENDED`, ton neutre — jamais d'alerte.
+- `reminderUtils.phaseReminderCopy` + `ReminderCard({ phase })` : compare
+  l'apport moyen des jours saisis (hors coupure) à la cible unique, seuil
+  ±100 kcal. Le rappel ordinaire est conservé hors phase.
+- Spec § 7 : R2, R4, R5 et le plateau non applicables en phase
+  `medical_stop` ; tout dégel futur doit tester `isTrainingSuspended`.
+
+Vérification : `npm test` **228/228** (+11) · `vite build` ✅ · rendu sur copie
++ protocole v2 : rappel du 24/10 (« 2040 kcal/j sur 1 jour saisi, −10 kcal,
+dans la cible ») ; reprise FICTIVE au 25/11 : bande « Plateau non évalué »,
+carte Diagnostic idem, zéro erreur, zéro débordement.
+
+### Étape 6 — sources, références Apple, calories montre hors calcul
+- `config` : `WATCH_SOURCES`, `SLEEP_STRAIN_MIN_BASELINE_WEEKS = 4`, libellé
+  « iPhone seul — sous-estimé ».
+- `protocol` : périodes `partial` (scope `recovery`), `isReferenceMeasure`.
+- `mathUtils` : pas/sommeil de l'historique filtrés par montre de référence ;
+  `targetGap` ; `watchStepsAverage`, `proteinAverage` ; `hrvSdnn` agrégé.
+- `sleepDiagnosis` : `strainEnabled`, `minStrainBaselineWeeks` (le hook passe
+  `!phase` et 4) ; dette conservée.
+- UI : `StepsSourceToggle` (bouton « Pas iPhone seul »), RMSSD + SDNN dans
+  `SleepCard`, « DÉPENSE MONTRE · INFO », en-tête « ÉCART CIBLE », séances
+  masquées en phase, rappel avec leviers protéines / pas montre en tête.
+- Export : SDNN, jours partiels groupés, marque « mesure montre partielle ».
+- Tests modifiés (attentes, pas de suppression) : libellé iPhone dans
+  `protocol.test.js`, forme de `aggregateSleep` (+ `hrvSdnn: null`).
+
+**Contre-épreuve** : 15 000 pas Garmin puis 9 000 pas Apple ⇒ `SUSTAINED_DRIFT`
+sans sources, `STABLE` avec. **Incident outillage** : un `pgrep -f` de nettoyage
+a tué son propre shell (motif présent dans la ligne de commande) — sans effet
+sur le code, à éviter (filtrer sur `[v]ite/bin`).
+
+Vérification : `npm test` **246/246** (+18) · `vite build` ✅ · rendu sur copie
++ protocole v3 + vraies mesures Apple Watch 19–24/10 de l'inventaire (copie
+seulement) : source « Apple Watch » déduite, bascule iPhone seul aller-retour,
+« ÉCART CIBLE −10 », rappel « ⚠ Protéines 148 g/j… sous le plancher » puis
+« Pas montre 8 427/j sur 4 jours », zéro erreur, zéro débordement.
+
+### Étape 7 — saisie Apple (option A)
+- `AppleEntryGuide` (`<details>` replié) : pas, durée, RMSSD nuit, SDNN,
+  FC repos ; rappel du bouton « Pas iPhone seul ». Affiché les jours où la
+  chronologie dit Apple Watch. Libellés des écrans Santé non cités : à
+  confirmer sur l'iPhone plutôt qu'inventés.
+- `protocol.formatInfoActivities`, `InfoActivitiesCard`, ligne d'export
+  « Activités (info) ». Champ hors `emptyDay()` : forme d'un jour inchangée.
+- Fichiers d'import (scratchpad, hors dépôt) : Apple 19–24/10 (pas 24/10
+  exclus, journée en cours ; nuits attribuées à la date de réveil ; VFC =
+  moyenne des échantillons pendant le sommeil) et activités du 12/10.
+- Vérification hors phase (demandée) : 12/08 et après clôture affichent
+  `targetGapReminderCopy` ; `weeklyReminderCopy` n'est plus appelée.
+
+**Défaut de test trouvé** : mon script de rendu ciblait le premier
+`input[type=file]` (Restaurer, confirm refusé ⇒ rien importé). Le second est
+Fusionner. Corrigé dans l'outillage, pas dans l'app.
+
+Vérification : `npm test` **252/252** (+6) · `vite build` ✅ · fusion par
+l'UI sur copie : 6 jours ajoutés, jours d'origine intacts, carte « Activités
+enregistrées · info », guide présent, zéro erreur, zéro débordement.
+
+### Nettoyage
+- `weeklyReminderCopy(presetId, targetGap, comparableDays)` réécrite à la
+  demande du développeur (ne pas supprimer) : objectif propre au preset,
+  conséquence seulement hors ±100 kcal/j, plus aucune mention de Garmin, du
+  solde ni des calories montre. Rebranchée dans `ReminderCard` hors phase,
+  à côté de `targetGapReminderCopy` (le chiffre). Le test d'étape 5 qui
+  figeait l'ancien texte est remplacé par un test du nouveau contrat.
+- `WeekDiagnostics.jsx` extrait de `WeekView.jsx` (88 → 77 lignes).
+- Amélioration future notée : cibles non historisées.
+
+**Procédure finale rejouée** dans Chromium à partir de la sauvegarde brute
+(`vibefit_v1` v1) : migration (jours identiques) → Restaurer protocole v3
+(TDEE 2050, 1 phase, 6 périodes, calibration 24/10, jours identiques) →
+Fusionner Apple 19–24/10 (6 jours ajoutés) → Fusionner 12/10 (1 jour ajouté)
+→ 0 jour d'origine modifié, 63 jours. Badge « cible unique 2050 », bande
+« Calibration en cours 0/14 », rappel avec pas montre 8 427/j sur 4 jours.
+
+Vérification : `npm test` **252/252** · `vite build` ✅ · zéro erreur console,
+zéro débordement.
+

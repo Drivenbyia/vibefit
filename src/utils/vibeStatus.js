@@ -35,6 +35,8 @@ export const STATUS_KIND = {
   SLEEP_STRAIN: 'SLEEP_STRAIN',
   SLEEP_DEBT: 'SLEEP_DEBT',
   WATER_RETENTION: 'WATER_RETENTION',
+  CALIBRATING: 'CALIBRATING',
+  PLATEAU_SUSPENDED: 'PLATEAU_SUSPENDED',
   LOW_ADHERENCE: 'LOW_ADHERENCE',
   PROGRESSING: 'PROGRESSING',
   TREND: 'TREND',
@@ -155,6 +157,13 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
     return verdict(TONE.ALERT, STATUS_KIND.SLEEP_STRAIN, 'Récupération dégradée', sleep.detail);
   }
 
+  // Calibration : remplace le diagnostic nutritionnel. Placée à la place du
+  // plateau — les signaux de pas et de sommeil restent des instruments
+  // distincts, qui ont leurs propres garde-fous.
+  if (diagnosis?.status === DIAGNOSIS.CALIBRATING) {
+    return verdict(TONE.IDLE, STATUS_KIND.CALIBRATING, 'Calibration en cours', diagnosis.detail);
+  }
+
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {
     return verdict(
       TONE.ALERT,
@@ -206,6 +215,12 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
       'Activité en hausse',
       `${fmtInt(neat.currentSteps)} pas/j contre ${fmtInt(neat.baselineSteps)} en moyenne avant.`
     );
+  }
+
+  // Plateau suspendu (arrêt médical) : rien d'actionnable, ligne neutre — mais
+  // dite, pour qu'on ne cherche pas pourquoi le verdict habituel a disparu.
+  if (diagnosis?.status === DIAGNOSIS.PLATEAU_SUSPENDED) {
+    return verdict(TONE.IDLE, STATUS_KIND.PLATEAU_SUSPENDED, 'Plateau non évalué', 'Arrêt médical : la cible unique vise la stabilité.');
   }
 
   // Repos : sans le moindre chiffre NI tracé, la bande disparaît plutôt que

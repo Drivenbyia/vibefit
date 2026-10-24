@@ -3,14 +3,15 @@ import { shortFr } from '../../../utils/dateUtils.js';
 import { dayType } from '../../../models/day.js';
 import { num } from '../../../utils/mathUtils.js';
 
-export default function WeekCalendar({ days, dateKey, setDateKey }) {
+export default function WeekCalendar({ days, dateKey, setDateKey, phases = [] }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
       {days.map(({ key, day }) => {
-        const t = dayType(key, day);
+        const t = dayType(key, day, phases);
         const recorded = day && (num(day.intake?.kcal) > 0 || day.workout || num(day.expenditure?.steps) > 0);
         const isToday = key === dateKey;
-        const dotColor = { train: PALETTE.deep, off: PALETTE.slate, we: PALETTE.muted }[t];
+        // `rest` (cible unique de phase) : encre neutre — ni entraînement, ni repos programmé.
+        const dotColor = { train: PALETTE.deep, off: PALETTE.slate, we: PALETTE.muted, rest: PALETTE.ink }[t];
         return (
           <button
             key={key}

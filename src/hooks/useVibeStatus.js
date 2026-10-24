@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { extractSignals } from '../utils/adaptiveTDEE.js';
 import { DEFAULT_TARGETS, presetWeeklyRate } from '../utils/presetUtils.js';
 import { summarizeStatus } from '../utils/vibeStatus.js';
+import { isCyclingSuspended } from '../models/protocol.js';
+import { toKey } from '../utils/dateUtils.js';
 import { usePlateauDiagnosis } from './usePlateauDiagnosis.js';
 import { useNeatDrift } from './useNeatDrift.js';
 import { useSleepDiagnosis } from './useSleepDiagnosis.js';
@@ -30,10 +32,12 @@ export function useVibeStatus(data, targets) {
   // au poids réel. Elle vient de `presetWeeklyRate`, la même source que le
   // libellé de `PresetPickerCard` : le guide ne peut pas annoncer un rythme
   // différent de celui affiché sur l'écran Cibles.
+  const phases = data?.phases;
   const expectedKgPerWeek = useMemo(() => {
     if (data?.baseTDEE == null) return null;
-    return presetWeeklyRate(data.presetId, data.baseTDEE).gramsPerWeek / 1000;
-  }, [data?.presetId, data?.baseTDEE]);
+    const cycling = !isCyclingSuspended(toKey(new Date()), phases ?? []);
+    return presetWeeklyRate(data.presetId, data.baseTDEE, { cycling }).gramsPerWeek / 1000;
+  }, [data?.presetId, data?.baseTDEE, phases]);
 
   return useMemo(
     () => summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPerWeek }),

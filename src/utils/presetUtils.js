@@ -1,4 +1,4 @@
-import { PRESETS, KCAL_FLOOR, PROTEIN_FLOOR, KCAL_PER_KG } from '../constants/config.js';
+import { PRESETS, KCAL_FLOOR, PROTEIN_FLOOR, KCAL_PER_KG, REST_DAY_TYPE } from '../constants/config.js';
 import { toKey, addDays, startOfWeek, dayTypeFromKey } from './dateUtils.js';
 
 export const DEFAULT_TDEE = 2000;
@@ -112,6 +112,65 @@ export function computePresetTargets(presetId, baseTDEE) {
  */
 export const DEFAULT_TARGETS = computePresetTargets('maintenance', DEFAULT_TDEE);
 
+/**
+ * Cible UNIQUE d'une phase sans cyclage (arrêt médical).
+ *
+ * Formule validée : MILIEU du cycle, (TRAIN + OFF) / 2, calculé sur les
+ * formules BRUTES du preset, puis plancher calorique appliqué directement.
+ *   - Pas la moyenne de la semaine-type (3 TRAIN + 2 OFF) : asymétrique, elle
+ *     plaçait la Maintenance à TDEE + 40 au lieu du TDEE.
+ *   - Pas les cibles cyclées stockées : elles portent la correction de
+ *     plancher du cyclage (OFF relevé ⇒ TRAIN relevé), qui n'a plus d'objet
+ *     sans cyclage — Sèche forte à 2050 donnerait 1800 au lieu de 1650.
+ * Preset « custom » : milieu des cibles TRAIN/OFF saisies, même plancher.
+ *
+ * Dérivée à la volée, jamais stockée : elle suit le preset et le TDEE.
+ */
+export function computeSingleTarget(presetId, baseTDEE, targets) {
+  const formula = PRESETS[presetId] ? RAW_FORMULAS[presetId] : null;
+  let kcalRaw;
+  let protein;
+  let fat;
+
+  if (formula) {
+    const raw = formula(baseTDEE);
+    const { train: ct, off: co } = PRESETS[presetId].targets;
+    kcalRaw = (raw.train + raw.off) / 2;
+    protein = Math.max(ct.protein, co.protein);
+    fat = Math.round((ct.fat + co.fat) / 2);
+  } else {
+    const tr = targets?.train ?? {};
+    const of = targets?.off ?? {};
+    kcalRaw = tr.kcal != null && of.kcal != null ? (tr.kcal + of.kcal) / 2 : (tr.kcal ?? of.kcal ?? baseTDEE);
+    protein = Math.max(tr.protein ?? PROTEIN_FLOOR, of.protein ?? PROTEIN_FLOOR);
+    const fats = [tr.fat, of.fat].filter((v) => v != null);
+    fat = fats.length > 0 ? Math.round(fats.reduce((a, b) => a + b, 0) / fats.length) : 72;
+  }
+
+  protein = Math.max(PROTEIN_FLOOR, protein);
+  const kcal = Math.max(KCAL_FLOOR, Math.round(kcalRaw));
+  return {
+    kcal,
+    protein,
+    fat,
+    carbs: Math.max(0, Math.round((kcal - protein * 4 - fat * 9) / 4)),
+    label: 'UNIQUE',
+  };
+}
+
+/**
+ * Cibles EFFECTIVES : les cibles stockées + la cible unique sous `rest`.
+ * Point d'entrée unique pour toute la lecture « cible d'un jour » — c'est ce
+ * qui garantit que Today, Semaine et l'export servent le même chiffre.
+ */
+export function resolveTargets(data) {
+  const targets = data?.targets ?? DEFAULT_TARGETS;
+  return {
+    ...targets,
+    [REST_DAY_TYPE]: computeSingleTarget(data?.presetId ?? 'maintenance', data?.baseTDEE ?? DEFAULT_TDEE, targets),
+  };
+}
+
 /** Composition nominale de la semaine, DÉRIVÉE du calendrier — jamais re-codée. */
 function nominalWeek() {
   const start = startOfWeek(toKey(new Date()));
@@ -128,7 +187,13 @@ function nominalWeek() {
  * libellés figés de `config.js` les ignoraient et annonçaient donc des taux
  * faux d'un facteur ~2 (« Sèche forte : perte ~500 g/sem » pour 234 g réels).
  */
-export function presetWeeklyRate(presetId, baseTDEE) {
+export function presetWeeklyRate(presetId, baseTDEE, { cycling = true } = {}) {
+  // Sans cyclage, la semaine est 7 fois la cible unique : le taux est l'écart
+  // de cette cible au TDEE, sans composition de semaine à pondérer.
+  if (!cycling) {
+    const kcalPerDay = computeSingleTarget(presetId, baseTDEE).kcal - baseTDEE;
+    return { kcalPerDay, gramsPerWeek: Math.round(((kcalPerDay * 7) / KCAL_PER_KG) * 1000) };
+  }
   const targets = computePresetTargets(presetId, baseTDEE);
   const week = nominalWeek();
   const kcalFor = (k) => targets[k]?.kcal ?? baseTDEE; // pas de cible ⇒ au TDEE
@@ -145,8 +210,8 @@ export function presetWeeklyRate(presetId, baseTDEE) {
 }
 
 /** Libellé lisible du taux réel — remplace les `sub` chiffrés figés. */
-export function presetRateLabel(presetId, baseTDEE) {
-  const { kcalPerDay, gramsPerWeek } = presetWeeklyRate(presetId, baseTDEE);
+export function presetRateLabel(presetId, baseTDEE, options) {
+  const { kcalPerDay, gramsPerWeek } = presetWeeklyRate(presetId, baseTDEE, options);
   const sign = kcalPerDay >= 0 ? '+' : '−';
   const abs = Math.abs(kcalPerDay);
 

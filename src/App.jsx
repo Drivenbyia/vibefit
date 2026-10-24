@@ -3,6 +3,7 @@ import { PALETTE } from './constants/config.js';
 import { useVibefitStorage } from './hooks/useVibefitStorage.js';
 import { useCurrentDateKey } from './hooks/useCurrentDateKey.js';
 import { emptyDay } from './models/day.js';
+import { resolveTargets } from './utils/presetUtils.js';
 import FontStyles from './components/ui/FontStyles.jsx';
 import Header from './components/layout/Header.jsx';
 import BottomNav from './components/layout/BottomNav.jsx';
@@ -17,6 +18,13 @@ export default function VibeFit() {
   const [tab, setTab] = useState('today');
 
   const openWeek = useCallback(() => setTab('week'), []);
+
+  // Cibles EFFECTIVES (stockées + cible unique de phase) — une seule source
+  // pour l'en-tête, Aujourd'hui et Semaine.
+  const targets = useMemo(
+    () => resolveTargets({ targets: data.targets, presetId: data.presetId, baseTDEE: data.baseTDEE }),
+    [data.targets, data.presetId, data.baseTDEE]
+  );
 
   const day = useMemo(
     () => ({ ...emptyDay(), ...(data.days[dateKey] || {}) }),
@@ -61,9 +69,9 @@ export default function VibeFit() {
       }}
     >
       <FontStyles />
-      <Header dateKey={dateKey} setDateKey={setDateKey} day={day} updateDay={updateDay} targets={data.targets} />
-      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={data.targets} stepsTarget={data.stepsTarget} data={data} onOpenWeek={openWeek} />}
-      {tab === 'week' && <WeekView dateKey={dateKey} data={data} setDateKey={setDateKey} targets={data.targets} stepsTarget={data.stepsTarget} />}
+      <Header dateKey={dateKey} setDateKey={setDateKey} day={day} updateDay={updateDay} targets={targets} phases={data.phases} />
+      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={targets} stepsTarget={data.stepsTarget} data={data} onOpenWeek={openWeek} />}
+      {tab === 'week' && <WeekView dateKey={dateKey} data={data} setDateKey={setDateKey} targets={targets} stepsTarget={data.stepsTarget} />}
       {tab === 'targets' && <TargetsView data={data} setData={setData} />}
       {tab === 'data' && <DataView data={data} setData={setData} />}
       <BottomNav tab={tab} setTab={setTab} />

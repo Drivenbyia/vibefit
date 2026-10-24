@@ -1,6 +1,7 @@
 import { DEFAULT_STEPS_TARGET } from '../constants/config.js';
 import { DEFAULT_TDEE, DEFAULT_TARGETS } from '../utils/presetUtils.js';
 import { exportBackup, importBackup, mergeDays } from '../utils/backupUtils.js';
+import { restorableProtocol, migrateData } from '../models/protocol.js';
 import { useTransientValue } from './useTransientValue.js';
 
 /**
@@ -35,6 +36,8 @@ export function useBackupManager(data, setData) {
             ...(typeof parsed.presetId === 'string' ? { presetId: parsed.presetId } : {}),
             ...(typeof parsed.stepsTarget === 'number' ? { stepsTarget: parsed.stepsTarget } : {}),
             ...(typeof parsed.baseTDEE === 'number' ? { baseTDEE: parsed.baseTDEE } : {}),
+            // Coupures, phases et montres : même contrat que les réglages.
+            ...restorableProtocol(parsed),
           }));
           setImportStatus({ ok: true, msg: `Importé ${Object.keys(parsed.days).length} jour(s)` });
         } catch (err) {
@@ -96,13 +99,13 @@ export function useBackupManager(data, setData) {
     if (confirm('Effacer TOUTES les données ? Cette action est irréversible.')) {
       // Reset complet vers un state cohérent — un objet partiel ({ days: {} })
       // priverait Header/TodayView de `targets` et ferait crasher le render.
-      setData({
+      setData(migrateData({
         days: {},
         targets: DEFAULT_TARGETS,
         stepsTarget: DEFAULT_STEPS_TARGET,
         presetId: 'maintenance',
         baseTDEE: DEFAULT_TDEE,
-      });
+      }));
     }
   };
 
