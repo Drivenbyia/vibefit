@@ -2,7 +2,10 @@ import { useMemo } from 'react';
 import { PROTEIN_FLOOR } from '../constants/config.js';
 import { DEFAULT_TARGETS } from '../utils/presetUtils.js';
 import { addDays, startOfWeek } from '../utils/dateUtils.js';
-import { num, calculateWeeklyBalance, calculateWeightStats, aggregateSleep, nutritionScope } from '../utils/mathUtils.js';
+import {
+  num, calculateWeeklyBalance, calculateWeightStats, aggregateSleep, nutritionScope,
+  watchStepsAverage, proteinAverage,
+} from '../utils/mathUtils.js';
 import { dayType } from '../models/day.js';
 import { isExcluded } from '../models/protocol.js';
 
@@ -80,8 +83,15 @@ export function useWeekStats(dateKey, data, targets) {
       day && num(day.intake?.kcal) > 0 && num(day.intake?.protein) < proteinFloor
   ).length;
 
+  // Leviers de la phase : protéines des jours saisis (hors coupure) et pas
+  // MONTRE uniquement — les pas iPhone seul sont sous-estimés.
+  const protein = proteinAverage(nutritionDays);
+  const watchSteps = watchStepsAverage(days, { devices: data?.devices ?? [], periods: periods ?? [] });
+
   return {
     resolvedTargets,
+    protein,
+    watchSteps,
     start,
     days,
     weekly,

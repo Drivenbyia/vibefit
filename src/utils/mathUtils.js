@@ -1,6 +1,7 @@
 import { dayType } from '../models/day.js';
 import { toKey, startOfWeek, addDays } from './dateUtils.js';
-import { isExcluded } from '../models/protocol.js';
+import { isExcluded, isReferenceMeasure, measureSource, deviceAt } from '../models/protocol.js';
+import { WATCH_SOURCES } from '../constants/config.js';
 
 export const num = (v) => {
   const n = parseFloat(v);
@@ -52,8 +53,17 @@ export const calculateWeeklyBalance = (daysData, targets, phases = []) => {
   const meanOver = (fn) =>
     comparableDays > 0 ? comparable.reduce((s, d) => s + fn(d), 0) / comparableDays : null;
 
+  // Écart cumulé apport − cible sur les jours comparables. Remplace le solde
+  // « apport − calories montre » à l'affichage : les calories de la montre ne
+  // pilotent rien (décision du 2026-10-24), elles restent une info du jour.
+  const targetGap = comparable.reduce(
+    (s, { key, day }) => s + num(day.intake?.kcal) - (targets[dayType(key, day, phases)] ?? targets.off).kcal,
+    0
+  );
+
   return {
     netBalance: totals.intake - totals.exp,
+    targetGap,
     totalIntake: totals.intake,
     totalExp: totals.exp,
     totalProt: totals.protein,
@@ -101,6 +111,14 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
     // de la coupure : une nuit Apple Watch du 19/10 reste une vraie mesure.
     const periods = data?.periods ?? [];
     const nutritionDays = nutritionScope(days, periods);
+    // Référence montre : seules les mesures de la montre portée AUJOURD'HUI,
+    // hors jours partiels, entrent dans les moyennes de pas et de sommeil qui
+    // alimentent les références (NEAT, sommeil). Un pas Garmin n'est pas un pas
+    // Apple Watch, un pas iPhone seul n'est pas un pas montre.
+    const devices = data?.devices ?? [];
+    const ref = { devices, periods, referenceSource: devices.length > 0 ? deviceAt(todayKey, devices) : null };
+    const stepsDaysData = days.filter(({ key, day }) => isReferenceMeasure(key, day, 'steps', ref));
+    const sleepDaysData = days.filter(({ key, day }) => isReferenceMeasure(key, day, 'sleep', ref));
     const excludedDays = days.filter(({ key }) => isExcluded(key, periods, 'nutrition')).length;
 
     const weekly = calculateWeeklyBalance(nutritionDays, targets, data?.phases ?? []);
@@ -112,7 +130,7 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
     // Les pas sont moyennés sur les jours où ils sont RÉELLEMENT renseignés,
     // pas sur les jours « saisis » au sens alimentaire : la montre les remonte
     // même les semaines où rien n'est loggé côté nutrition.
-    const steps = days
+    const steps = stepsDaysData
       .map(({ day }) => num(day?.expenditure?.steps))
       .filter((v) => v > 0);
 
@@ -127,7 +145,7 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
       stepsDays: steps.length,
       // Même logique que les pas : le sommeil vient de la montre et continue
       // d'être remonté les semaines où rien n'est loggé côté nutrition.
-      sleep: aggregateSleep(days),
+      sleep: aggregateSleep(sleepDaysData),
       heavyWorkDays: nutritionDays.filter(({ day }) => day?.heavyWork).length,
       // Jours de la semaine neutralisés par une coupure — une semaine qui en
       // contient n'est jamais jugée par le protocole de plateau.
@@ -151,6 +169,8 @@ export const aggregateSleep = (daysData) => {
     score: mean(scores),
     durationMin: mean(durations),
     hrv: mean(field('hrv')),
+    // SDNN (Apple Santé) — complément du RMSSD, jamais comparé à lui.
+    hrvSdnn: mean(field('hrvSdnn')),
     rhr: mean(field('rhr')),
     nights: Math.max(scores.length, durations.length),
   };
@@ -168,3 +188,32 @@ export const calculateWeightStats = (daysData) => {
 
   return { avgWeight: avg, weightDelta: delta, weightSeries: series };
 };
+
+/**
+ * Moyenne de pas MONTRE d'une liste de jours : sources Garmin / Apple Watch
+ * uniquement, jours partiels exclus. Les pas iPhone seul (sous-estimés) et
+ * les saisies d'origine inconnue n'y entrent jamais.
+ * @returns {{ avg: number|null, days: number }}
+ */
+export const watchStepsAverage = (daysData, { devices = [], periods = [] } = {}) => {
+  const xs = daysData
+    .filter(({ key, day }) => num(day?.expenditure?.steps) > 0
+      && !isExcluded(key, periods, 'recovery')
+      && WATCH_SOURCES.includes(measureSource(key, day, 'steps', devices)))
+    .map(({ day }) => num(day.expenditure.steps));
+  return { avg: xs.length > 0 ? xs.reduce((a, b) => a + b, 0) / xs.length : null, days: xs.length };
+};
+
+/**
+ * Moyenne de protéines sur les jours où un apport a été saisi — un jour vide
+ * n'est pas un jour à 0 g. Les jours de coupure doivent être retirés en amont
+ * (`nutritionScope`).
+ * @returns {{ avg: number|null, days: number }}
+ */
+export const proteinAverage = (daysData) => {
+  const xs = daysData
+    .filter(({ day }) => num(day?.intake?.kcal) > 0)
+    .map(({ day }) => num(day.intake.protein));
+  return { avg: xs.length > 0 ? xs.reduce((a, b) => a + b, 0) / xs.length : null, days: xs.length };
+};
+

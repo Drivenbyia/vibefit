@@ -1189,3 +1189,29 @@ Vérification : `npm test` **228/228** (+11) · `vite build` ✅ · rendu sur co
 dans la cible ») ; reprise FICTIVE au 25/11 : bande « Plateau non évalué »,
 carte Diagnostic idem, zéro erreur, zéro débordement.
 
+### Étape 6 — sources, références Apple, calories montre hors calcul
+- `config` : `WATCH_SOURCES`, `SLEEP_STRAIN_MIN_BASELINE_WEEKS = 4`, libellé
+  « iPhone seul — sous-estimé ».
+- `protocol` : périodes `partial` (scope `recovery`), `isReferenceMeasure`.
+- `mathUtils` : pas/sommeil de l'historique filtrés par montre de référence ;
+  `targetGap` ; `watchStepsAverage`, `proteinAverage` ; `hrvSdnn` agrégé.
+- `sleepDiagnosis` : `strainEnabled`, `minStrainBaselineWeeks` (le hook passe
+  `!phase` et 4) ; dette conservée.
+- UI : `StepsSourceToggle` (bouton « Pas iPhone seul »), RMSSD + SDNN dans
+  `SleepCard`, « DÉPENSE MONTRE · INFO », en-tête « ÉCART CIBLE », séances
+  masquées en phase, rappel avec leviers protéines / pas montre en tête.
+- Export : SDNN, jours partiels groupés, marque « mesure montre partielle ».
+- Tests modifiés (attentes, pas de suppression) : libellé iPhone dans
+  `protocol.test.js`, forme de `aggregateSleep` (+ `hrvSdnn: null`).
+
+**Contre-épreuve** : 15 000 pas Garmin puis 9 000 pas Apple ⇒ `SUSTAINED_DRIFT`
+sans sources, `STABLE` avec. **Incident outillage** : un `pgrep -f` de nettoyage
+a tué son propre shell (motif présent dans la ligne de commande) — sans effet
+sur le code, à éviter (filtrer sur `[v]ite/bin`).
+
+Vérification : `npm test` **246/246** (+18) · `vite build` ✅ · rendu sur copie
++ protocole v3 + vraies mesures Apple Watch 19–24/10 de l'inventaire (copie
+seulement) : source « Apple Watch » déduite, bascule iPhone seul aller-retour,
+« ÉCART CIBLE −10 », rappel « ⚠ Protéines 148 g/j… sous le plancher » puis
+« Pas montre 8 427/j sur 4 jours », zéro erreur, zéro débordement.
+

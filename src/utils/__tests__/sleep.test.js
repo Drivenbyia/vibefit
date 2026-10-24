@@ -97,7 +97,7 @@ describe('aggregateSleep — moyennes hebdo', () => {
 
   it('retourne des nulls sans aucune nuit', () => {
     const s = aggregateSleep([{ day: null }, { day: {} }]);
-    expect(s).toEqual({ score: null, durationMin: null, hrv: null, rhr: null, nights: 0 });
+    expect(s).toEqual({ score: null, durationMin: null, hrv: null, hrvSdnn: null, rhr: null, nights: 0 });
   });
 
   it('survit aux jours antérieurs au champ sleep', () => {

@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Références par montre, calories montre hors calcul
+- **Décision** : (1) Une référence (NEAT, sommeil) n'admet que les mesures de la montre portée AUJOURD'HUI, hors jours partiels ; pas iPhone seul jamais admis. (2) VFC/FC repos en affichage seul pendant l'arrêt médical, puis 4 semaines de la montre courante avant tout seuil. (3) Calories de la montre : saisies et affichées « à titre d'info », sorties du solde ; l'en-tête Semaine publie l'écart apport − cible.
+- **Contexte** : Garmin → Apple Watch le 19/10. Garmin RMSSD nocturne, Apple RMSSD + SDNN : algorithmes différents. iPhone seul ≈ 49 % des pas Garmin mesurés le même jour.
+- **Alternatives considérées** : (1) facteur de conversion Garmin ↔ Apple — invérifiable, invente des données ; (2) garder le solde apport − dépense — repose sur une dépense que l'app déclare non fiable.
+- **Raison du choix** : sans séparation, le passage de 15 000 pas Garmin à 9 000 pas Apple déclenche « Activité en baisse » (vérifié). Une mesure ne se compare qu'à elle-même.
+- **Impact** : les références repartent de zéro au changement de montre. Ajout de `hrvSdnn` au sommeil.
+- **Réversibilité** : Facile — sans `devices`, aucun filtrage (comportement antérieur).
+
 ### 2026-10-24 — Calibration du TDEE : 14 jours croisés cumulés, valeur de départ 2050
 - **Décision** : Après une reprise, le TDEE mesuré n'est publié qu'une fois 14 jours croisés poids × apport réunis depuis le début de calibration (cumulés sur tout l'historique, coupures exclues). D'ici là : « Calibration en cours n/14 » à la place du diagnostic, cible servie sur le TDEE de départ. Aucune donnée antérieure au début de calibration n'entre dans le TDEE.
 - **Contexte** : dernier TDEE fiable ~2330, mesuré avec entraînement et chantiers. Valeur de départ validée : 2050 (−90 à −110 kcal/j de séances, −130 à −210 de chantiers).

@@ -20,11 +20,12 @@ import WeightCard from './week/WeightCard.jsx';
 import ReminderCard from './week/ReminderCard.jsx';
 import ExportButton from './week/ExportButton.jsx';
 
-export default function WeekView({ dateKey, data, setDateKey, targets }) {
+export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarget }) {
   const {
     resolvedTargets, start, days, weekly, plannedTrain,
     waistSeries, avgWeight, weightDelta, weightSeries, macroTargets,
     proteinFloor, daysUnderProtein, daysNotLogged, sleep, trackedDays, inPhase, restTarget,
+    protein, watchSteps,
   } = useWeekStats(dateKey, data, targets);
 
   const diagnosis = usePlateauDiagnosis(data, resolvedTargets);
@@ -37,7 +38,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <Card>
-        <WeekSummary start={start} recordedDays={weekly.recordedDays} trackedDays={trackedDays} netBalance={weekly.netBalance} />
+        <WeekSummary start={start} recordedDays={weekly.recordedDays} trackedDays={trackedDays} targetGap={weekly.targetGap} comparableDays={weekly.comparableDays} />
         <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} />
       </Card>
       <DiagnosisCard
@@ -59,7 +60,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
         detail={sleepDiagnosis.detail}
         avgDurationMin={sleepDiagnosis.avgDurationMin}
       />
-      <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} />
+      <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} showSessions={!inPhase} />
       <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} phases={data.phases} />
       <AveragesCard
         weekly={weekly}
@@ -72,14 +73,21 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
       <WaistCard waistSeries={waistSeries} />
       <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} />
       <ReminderCard
-        presetId={data.presetId}
-        netBalance={weekly.netBalance}
-        recordedDays={weekly.recordedDays}
+        targetGap={weekly.targetGap}
+        comparableDays={weekly.comparableDays}
         phase={inPhase ? {
           label: phase?.label ?? 'Phase en cours',
           singleKcal: restTarget?.kcal,
           avgIntake: weekly.avgIntakeComparable,
           comparableDays: weekly.comparableDays,
+        } : null}
+        levers={inPhase ? {
+          proteinAvg: protein.avg,
+          proteinDays: protein.days,
+          proteinFloor,
+          stepsAvg: watchSteps.avg,
+          stepsDays: watchSteps.days,
+          stepsTarget,
         } : null}
       />
       <ExportButton copied={copied} onExport={handleExport} />

@@ -2,9 +2,17 @@ import { TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import { fmtFr } from '../../../utils/dateUtils.js';
 
-export default function WeekSummary({ start, recordedDays, trackedDays = 7, netBalance }) {
-  const balanceColor = netBalance < -100 ? PALETTE.deep : netBalance > 100 ? PALETTE.alert : PALETTE.muted;
-  const BalanceIcon = netBalance < -100 ? TrendingDown : netBalance > 100 ? TrendingUp : Minus;
+/**
+ * En-tête de semaine. Le chiffre de droite est l'ÉCART À LA CIBLE (apport −
+ * cible, jours saisis), plus le solde apport − calories montre : celles-ci ne
+ * pilotent rien. Couleur par écart MOYEN par jour, ±100 kcal = dans la cible :
+ * vert dans la cible, or en dessous, corail au-dessus (DESIGN.md §1).
+ */
+export default function WeekSummary({ start, recordedDays, trackedDays = 7, targetGap = 0, comparableDays = 0 }) {
+  const perDay = comparableDays > 0 ? targetGap / comparableDays : 0;
+  const balanceColor = comparableDays === 0 ? PALETTE.muted
+    : perDay < -100 ? PALETTE.warn : perDay > 100 ? PALETTE.alert : PALETTE.deep;
+  const BalanceIcon = perDay < -100 ? TrendingDown : perDay > 100 ? TrendingUp : Minus;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
@@ -22,7 +30,7 @@ export default function WeekSummary({ start, recordedDays, trackedDays = 7, netB
       </div>
       <div style={{ textAlign: 'right' }}>
         <div className="vf-display" style={{ fontSize: 10, color: PALETTE.muted, letterSpacing: '0.12em', marginBottom: 3 }}>
-          SOLDE NET
+          ÉCART CIBLE
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end' }}>
           <BalanceIcon size={16} color={balanceColor} strokeWidth={2.5} />
@@ -30,7 +38,7 @@ export default function WeekSummary({ start, recordedDays, trackedDays = 7, netB
             className="vf-hero vf-tabular"
             style={{ fontSize: 22, color: balanceColor }}
           >
-            {netBalance >= 0 ? '+' : ''}{Math.round(netBalance)}
+            {targetGap >= 0 ? '+' : ''}{Math.round(targetGap)}
           </span>
           <span className="vf-body" style={{ fontSize: 11, fontWeight: 500, color: PALETTE.muted }}>
             kcal

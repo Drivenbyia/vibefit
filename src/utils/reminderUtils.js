@@ -73,3 +73,65 @@ export function phaseReminderCopy({ label, singleKcal, avgIntake, comparableDays
   return { lead, week, hint };
 }
 
+const fmtInt = (n) => Math.round(n).toLocaleString('fr-FR');
+
+/**
+ * Les deux leviers PRIORITAIRES pendant l'arrêt médical, affichés avant les
+ * calories : le plancher de protéines (préserver le muscle sans entraînement)
+ * et les pas MONTRE (la marche est la seule dépense d'activité autorisée).
+ *
+ * `under` ⇒ en dessous de la cible (couleur `warn`) ; `alert` ⇒ alerte écrite
+ * en toutes lettres, réservée au plancher de protéines. Aucun jour ⇒ on le
+ * dit, sans chiffre.
+ *
+ * @returns {{ text: string, under: boolean, alert: boolean }[]}
+ */
+export function phaseLeversCopy({ proteinAvg, proteinDays, proteinFloor, stepsAvg, stepsDays, stepsTarget }) {
+  const lines = [];
+
+  if (!proteinDays || proteinAvg == null) {
+    lines.push({ text: 'Protéines : aucun jour saisi cette semaine.', under: false, alert: false });
+  } else {
+    const under = proteinAvg < proteinFloor;
+    const n = `${proteinDays} jour${proteinDays > 1 ? 's' : ''}`;
+    lines.push({
+      text: under
+        ? `⚠ Protéines : ${fmtInt(proteinAvg)} g/j en moyenne sur ${n} — sous le plancher de ${proteinFloor} g.`
+        : `Protéines : ${fmtInt(proteinAvg)} g/j en moyenne sur ${n} (plancher ${proteinFloor} g).`,
+      under,
+      alert: under,
+    });
+  }
+
+  if (!stepsDays || stepsAvg == null) {
+    lines.push({ text: 'Pas montre : aucun jour mesuré par la montre cette semaine.', under: false, alert: false });
+  } else {
+    const under = stepsAvg < stepsTarget;
+    const n = `${stepsDays} jour${stepsDays > 1 ? 's' : ''}`;
+    lines.push({
+      text: `Pas montre : ${fmtInt(stepsAvg)}/j en moyenne sur ${n}` +
+        (under ? ` — sous l’objectif de ${fmtInt(stepsTarget)}.` : ` (objectif ${fmtInt(stepsTarget)}).`),
+      under,
+      alert: false,
+    });
+  }
+
+  return lines;
+}
+
+/**
+ * Rappel hors phase, sur l'ÉCART À LA CIBLE (apport − cible des jours saisis)
+ * au lieu du solde apport − calories montre. Les calories de la montre ne
+ * pilotent plus rien (2026-10-24) ; la cible porte déjà le déficit ou le
+ * surplus du preset, l'objectif est donc un écart proche de 0 pour tous.
+ */
+export function targetGapReminderCopy(targetGap, comparableDays) {
+  if (!comparableDays) return 'Aucun jour saisi cette semaine pour l’instant.';
+  const perDay = targetGap / comparableDays;
+  const signed = `${targetGap > 0 ? '+' : targetGap < 0 ? '−' : ''}${fmtInt(Math.abs(targetGap))}`;
+  const verdict = Math.abs(perDay) <= PHASE_ON_TARGET_KCAL
+    ? 'Dans la cible.'
+    : perDay > 0 ? 'Au-dessus de la cible.' : 'Sous la cible.';
+  return `Écart cumulé à la cible : ${signed} kcal sur ${comparableDays} jour${comparableDays > 1 ? 's' : ''} saisi${comparableDays > 1 ? 's' : ''}. ${verdict}`;
+}
+

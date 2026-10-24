@@ -197,6 +197,6 @@ describe('export — phase, coupure et sources publiées', () => {
       11
     );
     expect(report).toMatch(/20 août\*\* _\(période non suivie\)_ : Sommeil: .*\(Garmin\)/);
-    expect(report).toMatch(/19 août\*\* : Pas: 6\s000 \(iPhone seul\)/);
+    expect(report).toMatch(/19 août\*\* : Pas: 6\s000 \(iPhone seul — sous-estimé\)/);
   });
 });

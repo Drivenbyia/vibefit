@@ -8,7 +8,7 @@ last_updated: 2026-10-24
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/arret-medical-etape-1`
-- **Suite de tests : Vitest, 228 tests** — `npm test`
+- **Suite de tests : Vitest, 246 tests** — `npm test`
 
 ### Session 2026-10-24 — Reprise après 2 mois : arrêt médical, coupure, Apple Watch
 Contexte : aucune saisie du 20/08 au 23/10/2026, arrêt médical (tout effort
@@ -68,8 +68,21 @@ validé étape par étape.
   Rappel hebdo de phase (`phaseReminderCopy`) : cible unique, apport moyen des
   jours saisis et écart — plus de Garmin, de solde ni de jours TRAIN. R2/R4/R5
   marquées non applicables dans la spec (`5_v2_expert_system_specs.md` § 7).
-- **À venir** : 6 sources et références Apple, calories montre hors solde net
-  · 7 saisie Apple (option A).
+- **Étape 6 — faite** : sources et références montre. `isReferenceMeasure` :
+  seules les mesures de la montre portée aujourd'hui, hors jours partiels
+  (périodes `partial`, scope `recovery`), entrent dans les moyennes de pas et
+  de sommeil de l'historique (NEAT, sommeil) — les semaines Garmin ne
+  nourrissent aucune référence Apple, l'iPhone seul jamais. Sommeil : verdict
+  VFC/FC repos désactivé pendant la phase, puis 4 semaines de la montre
+  courante exigées ; dette de sommeil conservée. Saisie : RMSSD nuit
+  (principal) + SDNN (complément), bouton « Pas iPhone seul » avec source
+  affichée. Calories montre : « info » partout, hors de tout calcul affiché —
+  l'en-tête Semaine publie l'ÉCART À LA CIBLE (`targetGap`). Rappel hebdo de
+  phase : protéines vs plancher (alerte écrite) et pas MONTRE vs 8000 avant
+  les calories (demande du 2026-10-24). Protocole v3 : 5 jours partiels.
+- **Nettoyage prévu après l'étape 7** : découpage de `WeekView.jsx` (88 l.),
+  `weeklyReminderCopy` désormais inutilisée (suppression à valider).
+- **À venir** : 7 saisie Apple (option A) et import des mesures listées.
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
 Quatre chantiers, tous issus d'un même constat : plusieurs données étaient

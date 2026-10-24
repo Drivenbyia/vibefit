@@ -62,11 +62,18 @@ export function formatContext(data) {
       : ph.plannedEnd ? `fin prévue le ${fmtDayFr(ph.plannedEnd)}` : 'sans fin prévue';
     lines.push(`🩺 Phase : ${ph.label ?? ph.type} depuis le ${fmtDayFr(ph.start)} · ${end}`);
   }
-  for (const p of data?.periods ?? []) {
+  const periods = data?.periods ?? [];
+  for (const p of periods.filter((x) => x.type !== 'partial')) {
     lines.push(
       `⛔ ${p.label ?? 'Période non suivie'} : ${fmtDayFr(p.start)} → ${fmtDayFr(p.end)}` +
       ` — exclue des calculs (${p.scope ?? 'nutrition'})`
     );
+  }
+  // Jours de mesure montre partielle : une ligne groupée, pas une par jour.
+  const partial = periods.filter((x) => x.type === 'partial');
+  if (partial.length > 0) {
+    const spans = partial.map((p) => (p.start === p.end ? fmtDayFr(p.start) : `${fmtDayFr(p.start)} → ${fmtDayFr(p.end)}`));
+    lines.push(`◐ Mesures montre partielles, exclues des références pas/sommeil : ${spans.join(', ')}`);
   }
   const devices = data?.devices ?? [];
   if (devices.length > 0) {
@@ -95,6 +102,8 @@ export function formatSleep(sleep) {
     if (!isNaN(t) && t > 0) bits.push(`${Math.floor(t / 60)}h${String(t % 60).padStart(2, '0')}`);
   }
   if (sleep.hrv) bits.push(`VFC ${sleep.hrv} ms`);
+  // SDNN Apple Santé : publié à part, jamais confondu avec le RMSSD.
+  if (sleep.hrvSdnn) bits.push(`SDNN ${sleep.hrvSdnn} ms`);
   if (sleep.rhr) bits.push(`FC repos ${sleep.rhr} bpm`);
   return bits.join(' · ');
 }
@@ -122,7 +131,8 @@ function formatDay(key, day, data) {
   const devices = data?.devices ?? [];
   // Marque de coupure : le lecteur doit voir qu'un jour vide de la période
   // n'est pas un oubli, et qu'un jour renseigné n'entre pas dans le TDEE.
-  const cut = isExcluded(key, data?.periods ?? []) ? ' _(période non suivie)_' : '';
+  const cut = (isExcluded(key, data?.periods ?? []) ? ' _(période non suivie)_' : '')
+    + (isExcluded(key, data?.periods ?? [], 'recovery') ? ' _(mesure montre partielle)_' : '');
 
   if (!hasAnyData(day)) return `- **${label}**${cut} : Aucune donnée saisie`;
 

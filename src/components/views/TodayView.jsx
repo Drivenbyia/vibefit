@@ -8,6 +8,7 @@ import ExpenditureCard from './today/ExpenditureCard.jsx';
 import WorkoutCard from './today/WorkoutCard.jsx';
 import PhaseRestCard from './today/PhaseRestCard.jsx';
 import { usePhase } from '../../hooks/usePhase.js';
+import { deviceAt } from '../../models/protocol.js';
 import { WeightCard, WaistCard } from './today/BodyCards.jsx';
 import SleepCard from './today/SleepCard.jsx';
 import NotesCard from './today/NotesCard.jsx';
@@ -33,7 +34,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
         showMacroWarning={showMacroWarning}
       />
       <IntakeCard day={day} updateDay={updateDay} intake={intake} showUndereatAlert={showUndereatAlert} />
-      <ExpenditureCard day={day} updateDay={updateDay} steps={steps} stepsTarget={stepsTarget} showHeavyWork={!trainingSuspended} />
+      <ExpenditureCard day={day} updateDay={updateDay} steps={steps} stepsTarget={stepsTarget} showHeavyWork={!trainingSuspended} derivedStepsSource={deviceAt(dateKey, data?.devices ?? [])} />
       {trainingSuspended
         ? <PhaseRestCard label={phase.label ?? phase.type} stepsTarget={stepsTarget} />
         : <WorkoutCard day={day} updateDay={updateDay} />}

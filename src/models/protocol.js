@@ -9,6 +9,9 @@ import { SCHEMA_VERSION, MEASURE_SOURCES, PHASE_TYPES, CALIBRATION_REQUIRED_DAYS
  *
  *   periods — intervalles EXCLUS d'un périmètre de calcul.
  *     { id, type: 'untracked', start, end, scope: 'nutrition', label }
+ *     { id, type: 'partial',   start, end, scope: 'recovery',  label }
+ *     `partial` : mesure montre incomplète (montre retirée, synchro coupée) —
+ *     exclue des références de pas et de sommeil, sans effet sur la nutrition.
  *     `scope` borne l'exclusion : une période non suivie côté nutrition
  *     n'efface pas les nuits mesurées par la montre sur les mêmes jours.
  *   phases  — protocoles datés (ex. arrêt médical).
@@ -104,11 +107,26 @@ export function restorableProtocol(parsed) {
 }
 
 /** Le jour `key` est-il exclu du périmètre `scope` par une coupure ? */
+const EXCLUDING_TYPES = ['untracked', 'partial'];
+
 export function isExcluded(key, periods = [], scope = 'nutrition') {
   return periods.some(
-    (p) => p.type === 'untracked' && (p.scope ?? 'nutrition') === scope
+    (p) => EXCLUDING_TYPES.includes(p.type) && (p.scope ?? 'nutrition') === scope
       && p.start <= key && key <= p.end
   );
+}
+
+/**
+ * Une mesure de montre (pas ou sommeil) du jour `key` peut-elle entrer dans
+ * une RÉFÉRENCE ? Il faut qu'elle vienne de la montre portée aujourd'hui
+ * (`referenceSource`) et que le jour ne soit pas marqué partiel. Sans
+ * chronologie de montres (`referenceSource` null), tout est admis — le
+ * comportement d'avant l'étape montres.
+ */
+export function isReferenceMeasure(key, day, measure, { devices = [], periods = [], referenceSource = null } = {}) {
+  if (isExcluded(key, periods, 'recovery')) return false;
+  if (referenceSource === null) return true;
+  return measureSource(key, day, measure, devices) === referenceSource;
 }
 
 /** Coupure contenant `key`, ou null. */

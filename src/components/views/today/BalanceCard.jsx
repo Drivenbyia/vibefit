@@ -15,7 +15,7 @@ export default function BalanceCard({ intake, expenditure, target }) {
           <div style={{ marginBottom: 14 }}>
             <EnergyStat label="APPORT" value={intake} />
           </div>
-          <EnergyStat label="DÉPENSE GARMIN" value={expenditure} />
+          <EnergyStat label="DÉPENSE MONTRE · INFO" value={expenditure} />
         </div>
       </div>
     </Card>

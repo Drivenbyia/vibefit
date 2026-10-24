@@ -75,7 +75,7 @@ const result = (status, detail, extra = {}) => ({
  *   weeklyHistory — sortie de computeWeeklyHistory(), plus ancienne → plus récente
  * @returns {{status, label, detail, avgDurationMin, hrv, hrvBaseline, rhr, rhrBaseline}}
  */
-export function diagnoseSleep({ weeklyHistory = [] } = {}) {
+export function diagnoseSleep({ weeklyHistory = [], strainEnabled = true, minStrainBaselineWeeks = 2 } = {}) {
   const complete = weeklyHistory.filter((w) => (w?.elapsedDays ?? 7) >= 7);
   const isUsable = (w) => (w?.sleep?.nights ?? 0) >= SLEEP_MIN_NIGHTS;
 
@@ -112,7 +112,12 @@ export function diagnoseSleep({ weeklyHistory = [] } = {}) {
   // 1. TENSION — prioritaire sur la dette : elle décrit l'état de récupération
   // MAINTENANT, et c'est le signal qui doit pouvoir alléger une séance ou
   // bloquer une coupe calorique. Exige une ligne de base, donc du recul.
-  if (baselineWeeks.length >= 2) {
+  //
+  // `strainEnabled: false` — VFC et FC repos en AFFICHAGE SEUL, aucun verdict
+  // (arrêt médical : ces valeurs relèvent du cardiologue, pas de l'app).
+  // `minStrainBaselineWeeks` — semaines de la montre courante exigées : après
+  // un changement de montre, la référence se reconstruit avant tout seuil.
+  if (strainEnabled && baselineWeeks.length >= minStrainBaselineWeeks) {
     const hrvLow = hrv != null && hrvBaseline != null && hrv < hrvBaseline * HRV_STRAIN_RATIO;
     const rhrHigh = rhr != null && rhrBaseline != null && rhr > rhrBaseline + RHR_STRAIN_DELTA;
 
