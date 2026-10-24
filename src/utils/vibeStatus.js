@@ -36,6 +36,7 @@ export const STATUS_KIND = {
   SLEEP_DEBT: 'SLEEP_DEBT',
   WATER_RETENTION: 'WATER_RETENTION',
   CALIBRATING: 'CALIBRATING',
+  PLATEAU_SUSPENDED: 'PLATEAU_SUSPENDED',
   LOW_ADHERENCE: 'LOW_ADHERENCE',
   PROGRESSING: 'PROGRESSING',
   TREND: 'TREND',
@@ -214,6 +215,12 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
       'Activité en hausse',
       `${fmtInt(neat.currentSteps)} pas/j contre ${fmtInt(neat.baselineSteps)} en moyenne avant.`
     );
+  }
+
+  // Plateau suspendu (arrêt médical) : rien d'actionnable, ligne neutre — mais
+  // dite, pour qu'on ne cherche pas pourquoi le verdict habituel a disparu.
+  if (diagnosis?.status === DIAGNOSIS.PLATEAU_SUSPENDED) {
+    return verdict(TONE.IDLE, STATUS_KIND.PLATEAU_SUSPENDED, 'Plateau non évalué', 'Arrêt médical : la cible unique vise la stabilité.');
   }
 
   // Repos : sans le moindre chiffre NI tracé, la bande disparaît plutôt que

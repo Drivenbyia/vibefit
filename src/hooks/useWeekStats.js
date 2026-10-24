@@ -93,6 +93,9 @@ export function useWeekStats(dateKey, data, targets) {
     macroTargets,
     sleep,
     proteinFloor,
+    // Phase couvrant la semaine affichée : la cible unique qu'elle impose.
+    inPhase,
+    restTarget,
     // Jours de la semaine hors coupure — dénominateur de « jours saisis ».
     trackedDays: inScope.length,
     daysUnderProtein,

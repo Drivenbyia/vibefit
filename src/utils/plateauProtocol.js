@@ -33,6 +33,7 @@ export const DIAGNOSIS = {
   WATER_RETENTION_SUSPECTED: 'WATER_RETENTION_SUSPECTED',
   PLATEAU_CONFIRMED: 'PLATEAU_CONFIRMED',
   PROGRESSING: 'PROGRESSING',
+  PLATEAU_SUSPENDED: 'PLATEAU_SUSPENDED',
 };
 
 const LABELS = {
@@ -42,6 +43,7 @@ const LABELS = {
   WATER_RETENTION_SUSPECTED: 'Rétention d’eau probable',
   PLATEAU_CONFIRMED: 'Plateau confirmé',
   PROGRESSING: 'Progression en cours',
+  PLATEAU_SUSPENDED: 'Plateau non évalué',
 };
 
 const result = (status, detail, weeksEvaluated) => ({
@@ -68,7 +70,7 @@ const spread = (values) => (values.length >= 2 ? Math.max(...values) - Math.min(
  *   weeklyHistory — sortie de computeWeeklyHistory(), plus ancienne → plus récente
  * @returns {{status, label, detail, weeksEvaluated}}
  */
-export function diagnose({ signals, weeklyHistory = [] }) {
+export function diagnose({ signals, weeklyHistory = [], trainingSuspended = false }) {
   // Seules les semaines COMPLÈTES sont jugées : la semaine en cours a moins de
   // 7 jours écoulés, et la compter ferait passer tout début de semaine pour un
   // défaut d'adhérence. (`elapsedDays` absent ⇒ semaine déjà complète.)
@@ -175,6 +177,19 @@ export function diagnose({ signals, weeklyHistory = [] }) {
     return result(
       DIAGNOSIS.WATER_RETENTION_SUSPECTED,
       `Poids +${weeklyRate.toFixed(2)} kg/sem mais tour de taille stable (${waistDelta >= 0 ? '+' : ''}${waistDelta.toFixed(1)} cm). Rétention d’eau probable — ne pas couper les calories sur ce signal.`,
+      weeksEvaluated
+    );
+  }
+
+  // Phase sans entraînement (arrêt médical) : la règle de plateau suppose un
+  // déficit tenu PAR l'entraînement. En cible unique de maintenance, un poids
+  // stable est l'objectif, pas un plateau. Les portes de données et
+  // d'adhérence et la rétention d'eau, elles, restent valables — d'où leur
+  // place AVANT ce point.
+  if (trainingSuspended) {
+    return result(
+      DIAGNOSIS.PLATEAU_SUSPENDED,
+      'Règle de plateau suspendue pendant l’arrêt médical : sans entraînement, la cible unique vise la stabilité du poids.',
       weeksEvaluated
     );
   }

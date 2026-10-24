@@ -5,6 +5,7 @@ import { usePlateauDiagnosis } from '../../hooks/usePlateauDiagnosis.js';
 import { useNeatDrift } from '../../hooks/useNeatDrift.js';
 import { useSleepDiagnosis } from '../../hooks/useSleepDiagnosis.js';
 import { useClipboardCopy } from '../../hooks/useClipboardCopy.js';
+import { usePhase } from '../../hooks/usePhase.js';
 import DiagnosisCard from './week/DiagnosisCard.jsx';
 import NeatCard from './week/NeatCard.jsx';
 import SleepDiagnosisCard from './week/SleepDiagnosisCard.jsx';
@@ -23,13 +24,14 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
   const {
     resolvedTargets, start, days, weekly, plannedTrain,
     waistSeries, avgWeight, weightDelta, weightSeries, macroTargets,
-    proteinFloor, daysUnderProtein, daysNotLogged, sleep, trackedDays,
+    proteinFloor, daysUnderProtein, daysNotLogged, sleep, trackedDays, inPhase, restTarget,
   } = useWeekStats(dateKey, data, targets);
 
   const diagnosis = usePlateauDiagnosis(data, resolvedTargets);
   const neat = useNeatDrift(data, resolvedTargets);
   const sleepDiagnosis = useSleepDiagnosis(data, resolvedTargets);
   const [copied, copy] = useClipboardCopy(2000);
+  const { phase } = usePhase(data, dateKey);
   const handleExport = useCallback(() => copy(getHistoricalWeeks(data, 8)), [copy, data]);
 
   return (
@@ -69,7 +71,17 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
       />
       <WaistCard waistSeries={waistSeries} />
       <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} />
-      <ReminderCard presetId={data.presetId} netBalance={weekly.netBalance} recordedDays={weekly.recordedDays} />
+      <ReminderCard
+        presetId={data.presetId}
+        netBalance={weekly.netBalance}
+        recordedDays={weekly.recordedDays}
+        phase={inPhase ? {
+          label: phase?.label ?? 'Phase en cours',
+          singleKcal: restTarget?.kcal,
+          avgIntake: weekly.avgIntakeComparable,
+          comparableDays: weekly.comparableDays,
+        } : null}
+      />
       <ExportButton copied={copied} onExport={handleExport} />
     </div>
   );

@@ -5,6 +5,7 @@ import Card from '../../ui/Card.jsx';
 
 const STYLES = {
   [DIAGNOSIS.CALIBRATING]: { icon: Activity, color: PALETTE.ink },
+  [DIAGNOSIS.PLATEAU_SUSPENDED]: { icon: Minus, color: PALETTE.muted },
   [DIAGNOSIS.INSUFFICIENT_DATA]: { icon: Activity, color: PALETTE.muted },
   [DIAGNOSIS.LOW_ADHERENCE]: { icon: AlertTriangle, color: PALETTE.warn },
   [DIAGNOSIS.WATER_RETENTION_SUSPECTED]: { icon: Droplet, color: PALETTE.deep },

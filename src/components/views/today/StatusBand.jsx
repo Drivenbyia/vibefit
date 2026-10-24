@@ -34,6 +34,7 @@ const ICONS = {
   [STATUS_KIND.PROGRESSING]: TrendingDown,
   [STATUS_KIND.TREND]: Activity,
   [STATUS_KIND.CALIBRATING]: Activity,
+  [STATUS_KIND.PLATEAU_SUSPENDED]: Minus,
 };
 
 // Échantillon de trait repris à l'identique du tracé (même épaisseur, mêmes

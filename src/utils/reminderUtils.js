@@ -37,3 +37,39 @@ export function weeklyReminderCopy(presetId, netBalance, recordedDays) {
       : '',
   };
 }
+
+// En deçà, l'écart moyen apport − cible est sous la précision de la saisie.
+const PHASE_ON_TARGET_KCAL = 100;
+
+/**
+ * Rappel hebdo pendant une phase sans cyclage (arrêt médical).
+ *
+ * Le rappel ordinaire raisonne sur le SOLDE (apport − calories montre) et
+ * parle de recharge les jours TRAIN : deux notions hors sujet ici. Pendant la
+ * phase, une seule question a du sens — l'apport moyen tient-il la cible
+ * unique ? Comparé sur les jours saisis uniquement (`avgIntake` est la moyenne
+ * des jours comparables, déjà calculée hors coupure).
+ *
+ * @returns {{ lead: string, week: string, hint: string }}
+ */
+export function phaseReminderCopy({ label, singleKcal, avgIntake, comparableDays }) {
+  const lead =
+    `${label} : cible unique de ${singleKcal} kcal tous les jours, week-end compris` +
+    ' — ni cyclage ni recharge.';
+
+  if (!comparableDays || avgIntake == null) {
+    return { lead, week: ' Aucun jour saisi cette semaine pour l’instant.', hint: '' };
+  }
+
+  const delta = Math.round(avgIntake - singleKcal);
+  const signed = `${delta > 0 ? '+' : delta < 0 ? '−' : ''}${Math.abs(delta)}`;
+  const week =
+    ` Cette semaine : ${Math.round(avgIntake)} kcal/j en moyenne sur ${comparableDays}` +
+    ` jour${comparableDays > 1 ? 's' : ''} saisi${comparableDays > 1 ? 's' : ''} (${signed} kcal).`;
+
+  let hint = ' Dans la cible.';
+  if (delta > PHASE_ON_TARGET_KCAL) hint = ' Au-dessus de la cible.';
+  if (delta < -PHASE_ON_TARGET_KCAL) hint = ' Sous la cible — le plancher reste 1600 kcal par jour.';
+  return { lead, week, hint };
+}
+

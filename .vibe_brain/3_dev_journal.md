@@ -1172,3 +1172,20 @@ Chromium 390 px sur copie + protocole v2 : badge « cible unique 2050 », bande
 (15/03/2027 écrite, 01/08/2026 refusée), clôture anticipée annulée sans
 effet, jours intacts, zéro erreur, zéro débordement.
 
+### Étape 5 — suspensions pendant la phase
+- `plateauProtocol.diagnose` : paramètre `trainingSuspended` (alimenté par
+  `isTrainingSuspended(aujourd'hui)` dans `usePlateauDiagnosis`). Placé APRÈS
+  les portes de données et d'adhérence et la rétention d'eau, qui ne
+  supposent pas d'entraînement ; remplace plateau ET progression.
+- `vibeStatus` : `STATUS_KIND.PLATEAU_SUSPENDED`, ton neutre — jamais d'alerte.
+- `reminderUtils.phaseReminderCopy` + `ReminderCard({ phase })` : compare
+  l'apport moyen des jours saisis (hors coupure) à la cible unique, seuil
+  ±100 kcal. Le rappel ordinaire est conservé hors phase.
+- Spec § 7 : R2, R4, R5 et le plateau non applicables en phase
+  `medical_stop` ; tout dégel futur doit tester `isTrainingSuspended`.
+
+Vérification : `npm test` **228/228** (+11) · `vite build` ✅ · rendu sur copie
++ protocole v2 : rappel du 24/10 (« 2040 kcal/j sur 1 jour saisi, −10 kcal,
+dans la cible ») ; reprise FICTIVE au 25/11 : bande « Plateau non évalué »,
+carte Diagnostic idem, zéro erreur, zéro débordement.
+
