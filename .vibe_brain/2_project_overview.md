@@ -7,10 +7,20 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/bilan-dimanche`
-- **Suite de tests : Vitest, 317 tests** — `npm test`
+- Branche active : `claude/contexte-coach`
+- **Suite de tests : Vitest, 321 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (nuit) — PR export : bloc « Contexte courant »
+- `utils/coachContext.js` (pur) : bloc Markdown en tête du rapport, avant
+  les semaines — date, phase (dates), preset (+ base), TDEE adaptatif ou
+  calibration (fenêtre, confiance / n/14, date au plus tôt), cible (unique
+  pendant la phase), poids lissé + tendance, 3 dernières tailles, pas montre
+  7 j vs objectif, protéines 7 j vs plancher, sommeil 7 j, VFC RMSSD et FC
+  repos 7 j (sans verdict). « — » pour toute donnée absente.
+- Calculs réutilisés (`extractSignals`, `computeRecovery`, moyennes
+  existantes) ; aucune écriture.
 
 ### Session 2026-10-24 (soir) — PR bilan du dimanche (n°3bis)
 - `utils/weeklyCheckIn.js` (pur) : lignes Poids (vs semaine préc.), Écart à
@@ -575,7 +585,11 @@ src/
   repos nuit par nuit contre ta propre référence (montre courante, jours
   partiels exclus), « référence en construction n/28 », affichage seul
   pendant l'arrêt (décision du 2026-10-24).
-- [ ] **n°3bis — Bilan du dimanche** : *en cours — `claude/bilan-dimanche`*. la semaine écoulée en une carte —
+- [x] **n°3bis — Bilan du dimanche** : *mergée — PR #26*.
+- [ ] **n°11 — Export : contexte courant pour le coach** : *en cours —
+  `claude/contexte-coach`*.
+- [ ] **n°12 — Bilan : tour de taille du lundi** : action « Mesure ton tour
+  de taille à jeun », juste après la calibration. la semaine écoulée en une carte —
   TDEE mesuré et recalibration proposée avec sa raison, verdicts, une
   seule action. Rien n'est stocké.
 - [ ] **n°7 — Sortie de phase** (S) : rappel J−7 avant l'épreuve d'effort du

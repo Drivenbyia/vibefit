@@ -3,6 +3,7 @@ import { extractSignals } from './adaptiveTDEE.js';
 import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
 import { isExcluded, measureSource, isCyclingSuspended, formatInfoActivities } from '../models/protocol.js';
 import { computeSingleTarget, DEFAULT_TDEE } from './presetUtils.js';
+import { formatCoachContext } from './coachContext.js';
 
 /**
  * Ligne de protocole : le réglage sur lequel tourne l'app au moment de l'export.
@@ -209,6 +210,8 @@ export function getHistoricalWeeks(data, n = 8) {
     header,
     formatProtocol(data),
     ...formatContext(data),
+    '',
+    ...formatCoachContext(data, { today }),
     '',
   ];
 
