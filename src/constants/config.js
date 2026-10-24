@@ -38,6 +38,10 @@ export const SLEEP_STRAIN_MIN_BASELINE_WEEKS = 4;
 // calibration. Strict à dessein — 14 et non les 10 du moteur ordinaire.
 export const CALIBRATION_REQUIRED_DAYS = 14;
 
+// Rappel de sauvegarde : au-delà de ce nombre de jours sans export JSON, la
+// carte de rappel apparaît sur Aujourd'hui. 7 = « chaque dimanche ».
+export const BACKUP_REMINDER_DAYS = 7;
+
 // Type de jour pendant une phase sans cyclage — clé de la cible unique.
 export const REST_DAY_TYPE = 'rest';
 

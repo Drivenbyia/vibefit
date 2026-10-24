@@ -1,4 +1,7 @@
 import { emptyDay } from '../models/day.js';
+import { isValidInstant } from '../models/protocol.js';
+import { toKey } from './dateUtils.js';
+import { BACKUP_REMINDER_DAYS } from '../constants/config.js';
 
 const isBlank = (v) => v == null || v === '';
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -79,15 +82,15 @@ export function backupFileName(date = new Date()) {
     `_${p(date.getHours())}h${p(date.getMinutes())}.json`;
 }
 
-export function exportBackup(data) {
-  // `exportedAt` est ajouté au FICHIER, pas au state : la restauration ne le
-  // relit pas, il sert uniquement à dater la sauvegarde sans se fier à son nom.
-  const jsonString = JSON.stringify({ ...data, exportedAt: new Date().toISOString() }, null, 2);
+export function exportBackup(data, date = new Date()) {
+  // `exportedAt` date le FICHIER sans se fier à son nom. La restauration ne
+  // le recopie pas tel quel : elle ne s'en sert que pour `lastBackupAt`.
+  const jsonString = JSON.stringify({ ...data, exportedAt: date.toISOString() }, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = backupFileName();
+  a.download = backupFileName(date);
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -105,4 +108,47 @@ export function importBackup(file, onSuccess, onError) {
     }
   };
   reader.readAsText(file);
+}
+
+/**
+ * Le plus récent de deux horodatages valides (ou null).
+ *
+ * Restaurer un fichier prouve qu'une sauvegarde existe à sa date : la date du
+ * dernier export avance jusqu'à `exportedAt`, sans jamais reculer — restaurer
+ * un vieux fichier ne doit pas faire oublier un export plus récent.
+ */
+export function latestInstant(a, b) {
+  const valid = [a, b].filter(isValidInstant);
+  if (valid.length === 0) return null;
+  return valid.reduce((x, y) => (Date.parse(y) > Date.parse(x) ? y : x));
+}
+
+const DAY_MS = 86400000;
+
+/**
+ * État de la sauvegarde, compté en jours CALENDAIRES locaux.
+ *
+ * Calculé depuis `todayKey` et non depuis l'heure courante : la fonction reste
+ * pure, et un export fait à 23 h compte « il y a 1 jour » le lendemain matin.
+ * Rien à protéger tant qu'aucun jour n'est saisi : `null`.
+ */
+export function backupStatus({ lastBackupAt, dayCount, todayKey }) {
+  if (!dayCount) return null;
+  if (!isValidInstant(lastBackupAt)) {
+    return { never: true, ageDays: null, lastKey: null, overdue: true };
+  }
+  const lastKey = toKey(lastBackupAt);
+  const ageDays = Math.max(0, Math.round(
+    (Date.parse(todayKey + 'T12:00:00') - Date.parse(lastKey + 'T12:00:00')) / DAY_MS,
+  ));
+  return { never: false, ageDays, lastKey, overdue: ageDays > BACKUP_REMINDER_DAYS };
+}
+
+/** « aujourd'hui » / « hier » / « il y a 9 jours » / « jamais ». */
+export function backupAgeLabel(status) {
+  if (!status) return '';
+  if (status.never) return 'jamais';
+  if (status.ageDays === 0) return "aujourd'hui";
+  if (status.ageDays === 1) return 'hier';
+  return `il y a ${status.ageDays} jours`;
 }

@@ -1274,3 +1274,30 @@ la calibration → historique des cibles ; les deux derniers avant le 06/11
 
 Vérification locale des mêmes étapes : `npm ci` ✅ · `npm test` **252/252** ·
 `vite build` ✅.
+
+## Session 2026-10-24 (suite) — PR n°1 : protection des données
+
+PR #17 (CI) mergée sur instruction du développeur ; backlog vérifié sur `main`.
+
+- **Stockage persistant** : `useStoragePersistence` demande
+  `navigator.storage.persist()` au lancement (après `persisted()`), statut
+  `pending` / `persisted` / `denied` / `unsupported`, cleanup par drapeau
+  `cancelled`. Affiché dans la carte PROTECTION de Données.
+- **Date du dernier export** : champ racine `lastBackupAt`. `exportBackup`
+  prend la date en paramètre : fichier, nom de fichier et state portent le
+  même instant. Restauration : `latestInstant(prev, exportedAt)` — un vieux
+  fichier ne fait pas oublier un export récent. Fusion : intacte.
+- **Rappel** : `backupStatus` (pur, jours calendaires depuis `todayKey`) ;
+  `BackupReminderCard` sur Aujourd'hui, jour courant, si > 7 jours ou jamais.
+  `warn` (un manque), bouton plein « Exporter maintenant ».
+- Décision ajoutée dans `4_business_decisions.md`.
+
+**Faux défaut au rendu** : première capture terne — c'était `vf-fadein`
+(200 ms) photographié en cours, toute la page atténuée. Recapturé à +600 ms.
+
+Vérification : `npm test` **263/263** (+11) · `vite build` ✅ · Chromium
+390 et 360 px sur build de prod : rappel « il y a 9 jours » affiché, export
+téléchargé (`vibefit-…_12h48.json`), rappel disparu, `lastBackupAt` écrit,
+carte PROTECTION « aujourd'hui (24 octobre) », zéro erreur console, zéro
+débordement. Stockage « non garanti » en headless (refus attendu du
+navigateur sans engagement), à constater sur l'iPhone.
