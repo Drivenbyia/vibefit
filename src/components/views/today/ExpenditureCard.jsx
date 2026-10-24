@@ -6,7 +6,7 @@ import Label from '../../ui/Label.jsx';
 import Bar from '../../ui/Bar.jsx';
 import Pill from '../../ui/Pill.jsx';
 
-export default function ExpenditureCard({ day, updateDay, steps, stepsTarget }) {
+export default function ExpenditureCard({ day, updateDay, steps, stepsTarget, showHeavyWork = true }) {
   const heavyWork = !!day.heavyWork;
   return (
     <Card>
@@ -40,6 +40,8 @@ export default function ExpenditureCard({ day, updateDay, steps, stepsTarget }) 
       {/* `umber` vient de la rampe CATÉGORIELLE : le chantier qualifie la
           nature de la journée, il n'est ni un manque (`warn`) ni un
           dépassement (`alert`). Voir DESIGN.md §1. */}
+      {/* Masqué pendant une phase où l'effort est suspendu : un chantier n'y a pas lieu d'être saisi. */}
+      {showHeavyWork && (<>
       <div style={{ display: 'flex', marginTop: 12 }}>
         <Pill
           active={heavyWork}
@@ -54,6 +56,7 @@ export default function ExpenditureCard({ day, updateDay, steps, stepsTarget }) 
         dépense mesurée est représentative — sans ça, une quinzaine chargée et
         une quinzaine calme donnent le même TDEE sans qu'on puisse les distinguer.
       </div>
+      </>)}
     </Card>
   );
 }

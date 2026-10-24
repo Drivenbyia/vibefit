@@ -1,7 +1,8 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
-import { isExcluded, measureSource } from '../models/protocol.js';
+import { isExcluded, measureSource, isCyclingSuspended } from '../models/protocol.js';
+import { computeSingleTarget, DEFAULT_TDEE } from './presetUtils.js';
 
 /**
  * Ligne de protocole : le réglage sur lequel tourne l'app au moment de l'export.
@@ -22,6 +23,18 @@ export function formatProtocol(data) {
   // celui de TRAIN, en repli sur OFF si des cibles anciennes sont incomplètes.
   const protein = t.train?.protein ?? t.off?.protein ?? null;
   const steps = data?.stepsTarget ?? DEFAULT_STEPS_TARGET;
+
+  // Phase sans cyclage : la cible servie est la cible unique, pas TRAIN/OFF.
+  // Publier les cibles cyclées ferait lire au cardiologue ou au coach des
+  // chiffres que l'app n'applique pas.
+  if (isCyclingSuspended(toKey(new Date()), data?.phases ?? [])) {
+    const single = computeSingleTarget(presetId, data?.baseTDEE ?? DEFAULT_TDEE, t);
+    return (
+      `🎯 Preset : ${label} | Cible unique : ${single.kcal} kcal/j (cyclage TRAIN/OFF suspendu)` +
+      ` · protéines ${single.protein} g` +
+      ` | Objectif pas : ${Number(steps).toLocaleString('fr-FR')}/j`
+    );
+  }
 
   return (
     `🎯 Preset : ${label} | Cibles : TRAIN ${kcal('train')} / OFF ${kcal('off')}` +

@@ -23,7 +23,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
   const {
     resolvedTargets, start, days, weekly, plannedTrain,
     waistSeries, avgWeight, weightDelta, weightSeries, macroTargets,
-    proteinFloor, daysUnderProtein, daysNotLogged, sleep,
+    proteinFloor, daysUnderProtein, daysNotLogged, sleep, trackedDays,
   } = useWeekStats(dateKey, data, targets);
 
   const diagnosis = usePlateauDiagnosis(data, resolvedTargets);
@@ -35,8 +35,8 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <Card>
-        <WeekSummary start={start} recordedDays={weekly.recordedDays} netBalance={weekly.netBalance} />
-        <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} />
+        <WeekSummary start={start} recordedDays={weekly.recordedDays} trackedDays={trackedDays} netBalance={weekly.netBalance} />
+        <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} />
       </Card>
       <DiagnosisCard
         status={diagnosis.status}
@@ -58,7 +58,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets }) {
         avgDurationMin={sleepDiagnosis.avgDurationMin}
       />
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} />
-      <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} />
+      <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} resolvedTargets={resolvedTargets} phases={data.phases} />
       <AveragesCard
         weekly={weekly}
         macroTargets={macroTargets}

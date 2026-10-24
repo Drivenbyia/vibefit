@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import { PROTEIN_FLOOR } from '../constants/config.js';
 import { DEFAULT_TARGETS } from '../utils/presetUtils.js';
 import { addDays, startOfWeek } from '../utils/dateUtils.js';
-import { num, calculateWeeklyBalance, calculateWeightStats, aggregateSleep } from '../utils/mathUtils.js';
+import { num, calculateWeeklyBalance, calculateWeightStats, aggregateSleep, nutritionScope } from '../utils/mathUtils.js';
 import { dayType } from '../models/day.js';
+import { isExcluded } from '../models/protocol.js';
 
 /**
  * Dérive toutes les statistiques hebdomadaires depuis le state global.
@@ -21,32 +22,46 @@ export function useWeekStats(dateKey, data, targets) {
     })
   , [start, data?.days]);
 
+  const phases = data?.phases;
+  const periods = data?.periods;
+  // Périmètre nutrition : une semaine à cheval sur une période non suivie ne
+  // compte que les jours hors coupure — solde, moyennes, jours non saisis et
+  // plancher protéines. `days` reste entier pour le calendrier et le sommeil.
+  const nutritionDays = useMemo(() => nutritionScope(days, periods ?? []), [days, periods]);
+  const inScope = days.filter(({ key }) => !isExcluded(key, periods ?? [], 'nutrition'));
+
   const weekly = useMemo(
-    () => calculateWeeklyBalance(days, resolvedTargets),
-    [days, resolvedTargets]
+    () => calculateWeeklyBalance(nutritionDays, resolvedTargets, phases ?? []),
+    [nutritionDays, resolvedTargets, phases]
   );
 
-  const plannedTrain = days.filter(({ key, day }) => dayType(key, day) === 'train').length;
+  const plannedTrain = days.filter(({ key, day }) => dayType(key, day, phases ?? []) === 'train').length;
 
-  const waistSeries = days
+  const waistSeries = nutritionDays
     .map(({ key, day }) => ({ key, w: day?.waist ? num(day.waist) : null }))
     .filter((p) => p.w !== null);
 
-  const { avgWeight, weightDelta, weightSeries } = calculateWeightStats(days);
+  const { avgWeight, weightDelta, weightSeries } = calculateWeightStats(nutritionDays);
 
   // Cibles macro moyennées sur les jours RÉELS de la semaine affichée, via
   // dayType — plutôt qu'une moyenne TRAIN/OFF qui ignorait le week-end et
   // recodait implicitement la composition du split.
-  const dayTargets = days.map(
-    ({ key, day }) => resolvedTargets[dayType(key, day)] ?? resolvedTargets.off
+  const dayTargets = inScope.map(
+    ({ key, day }) => resolvedTargets[dayType(key, day, phases ?? [])] ?? resolvedTargets.off
   );
   const avgTarget = (field, fallback) => {
     const vs = dayTargets.map((t) => t?.[field]).filter((v) => v != null);
     return vs.length > 0 ? vs.reduce((a, b) => a + b, 0) / vs.length : fallback;
   };
 
+  // Pendant une phase, le plancher est celui de la cible unique (170 g en
+  // Sèche forte), pas celui de TRAIN.
+  const restTarget = resolvedTargets.rest;
+  const inPhase = days.some(({ key, day }) => dayType(key, day, phases ?? []) === 'rest');
+  const proteinFloor = (inPhase ? restTarget?.protein : null) ?? resolvedTargets.train?.protein ?? PROTEIN_FLOOR;
+
   const macroTargets = {
-    protein: resolvedTargets.train?.protein ?? PROTEIN_FLOOR,
+    protein: proteinFloor,
     carbs: avgTarget('carbs', 200),
     fat: avgTarget('fat', 72),
   };
@@ -58,9 +73,9 @@ export function useWeekStats(dateKey, data, targets) {
   // 100 g font 160 de moyenne et deux jours hors protocole.
   const sleep = aggregateSleep(days);
 
-  const proteinFloor = resolvedTargets.train?.protein ?? PROTEIN_FLOOR;
-  const daysNotLogged = days.filter(({ day }) => !day || num(day.intake?.kcal) === 0).length;
-  const daysUnderProtein = days.filter(
+  // Jours de la coupure : ni « non saisis », ni sous le plancher — hors périmètre.
+  const daysNotLogged = inScope.filter(({ day }) => !day || num(day.intake?.kcal) === 0).length;
+  const daysUnderProtein = inScope.filter(
     ({ day }) =>
       day && num(day.intake?.kcal) > 0 && num(day.intake?.protein) < proteinFloor
   ).length;
@@ -78,6 +93,8 @@ export function useWeekStats(dateKey, data, targets) {
     macroTargets,
     sleep,
     proteinFloor,
+    // Jours de la semaine hors coupure — dénominateur de « jours saisis ».
+    trackedDays: inScope.length,
     daysUnderProtein,
     daysNotLogged,
   };

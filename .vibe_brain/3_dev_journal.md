@@ -1131,3 +1131,24 @@ Vérification : `npm test` **182/182** · `vite build` ✅ · contre-épreuve :
 19/08 (identique avec/sans coupure), 10/09, 24/10, et sur une reprise FICTIVE
 de 14 jours (J10 : pas de TDEE ; J14 : 2050, fenêtre 24/10 → 06/11).
 
+### Étape 3 — phase « Arrêt médical » et cible unique
+- `config.PHASE_TYPES` (règles `cycling`/`training`), `REST_DAY_TYPE`.
+- `protocol.isCyclingSuspended` / `isTrainingSuspended`.
+- `dayType(key, day, phases)` : `rest` en priorité absolue pendant la phase.
+- `presetUtils.computeSingleTarget`, `resolveTargets`, taux `{ cycling: false }`.
+- `mathUtils.nutritionScope` partagé par l'historique et `useWeekStats` :
+  le solde de l'onglet Semaine ne compte que les jours hors coupure
+  (demandé le 2026-10-24), dénominateur « x / y jours saisis ».
+- UI : `PhaseBadge`, `PhaseRestCard`, `PhaseCard` (+ `usePhase`,
+  `usePhaseManager`, clôture confirmée à partir de la fin prévue).
+
+**Défaut trouvé au rendu** : l'onglet Semaine affichait « 1 / 7 jours saisis »
+sur la semaine du 19/10, dont 5 jours sont dans la coupure. Corrigé.
+
+Vérification : `npm test` **204/204** (+22) · `vite build` ✅ · rendu Chromium
+390 px sur copie réelle + protocole : badge, carte « Séances suspendues »,
+carte de phase, taux des presets en cible unique, zéro erreur console, zéro
+débordement, jours intacts en localStorage ; 19/08 : sélecteur TRAIN/OFF
+présent ; 01/12/2026 : pas de bouton de clôture ; 02/03/2027 : bouton,
+confirmation, `endedAt` écrit.
+

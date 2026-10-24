@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Phase sans cyclage : type de jour `rest` et cible unique dérivée
+- **Décision** : Pendant une phase `medical_stop`, tous les jours sont de type `rest` (priorité absolue dans `dayType`). Leur cible est `computeSingleTarget` : milieu (TRAIN+OFF)/2 des formules BRUTES du preset, plancher 1600 appliqué directement, protéines du preset (≥ 160). Dérivée à la volée par `resolveTargets`, jamais stockée.
+- **Contexte** : arrêt médical, tout effort interdit. Le calendrier lun/mer/ven servait encore des cibles TRAIN sans entraînement.
+- **Alternatives considérées** : (1) moyenne de la semaine-type (3 TRAIN + 2 OFF)/5 — asymétrique, Maintenance à TDEE + 40 ; (2) milieu des cibles cyclées stockées — porte la correction de plancher du cyclage (Sèche forte à 2050 : 1800 au lieu de 1650) ; (3) écrire `workout: 'none'` / `typeOverride` sur les jours — réécrit des données pour une règle de lecture ; (4) preset verrouillé — refusé par le développeur.
+- **Raison du choix** : Maintenance = TDEE exactement, chaque preset garde son écart nominal (0 / −200 / −400 / +300). Une règle de lecture se défait à la clôture sans migration.
+- **Impact** : sélecteur TRAIN/OFF/WE remplacé par un badge non interactif, carte Séance et bouton chantier masqués pendant la phase. Les cibles TRAIN/OFF restent éditables et reprennent à la clôture.
+- **Réversibilité** : Facile — clôture manuelle (`endedAt`).
+
 ### 2026-10-24 — Protocole daté au niveau racine : coupures, phases, montres
 - **Décision** : Schéma v2 additif sous la même clé `vibefit_v1`. Trois listes racine (`periods`, `phases`, `devices`) au lieu de marqueurs jour par jour. Une coupure porte un **périmètre** (`scope: 'nutrition'`) ; une phase a une fin **prévue** qui ne la ferme pas (seule `endedAt`, clôture manuelle, le fait) ; la source d'une mesure est écrite sur le jour quand elle diffère de la montre (iPhone seul), sinon **déduite** de la chronologie sans réécrire le jour.
 - **Contexte** : reprise après 2 mois sans saisie, arrêt médical daté, changement de montre Garmin → Apple Watch. Les VFC Garmin (RMSSD nocturne) et Apple ne se comparent pas ; rien dans le state ne permettait de les distinguer.

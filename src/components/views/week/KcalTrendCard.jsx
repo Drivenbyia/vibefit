@@ -11,13 +11,13 @@ const LEGEND = [
   { color: PALETTE.line, label: 'Non saisi' },
 ];
 
-export default function KcalTrendCard({ days, dateKey, setDateKey, resolvedTargets }) {
+export default function KcalTrendCard({ days, dateKey, setDateKey, resolvedTargets, phases = [] }) {
   return (
     <Card>
       <SectionLabel>Tendance calorique</SectionLabel>
       <div style={{ display: 'flex', gap: 0, alignItems: 'flex-end' }}>
         {days.map(({ key, day }) => {
-          const t = dayType(key, day);
+          const t = dayType(key, day, phases);
           const target = resolvedTargets[t]?.kcal ?? resolvedTargets.off.kcal;
           return (
             <DayBar

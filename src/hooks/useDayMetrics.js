@@ -7,9 +7,10 @@ import { dayType } from '../models/day.js';
  * Dérive les métriques d'une journée pour TodayView :
  * cibles du jour, totaux saisis, alertes de cohérence macro et de sous-alimentation.
  */
-export function useDayMetrics(dateKey, day, targets) {
-  const t = dayType(dateKey, day);
-  const dt = targets[t];
+export function useDayMetrics(dateKey, day, targets, phases = []) {
+  const t = dayType(dateKey, day, phases);
+  // Repli sur OFF si la cible unique manque (cibles non résolues) — jamais undefined.
+  const dt = targets[t] ?? targets.off;
   const intake = num(day.intake.kcal);
   const expenditure = num(day.expenditure.kcal);
   const steps = num(day.expenditure.steps);

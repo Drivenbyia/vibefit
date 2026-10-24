@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, MEASURE_SOURCES } from '../constants/config.js';
+import { SCHEMA_VERSION, MEASURE_SOURCES, PHASE_TYPES } from '../constants/config.js';
 
 /**
  * Protocole daté de l'app : coupures, phases et montres.
@@ -106,6 +106,14 @@ export function phaseAt(key, phases = []) {
     (p) => p.start <= key && (p.endedAt == null || key <= p.endedAt)
   ) ?? null;
 }
+
+/** Le cyclage TRAIN/OFF est-il suspendu le jour `key` par une phase ? */
+export const isCyclingSuspended = (key, phases = []) =>
+  PHASE_TYPES[phaseAt(key, phases)?.type]?.cycling === false;
+
+/** Séance et chantier sont-ils hors sujet le jour `key` (effort interdit) ? */
+export const isTrainingSuspended = (key, phases = []) =>
+  PHASE_TYPES[phaseAt(key, phases)?.type]?.training === false;
 
 /** Montre portée le jour `key` d'après la chronologie, ou null. */
 export function deviceAt(key, devices = []) {

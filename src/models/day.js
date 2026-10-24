@@ -1,4 +1,6 @@
 import { dayTypeFromKey } from '../utils/dateUtils.js';
+import { REST_DAY_TYPE } from '../constants/config.js';
+import { isCyclingSuspended } from './protocol.js';
 
 export const emptyDay = () => ({
   typeOverride: null,
@@ -32,6 +34,10 @@ const WORKOUT_TO_TYPE = { haut: 'train', bas: 'train', none: 'off' };
 
 /**
  * Type d'un jour, par ordre de priorité décroissant :
+ *   0. phase sans cyclage (arrêt médical) — `rest`, cible unique. Passe AVANT
+ *      la bascule manuelle et la séance : pendant la phase, aucune saisie ne
+ *      doit pouvoir rouvrir une cible TRAIN. Les données du jour ne sont pas
+ *      modifiées, seule leur lecture change.
  *   1. typeOverride — bascule manuelle explicite dans le Header
  *   2. séance loggée — la réalité l'emporte sur la prévision
  *   3. calendrier    — Upper/Lower/Upper lun/mer/ven, prévision par défaut
@@ -41,7 +47,8 @@ const WORKOUT_TO_TYPE = { haut: 'train', bas: 'train', none: 'off' };
  * la cible TRAIN le jour de repos. Une séance loggée un week-end bascule aussi
  * le jour en TRAIN, lui donnant une vraie cible au lieu du `we` sans cible.
  */
-export const dayType = (key, day) =>
-  day?.typeOverride
+export const dayType = (key, day, phases = []) =>
+  (isCyclingSuspended(key, phases) ? REST_DAY_TYPE : null)
+  ?? day?.typeOverride
   ?? (day?.workout ? WORKOUT_TO_TYPE[day.workout] : null)
   ?? dayTypeFromKey(key);

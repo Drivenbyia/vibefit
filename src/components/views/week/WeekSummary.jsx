@@ -2,7 +2,7 @@ import { TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import { fmtFr } from '../../../utils/dateUtils.js';
 
-export default function WeekSummary({ start, recordedDays, netBalance }) {
+export default function WeekSummary({ start, recordedDays, trackedDays = 7, netBalance }) {
   const balanceColor = netBalance < -100 ? PALETTE.deep : netBalance > 100 ? PALETTE.alert : PALETTE.muted;
   const BalanceIcon = netBalance < -100 ? TrendingDown : netBalance > 100 ? TrendingUp : Minus;
 
@@ -16,7 +16,8 @@ export default function WeekSummary({ start, recordedDays, netBalance }) {
           {fmtFr(start)}
         </div>
         <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 2 }}>
-          {recordedDays} / 7 jours saisis
+          {recordedDays} / {trackedDays} jours saisis
+          {trackedDays < 7 && ' · hors période non suivie'}
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>

@@ -15,6 +15,16 @@ export const MEASURE_SOURCES = {
   manual: 'Saisie manuelle',
 };
 
+// Règles d'une phase datée (voir models/protocol.js). Une phase ne change
+// aucune donnée : elle change la LECTURE des jours qu'elle couvre.
+//   cycling: false  — cyclage TRAIN/OFF suspendu, cible unique tous les jours
+//   training: false — séance et chantier hors sujet : non saisissables
+export const PHASE_TYPES = {
+  medical_stop: { label: 'Arrêt médical', cycling: false, training: false },
+};
+// Type de jour pendant une phase sans cyclage — clé de la cible unique.
+export const REST_DAY_TYPE = 'rest';
+
 // 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
 export const KCAL_PER_KG = 7700;
 

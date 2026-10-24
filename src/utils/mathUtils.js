@@ -7,7 +7,16 @@ export const num = (v) => {
   return isNaN(n) ? 0 : n;
 };
 
-export const calculateWeeklyBalance = (daysData, targets) => {
+/**
+ * Jours d'une semaine restreints au périmètre NUTRITION : un jour couvert par
+ * une coupure garde sa clé mais perd son contenu. Partagé par l'historique des
+ * diagnostics et par le solde affiché dans l'onglet Semaine — une semaine à
+ * cheval sur la coupure n'y compte que les jours d'après.
+ */
+export const nutritionScope = (daysData, periods = []) =>
+  daysData.map(({ key, day }) => (isExcluded(key, periods, 'nutrition') ? { key, day: null } : { key, day }));
+
+export const calculateWeeklyBalance = (daysData, targets, phases = []) => {
   const filledDays = daysData.filter(
     ({ day }) => day && (num(day.intake?.kcal) > 0 || num(day.expenditure?.kcal) > 0)
   );
@@ -36,7 +45,7 @@ export const calculateWeeklyBalance = (daysData, targets) => {
   // plus les jours sans cible plaçait donc systématiquement l'utilisateur
   // « au-dessus de sa cible », même parfaitement adhérent en semaine.
   const comparable = daysData.filter(({ key, day }) => {
-    const t = targets[dayType(key, day)] ?? targets.off;
+    const t = targets[dayType(key, day, phases)] ?? targets.off;
     return day && num(day.intake?.kcal) > 0 && t?.kcal != null;
   });
   const comparableDays = comparable.length;
@@ -60,7 +69,7 @@ export const calculateWeeklyBalance = (daysData, targets) => {
     avgSteps: avg(totals.steps),
     comparableDays,
     avgIntakeComparable: meanOver(({ day }) => num(day.intake?.kcal)),
-    avgKcalTarget: meanOver(({ key, day }) => (targets[dayType(key, day)] ?? targets.off).kcal),
+    avgKcalTarget: meanOver(({ key, day }) => (targets[dayType(key, day, phases)] ?? targets.off).kcal),
     recordedDays: count,
   };
 };
@@ -91,11 +100,10 @@ export const computeWeeklyHistory = (data, targets, n = 8) => {
     // gardent `days` — leur exclusion dépend de la source (étape montres), pas
     // de la coupure : une nuit Apple Watch du 19/10 reste une vraie mesure.
     const periods = data?.periods ?? [];
-    const nutritionDays = days.map(({ key, day }) =>
-      (isExcluded(key, periods, 'nutrition') ? { key, day: null } : { key, day }));
+    const nutritionDays = nutritionScope(days, periods);
     const excludedDays = days.filter(({ key }) => isExcluded(key, periods, 'nutrition')).length;
 
-    const weekly = calculateWeeklyBalance(nutritionDays, targets);
+    const weekly = calculateWeeklyBalance(nutritionDays, targets, data?.phases ?? []);
     const { avgWeight } = calculateWeightStats(nutritionDays);
     const waists = nutritionDays
       .map(({ day }) => (day?.waist ? num(day.waist) : null))

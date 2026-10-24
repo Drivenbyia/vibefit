@@ -3,7 +3,7 @@ import { PALETTE, PRESETS } from '../../../constants/config.js';
 import { presetRateLabel } from '../../../utils/presetUtils.js';
 import Card from '../../ui/Card.jsx';
 
-export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApplyPreset }) {
+export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApplyPreset, cycling = true }) {
   return (
     <Card>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
@@ -55,7 +55,8 @@ export default function PresetPickerCard({ presetId, baseTDEE, savedFlash, onApp
               {/* Taux calculé depuis les cibles réelles — les jours sans cible
                   (week-end) diluent le déficit et sont pris en compte. */}
               <span className="vf-tabular" style={{ fontSize: 10, fontWeight: 700, opacity: 0.9 }}>
-                {presetRateLabel(id, baseTDEE)}
+                {/* Pendant une phase sans cyclage : taux de la cible unique. */}
+                {presetRateLabel(id, baseTDEE, { cycling })}
               </span>
               <span style={{ fontSize: 10, opacity: 0.7, lineHeight: 1.3 }}>{p.sub}</span>
             </button>
