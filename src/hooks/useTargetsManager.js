@@ -3,12 +3,14 @@ import { num } from '../utils/mathUtils.js';
 import {
   computePresetTargets,
   clampTargetField,
+  presetSwitchMessage,
   DEFAULT_TDEE,
   DEFAULT_TARGETS,
 } from '../utils/presetUtils.js';
 import { useTransientValue } from './useTransientValue.js';
 import { recordSettingsChange } from '../utils/targetHistory.js';
 import { toKey } from '../utils/dateUtils.js';
+import { isCyclingSuspended } from '../models/protocol.js';
 
 /**
  * Logique métier de la vue Cibles : application des presets dynamiques
@@ -36,8 +38,15 @@ export function useTargetsManager(data, setData) {
     setData((prev) => ({ ...prev, stepsTarget: num(v) || DEFAULT_STEPS_TARGET }));
   };
 
+  // Changer de preset demande confirmation : un tap égaré sur une carte
+  // remplaçait les cibles sans rien signaler. Retaper le preset actif
+  // (recalcul à la même base) reste immédiat.
   const applyPreset = (id) => {
     if (!PRESETS[id]) return;
+    if (id !== presetId) {
+      const cycling = !isCyclingSuspended(toKey(new Date()), data.phases ?? []);
+      if (!window.confirm(presetSwitchMessage(presetId, id, data.baseTDEE, { cycling }))) return;
+    }
     setTargets(computePresetTargets(id, data.baseTDEE), id);
   };
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { settingsAt, targetResolver, recordSettingsChange } from '../targetHistory.js';
 import { calculateWeeklyBalance, dayTarget } from '../mathUtils.js';
-import { computePresetTargets, resolveTargets } from '../presetUtils.js';
+import { computePresetTargets, resolveTargets, presetSwitchMessage } from '../presetUtils.js';
 import { sanitizeTargetHistory, migrateData, restorableProtocol } from '../../models/protocol.js';
 
 /** n°4 — chaque jour jugé contre les cibles de SA date. */
@@ -103,5 +103,21 @@ describe('rétrocompatibilité', () => {
     ]);
     expect(clean).toEqual([PRE_CUT, later]);
     expect(sanitizeTargetHistory(undefined)).toEqual([]);
+  });
+});
+
+describe('changement de preset — confirmation', () => {
+  it('cas réel : Sèche légère → Maintenance à base 2000 annonce les cibles par défaut', () => {
+    const msg = presetSwitchMessage('cut_light', 'maintenance', 2000);
+    expect(msg).toContain('Passer de Sèche légère à Maintenance ?');
+    expect(msg).toContain('TRAIN 2200 · OFF 1800 · WE 2040 kcal');
+    expect(msg).toContain('Les jours passés gardent leurs cibles.');
+  });
+  it('pendant une phase sans cyclage : la cible unique', () => {
+    expect(presetSwitchMessage('maintenance', 'cut_light', 2050, { cycling: false }))
+      .toContain('cible unique 1850 kcal');
+  });
+  it('depuis des valeurs personnalisées', () => {
+    expect(presetSwitchMessage('custom', 'maintenance', 2000)).toContain('Passer de Personnalisé à Maintenance ?');
   });
 });

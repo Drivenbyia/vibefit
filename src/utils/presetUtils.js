@@ -235,3 +235,26 @@ export function deriveBaseTDEE(presetId, targets) {
     default:            return trainKcal - 200;
   }
 }
+
+const presetName = (id) => (id === 'custom' ? 'Personnalisé' : (PRESETS[id]?.label ?? id));
+
+/**
+ * Message de confirmation d'un changement de preset.
+ *
+ * Un tap sur une carte de preset remplaçait les cibles sur-le-champ, sans
+ * confirmation ni trace : c'est ainsi qu'une Sèche légère à base 2000 a pu
+ * devenir Maintenance aux cibles par défaut (2200/1800/2040) sans que rien ne
+ * le signale. Le message nomme les deux presets et les nouvelles cibles, et
+ * rappelle que le passé garde les siennes (historique des cibles).
+ *
+ * `cycling: false` (phase sans cyclage) : on annonce la cible unique.
+ */
+export function presetSwitchMessage(fromId, toId, baseTDEE, { cycling = true } = {}) {
+  const next = computePresetTargets(toId, baseTDEE);
+  const what = cycling
+    ? `TRAIN ${next.train.kcal} · OFF ${next.off.kcal} · WE ${next.we.kcal} kcal`
+    : `cible unique ${computeSingleTarget(toId, baseTDEE, next).kcal} kcal`;
+  return `Passer de ${presetName(fromId)} à ${presetName(toId)} ?\n\n` +
+    `Nouvelles cibles dès aujourd'hui : ${what}.\n` +
+    `Les jours passés gardent leurs cibles.`;
+}

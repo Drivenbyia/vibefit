@@ -1361,3 +1361,30 @@ copie, « Importé 56 jour(s) », `targetHistory: []`, zéro erreur ; fichier
 d'historique restauré ⇒ écart de la semaine du 10/08 +350 kcal (7 jours ×
 50 kcal de cible en moins), en-tête du 12/08 « OFF 1800 » au lieu de 1850,
 phase et réglages courants intacts.
+
+### Correction du développeur et enquête sur le preset perdu
+Le développeur suivait **Sèche légère, base 2000** (TRAIN 2000 / OFF 1600)
+jusqu'à la coupure — pas Maintenance. Ligne recalculée par
+`computePresetTargets('cut_light', 2000)` : WE 1840 (moyenne pondérée
+3 TRAIN + 2 OFF), protéines 160 tous les jours, lipides 70.
+
+Pourquoi la sauvegarde du 24/10 contenait Maintenance aux cibles par défaut :
+- **Datation** : WE 2040 / glucides 188 n'existent que depuis la règle « WE
+  dérivé » (29/07). Les cibles ont donc été ÉCRITES après le 29/07 — aucune
+  migration ne réécrit des cibles stockées (vérifié dans `ef78e6b`, `7cb82e7`).
+- **Purge + Fusion exclue** : la fusion recrée chaque jour sur `emptyDay()`
+  courant (avec `heavyWork`) ; 38 jours sur 56 n'ont pas `heavyWork` — ce
+  sont les jours d'avant le 03/08 dans leur forme d'origine. Init par défaut
+  exclu aussi (il aurait vidé les jours).
+- **Chemin restant** : `applyPreset('maintenance')` à base 2000 produit
+  EXACTEMENT `DEFAULT_TARGETS` (vérifié), en un tap, sans confirmation ni
+  trace. « Restaurer les cibles par défaut » donne le même état mais demande
+  confirmation. Les données ne disent ni quand ni pourquoi (tap égaré, ou
+  bascule volontaire à l'arrêt médical, alors oubliée).
+- **Correctif** : confirmation au changement de preset ; et l'historique des
+  cibles fige désormais le preset sortant — le passé n'est plus réécrit.
+
+Vérification : `npm test` **289/289** (+3) · `vite build` ✅ · Chromium :
+annuler ⇒ Sèche légère intacte ; accepter ⇒ Maintenance, et `targetHistory`
+= `[{ until: hier, cut_light, 2000, 2000/1600/1840 }]` ; retaper le preset
+actif ⇒ aucun dialogue.
