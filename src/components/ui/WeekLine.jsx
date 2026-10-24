@@ -21,10 +21,12 @@ const segments = (values) => values.reduce((acc, v, i) => {
  *
  * `shaded` : colonnes d'une période non suivie, fond discret.
  * `selected` : point agrandi — pas de fond, qui se confondrait avec `shaded`.
+ * `band` : { lo, hi } — plage habituelle en fond, dans l'échelle des valeurs.
  */
-function WeekLine({ values, color, height = 40, minSpan = 1, selected = null, shaded = [], label }) {
+function WeekLine({ values, color, height = 40, minSpan = 1, selected = null, shaded = [], band = null, label }) {
   const n = values.length;
-  const present = values.filter((v) => v != null);
+  // La plage habituelle entre dans l'échelle : sinon elle sortirait du cadre.
+  const present = [...values.filter((v) => v != null), ...(band ? [band.lo, band.hi] : [])];
   const cx = (i) => ((i + 0.5) / n) * W;
   const colW = W / n;
   let lo = 0;
@@ -34,11 +36,16 @@ function WeekLine({ values, color, height = 40, minSpan = 1, selected = null, sh
     if (hi - lo < minSpan) { const mid = (lo + hi) / 2; lo = mid - minSpan / 2; hi = mid + minSpan / 2; }
   }
   const sy = (v) => PAD_Y + (1 - (v - lo) / (hi - lo)) * (height - PAD_Y * 2);
+  // Série longue (nuits) : points plus petits, sinon ils se touchent.
+  const [ring, core] = n > 14 ? [6, 3] : [9, 5];
   const dot = (i) => `M${cx(i).toFixed(1)} ${sy(values[i]).toFixed(1)} L${cx(i).toFixed(1)} ${sy(values[i]).toFixed(1)}`;
 
   return (
     <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" width="100%" height={height}
       role="img" aria-label={label} style={{ display: 'block', overflow: 'visible' }}>
+      {band && (
+        <rect x={0} y={sy(band.hi)} width={W} height={Math.max(1, sy(band.lo) - sy(band.hi))} fill={PALETTE.ink} opacity={0.1} />
+      )}
       {shadedRuns(shaded).map(({ start, len }) => (
         <rect key={`s${start}`} x={start * colW} y={0} width={len * colW} height={height} fill={PALETTE.line} opacity={0.45} />
       ))}
@@ -49,8 +56,8 @@ function WeekLine({ values, color, height = 40, minSpan = 1, selected = null, sh
       ))}
       {values.map((v, i) => v != null && (
         <g key={`p${i}`}>
-          <path d={dot(i)} stroke={PALETTE.surface} strokeWidth={i === selected ? 12 : 9} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-          <path d={dot(i)} stroke={color} strokeWidth={i === selected ? 8 : 5} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          <path d={dot(i)} stroke={PALETTE.surface} strokeWidth={i === selected ? 12 : ring} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+          <path d={dot(i)} stroke={color} strokeWidth={i === selected ? 8 : core} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
         </g>
       ))}
     </svg>

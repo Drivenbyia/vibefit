@@ -17,6 +17,7 @@ import AveragesCard from './week/AveragesCard.jsx';
 import WaistCard from './week/WaistCard.jsx';
 import WeightCard from './week/WeightCard.jsx';
 import LongTrendCard from './week/LongTrendCard.jsx';
+import RecoveryCard from './week/RecoveryCard.jsx';
 import WeekReminder from './week/WeekReminder.jsx';
 import ExportButton from './week/ExportButton.jsx';
 
@@ -43,6 +44,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
         <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} calibration={calibrationDays} />
       </Card>
       <WeekDiagnostics diagnosis={diagnosis} neat={neat} sleep={sleepDiagnosis} />
+      <RecoveryCard data={data} />
       <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} showSessions={!inPhase} />
       <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} targetsOn={targetsOn} phases={data.phases} />
       <AveragesCard
