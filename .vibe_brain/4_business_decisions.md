@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Linter ESLint, en dépendance de développement uniquement
+- **Décision** : ESLint 9 (config plate `eslint.config.js`) avec `@eslint/js`, `eslint-plugin-react`, `eslint-plugin-react-hooks` et `globals`, en `devDependencies`. Script `npm run lint`, exécuté par la CI avant les tests. Règles : recommandées JS et React, `rules-of-hooks` et `exhaustive-deps` en **erreur** (react-rules §4), composants classe interdits via `no-restricted-syntax` (react-rules §1), `prop-types` désactivé (pas de PropTypes ni TS, props déstructurées — §5), `no-unescaped-entities` limité à `>` et `}` (l'apostrophe française s'affiche correctement en JSX).
+- **Contexte** : `CLAUDE.md` autorise `npm run lint` / `npx eslint`, mais aucun linter n'existait. Les règles React du projet n'étaient vérifiées qu'à la relecture.
+- **Alternatives considérées** : (a) Biome — un seul binaire, mais pas d'équivalent mûr à `react-hooks/exhaustive-deps`, la règle la plus utile ici ; (b) `exhaustive-deps` en avertissement — une règle « obligatoire » (§4) qui ne bloque rien n'est pas tenue ; (c) échapper les 11 apostrophes (`&apos;`) — bruit dans le texte français pour un risque nul.
+- **Raison du choix** : la Bible interdit les librairies superflues côté produit ; un outil de développement n'entre pas dans le bundle (vérifié : build inchangé). Il transforme des règles écrites en règles vérifiées.
+- **Impact** : état initial 12 erreurs — 11 apostrophes (règle ajustée), 1 dépendance volontaire (`useDataProtection` : `dateKey` = signal de réveil de la PWA, exception commentée). Aucun changement de comportement.
+- **Réversibilité** : Facile — retirer la config, le script et l'étape CI.
+
 ### 2026-10-24 — Historique des cibles : réglages figés jusqu'à une date, le présent reste aux réglages courants
 - **Décision** : Nouveau champ racine `targetHistory` = `[{ until, presetId, baseTDEE, targets }]`. Chaque entrée fige les réglages valables jusqu'à `until` inclus ; tout ce qui suit la dernière entrée relève des réglages courants (`targets`, `presetId`, `baseTDEE`), qui restent l'unique source de vérité pour aujourd'hui. Tout changement de cibles (preset, édition, TDEE de maintenance, reset des cibles, recalibration) fige les réglages sortants jusqu'à HIER (`recordSettingsChange`). Un jour passé se résout contre les réglages de sa date (`targetResolver`), cible unique de phase recalculée depuis le preset et la base DE L'ENTRÉE.
 - **Contexte** : écart à la cible, rappel, tendance calorique et cible de l'en-tête jugeaient le passé contre les réglages du jour — une semaine d'août contre la cible 2050 d'octobre. La première recalibration possible (06/11) aurait réécrit tout l'historique d'un coup.

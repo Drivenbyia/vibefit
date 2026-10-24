@@ -7,9 +7,18 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/historique-cibles`
+- Branche active : `claude/linter`
 - **Suite de tests : Vitest, 292 tests** — `npm test`
-- **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+- **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
+- **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (soir) — PR linter
+- ESLint 9 en devDependency, `eslint.config.js`, script `lint`, étape CI.
+  12 erreurs initiales traitées sans changement de comportement (décision
+  dans `4_business_decisions.md`).
+- Ordre du soir validé : linter → n°8 (découpage Header/StatusBand, sans
+  changement de comportement) → n°6 (graphique 8–12 semaines, lecture
+  seule). Règle : aucune modification du modèle de données ni du stockage.
 
 ### Session 2026-10-24 (suite) — PR n°4 : historique des cibles
 - Champ racine `targetHistory` (`models/protocol.js` : `sanitizeTargetHistory`,
@@ -495,13 +504,13 @@ src/
   les jours qui comptent (poids × apport) et signaler pesée ou apport
   manquant. Aujourd'hui `WeekCalendar` marque « saisi » un jour à kcal, pas ou
   séance, sans pesée.
-- [ ] **n°4 — Historique des cibles** (M) — *avant le 06/11* — *en cours — `claude/historique-cibles`* : journaliser
+- [x] **n°4 — Historique des cibles** (M) — *avant le 06/11* — *mergée — PR #20, amorçage restauré sur l'iPhone* : journaliser
   `{ date, presetId, baseTDEE, targets }` à chaque changement et résoudre la
   cible d'un jour à sa date. Schéma additif ⇒ entrée dans
   `4_business_decisions.md`.
 
 **En attente**
-- [ ] **Linter** (S) : PR séparée. `CLAUDE.md` cite `npm run lint`, absent de
+- [ ] **Linter** (S) : *en cours — `claude/linter`*. PR séparée. `CLAUDE.md` cite `npm run lint`, absent de
   `package.json`. Ajoute une devDependency ⇒ décision à documenter.
 - [ ] **n°5 — Raccourci iOS → JSON → Fusionner** (M–L, option B) : à
   vérifier d'abord que Raccourcis lit le RMSSD.
@@ -548,6 +557,7 @@ Permettre à l'utilisateur de partager un résumé structuré de ses 8 dernière
 | react-dom | ^18.3.1 | DOM rendering |
 | lucide-react | ^0.453.0 | Icônes |
 | vite | ^5.4.10 | Build tool |
+| eslint (+ @eslint/js, eslint-plugin-react, eslint-plugin-react-hooks, globals) | ^9.39 | Lint — dev uniquement |
 
 ## Points de vigilance actuels
 - ~~`node_modules` absent en remote~~ → **levé** : `npm install` + `vite build` fonctionnent désormais en session (vérifié 2026-06-11).
