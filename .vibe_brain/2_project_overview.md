@@ -7,10 +7,22 @@ last_updated: 2026-10-24
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/reference-recuperation`
-- **Suite de tests : Vitest, 310 tests** — `npm test`
+- Branche active : `claude/bilan-dimanche`
+- **Suite de tests : Vitest, 317 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-10-24 (soir) — PR bilan du dimanche (n°3bis)
+- `utils/weeklyCheckIn.js` (pur) : lignes Poids (vs semaine préc.), Écart à
+  la cible, Protéines (jours ≥ plancher), Pas montre, Calibration ou TDEE
+  mesuré ; puis UNE action (calibration › recalibration proposée ›
+  protéines › écart › pas › rien). Jamais « rien à corriger » pendant la
+  calibration.
+- `useWeeklyCheckIn` : dimanche = semaine en cours, sinon la dernière
+  complète — sauf si elle est entièrement non suivie (alors « en cours ») ;
+  lit `useAdaptiveTargets` sans écrire.
+- `CheckInCard` en tête de la Semaine. Recalibration proposée, jamais
+  appliquée (décision opt-in du 2026-07-29).
 
 ### Session 2026-10-24 (soir) — PR référence de récupération (n°4bis)
 - `utils/recoveryBaseline.js` : RMSSD et FC repos des nuits de la montre
@@ -559,12 +571,11 @@ src/
 - [x] **n°10 — Découpage de `WeekView.jsx`** (S) : *mergée — PR #24*.
 
 **Engagés ensuite (choix du développeur, 24/10 soir), lecture seule**
-- [ ] **n°4bis — Référence de récupération Apple Watch** : *en cours —
-  `claude/reference-recuperation`*. VFC (RMSSD) et FC
+- [x] **n°4bis — Référence de récupération Apple Watch** : *mergée — PR #25*. VFC (RMSSD) et FC
   repos nuit par nuit contre ta propre référence (montre courante, jours
   partiels exclus), « référence en construction n/28 », affichage seul
   pendant l'arrêt (décision du 2026-10-24).
-- [ ] **n°3bis — Bilan du dimanche** : la semaine écoulée en une carte —
+- [ ] **n°3bis — Bilan du dimanche** : *en cours — `claude/bilan-dimanche`*. la semaine écoulée en une carte —
   TDEE mesuré et recalibration proposée avec sa raison, verdicts, une
   seule action. Rien n'est stocké.
 - [ ] **n°7 — Sortie de phase** (S) : rappel J−7 avant l'épreuve d'effort du
