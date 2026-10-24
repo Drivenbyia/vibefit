@@ -20,6 +20,8 @@ export function useDataProtection(data, setData, dateKey) {
   const dayCount = Object.keys(data.days).length;
   const backup = useMemo(
     () => backupStatus({ lastBackupAt: data.lastBackupAt, dayCount, todayKey: toKey(new Date()) }),
+    // `dateKey` n'est pas lu : c'est le signal de réveil (voir ci-dessus).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [data.lastBackupAt, dayCount, dateKey],
   );
   return { storageStatus, backup, exportBackupNow };

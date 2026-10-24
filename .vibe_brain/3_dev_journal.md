@@ -1407,3 +1407,28 @@ hormis `targetHistory` (preset, base 2050, phase, calibration,
 `lastBackupAt` inchangés) ; samedi 25/07 « PAS DE CIBLE » ; zéro erreur.
 
 Vérification : `npm test` **292/292** (+3) · `vite build` ✅.
+
+## Session 2026-10-24 (soir) — PR linter
+
+**Retour sur l'amorçage n°4** : première restauration sur l'iPhone sans effet
+(27/08 à OFF 1850 au lieu de 1600) — l'app installée tournait encore sur
+l'ancienne version en cache (`registerType: 'autoUpdate'` : sur iOS, la
+nouvelle version s'installe à une ouverture et ne sert qu'à la suivante).
+L'ancienne version ignore `targetHistory` sans rien abîmer. Deux réouvertures
+puis nouvelle restauration : OK. À rappeler pour toute future restauration
+dépendant d'un déploiement. Effet de bord signalé : un tap sur TRAIN au 27/08
+a posé un `typeOverride` (sans effet de calcul, jour dans la coupure).
+
+### Linter
+- ESLint 9 flat config ; `rules-of-hooks` et `exhaustive-deps` en erreur,
+  classes interdites (`no-restricted-syntax`), `prop-types` off,
+  `no-unescaped-entities` limité à `>` / `}`.
+- 12 erreurs initiales : 11 apostrophes françaises (règle ajustée, pas de
+  `&apos;` dans le texte), 1 dépendance volontaire (`dateKey` signal de
+  réveil dans `useDataProtection`, exception commentée).
+- Sonde sur entrée standard (aucun fichier créé) : classe, dépendance
+  manquante et hook conditionnel bien rejetés.
+
+Vérification : `npm run lint` ✅ 0 · `npm test` 292/292 · `vite build` ✅ ·
+rendu 390 px des 4 onglets sur copie de l'état reconstitué : zéro erreur,
+zéro débordement.
