@@ -13,6 +13,9 @@ export default function DayBar({ day, dayKey, target, isToday, onPress }) {
     : isLow ? PALETTE.warn
     : PALETTE.deep;
   const barH = hasData ? Math.max((pct / 130) * 52, 6) : 3;
+  // Repère de cible (100 %) : la POSITION de la barre par rapport à lui porte
+  // le sens — vert et or ne se distinguent pas en protanopie (ΔE 2,7).
+  const targetH = (100 / 130) * 52;
 
   return (
     <button
@@ -38,7 +41,13 @@ export default function DayBar({ day, dayKey, target, isToday, onPress }) {
       }}>
         {shortFr(dayKey)}
       </div>
-      <div style={{ height: 56, display: 'flex', alignItems: 'flex-end', width: '100%' }}>
+      <div style={{ height: 56, display: 'flex', alignItems: 'flex-end', width: '100%', position: 'relative' }}>
+        {target > 0 && (
+          <div aria-hidden="true" style={{
+            position: 'absolute', left: -1, right: -1, bottom: targetH, height: 2,
+            background: PALETTE.ink, opacity: 0.7, borderRadius: 1, zIndex: 1,
+          }} />
+        )}
         <div style={{
           width: '100%',
           height: barH,

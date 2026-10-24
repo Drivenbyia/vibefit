@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { PALETTE } from '../../constants/config.js';
+import { shadedRuns } from '../../utils/longTrend.js';
 
 const W = 300;
 const PAD_Y = 7;
@@ -38,8 +39,8 @@ function WeekLine({ values, color, height = 40, minSpan = 1, selected = null, sh
   return (
     <svg viewBox={`0 0 ${W} ${height}`} preserveAspectRatio="none" width="100%" height={height}
       role="img" aria-label={label} style={{ display: 'block', overflow: 'visible' }}>
-      {shaded.map((s, i) => s && (
-        <rect key={`s${i}`} x={i * colW} y={0} width={colW} height={height} fill={PALETTE.line} opacity={0.45} />
+      {shadedRuns(shaded).map(({ start, len }) => (
+        <rect key={`s${start}`} x={start * colW} y={0} width={len * colW} height={height} fill={PALETTE.line} opacity={0.45} />
       ))}
       {segments(values).map((seg) => (
         <path key={seg[0]} d={seg.map((i, k) => `${k ? 'L' : 'M'}${cx(i).toFixed(1)} ${sy(values[i]).toFixed(1)}`).join(' ')}

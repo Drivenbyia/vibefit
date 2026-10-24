@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { computeLongTrend, gapStatus, LONG_TREND_WEEKS } from '../longTrend.js';
+import { computeLongTrend, gapStatus, LONG_TREND_WEEKS, shadedRuns } from '../longTrend.js';
+import { weekReadout } from '../longTrendCopy.js';
 import { computePresetTargets, resolveTargets } from '../presetUtils.js';
 
 /** n°6 — tendance longue, lecture seule. */
@@ -69,5 +70,16 @@ describe('gapStatus', () => {
     expect(gapStatus(-100)).toBe('in');
     expect(gapStatus(101)).toBe('over');
     expect(gapStatus(-101)).toBe('under');
+  });
+});
+
+describe('lisibilité', () => {
+  it('shadedRuns : une plage par suite de colonnes', () => {
+    expect(shadedRuns([false, true, true, true, false, true])).toEqual([{ start: 1, len: 3 }, { start: 5, len: 1 }]);
+    expect(shadedRuns([])).toEqual([]);
+  });
+  it('une mesure absente est nommée dans la ligne de lecture', () => {
+    expect(weekReadout({ weekStart: '2026-10-19', weight: 77, waist: null, gapPerDay: null }))
+      .toBe('19/10 · 77,0 kg · taille — · écart —');
   });
 });
