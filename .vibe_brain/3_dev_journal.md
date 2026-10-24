@@ -1576,3 +1576,21 @@ Vérification : `npm run lint` ✅ · `npm test` **321/321** (+4) · `vite build
 bloc complet sur l'état reconstitué (calibration 1/14, cible unique 2 050,
 pas 8 427/j sur 4 j, RMSSD 55 ms sur 5 nuits), zéro erreur, stockage
 inchangé.
+
+## Session 2026-10-24 (nuit) — PR bilan : tour de taille (n°12)
+
+PR #27 (export coach) : CI verte, mergée.
+
+- Règle demandée : un lundi ou après, sans tour de taille saisi pour la
+  semaine ⇒ « Mesure ton tour de taille à jeun », juste après la
+  calibration. La semaine regardée est la semaine CALENDAIRE en cours (lundi
+  → aujourd'hui, hors coupure), indépendamment de la semaine dont le bilan
+  dresse les chiffres — l'action porte sur ce qu'on peut encore faire.
+- Conséquence signalée au développeur : avec cet ordre, l'action n'apparaît
+  pas pendant la calibration (jusqu'au 06/11 au plus tôt).
+- Au passage : « 1 j comparables » ⇒ accord au singulier.
+
+Vérification : `npm run lint` ✅ · `npm test` **323/323** (+2) · `vite build`
+✅ · Chromium 390 px : état réel ⇒ action calibration ; 12 semaines sans
+taille ni calibration ⇒ action tour de taille (avant la recalibration +384) ;
+zéro erreur, stockage inchangé.

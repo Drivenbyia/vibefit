@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { PROTEIN_FLOOR } from '../constants/config.js';
-import { addDays, toKey } from '../utils/dateUtils.js';
+import { addDays, startOfWeek, toKey } from '../utils/dateUtils.js';
 import { dayTarget, num, nutritionScope, watchStepsAverage } from '../utils/mathUtils.js';
 import { computeLongTrend } from '../utils/longTrend.js';
 import { targetResolver } from '../utils/targetHistory.js';
@@ -37,9 +37,17 @@ export function useWeeklyCheckIn(data, targets, stepsTarget) {
     const lastKey = days[days.length - 1].key;
     const floor = dayTarget(targetsOn, lastKey, null, phases).protein ?? PROTEIN_FLOOR;
     const logged = scoped.filter(({ day }) => num(day?.intake?.kcal) > 0);
+    // Tour de taille : la semaine CALENDAIRE en cours, du lundi à aujourd'hui,
+    // hors jours coupés — quelle que soit la semaine dont on dresse le bilan.
+    const monday = startOfWeek(today);
+    const thisWeek = Array.from({ length: 7 }, (_, i) => addDays(monday, i))
+      .filter((key) => key <= today)
+      .map((key) => ({ key, day: data?.days?.[key] ?? null }));
+    const waistMissing = !nutritionScope(thisWeek, periods).some(({ day }) => num(day?.waist) > 0);
     return weeklyCheckIn({
       week,
       inProgress: idx === last,
+      waistMissing,
       prevWeek: weeks[idx - 1],
       protein: { days: logged.length, underDays: logged.filter(({ day }) => num(day.intake.protein) < floor).length, floor },
       steps: watchStepsAverage(days, { devices: data?.devices ?? [], periods }),
