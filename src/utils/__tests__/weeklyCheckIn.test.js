@@ -72,4 +72,11 @@ describe('weeklyCheckIn', () => {
     expect(weeklyCheckIn({ week: { ...week, comparableDays: 1 } }).lines[1].note).toBe('1 j comparable');
     expect(weeklyCheckIn({ week }).lines[1].note).toBe('7 j comparables');
   });
+
+  it('le lundi, le tour de taille manquant passe AVANT la calibration ; les autres jours, après', () => {
+    const calibration = { active: true, crossedDays: 3, requiredDays: 14, earliestCompletion: '2026-11-06', incompleteDays: [{ key: '2026-10-25', status: 'no_weight' }] };
+    expect(weeklyCheckIn({ week, waistMissing: true, isMonday: true, calibration }).action.kind).toBe('waist');
+    expect(weeklyCheckIn({ week, waistMissing: true, isMonday: false, calibration }).action.kind).toBe('calibration');
+    expect(weeklyCheckIn({ week, waistMissing: false, isMonday: true, calibration }).action.kind).toBe('calibration');
+  });
 });
