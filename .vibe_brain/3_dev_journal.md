@@ -1388,3 +1388,22 @@ Vérification : `npm test` **289/289** (+3) · `vite build` ✅ · Chromium :
 annuler ⇒ Sèche légère intacte ; accepter ⇒ Maintenance, et `targetHistory`
 = `[{ until: hier, cut_light, 2000, 2000/1600/1840 }]` ; retaper le preset
 actif ⇒ aucun dialogue.
+
+### Amorçage validé — deux périodes
+Demande du développeur : avant le 29/07, aucune cible WE n'existait ; ces
+week-ends ne doivent être jugés contre rien. Fichier d'amorçage (hors dépôt)
+généré PAR le code (`computePresetTargets('cut_light', 2000)`, passé au
+`sanitizeTargetHistory` sans modification) :
+`until 2026-07-28` — WE `{ kcal: null, … }` ; `until 2026-10-23` — WE 1840.
+Un WE à `kcal: null` est exclu des deux côtés de la comparaison apport/cible
+(test ajouté). Faux départ du test : le vendredi est TRAIN (lun/mer/ven), pas
+OFF — corrigé dans le test, pas dans l'app.
+
+**Preuve de non-régression de la restauration** (Chromium, build de la PR,
+copie) : sauvegarde brute → Restaurer protocole v3 → Fusionner Apple 19–24/10
+→ Fusionner 12/10 → export de sécurité → Restaurer le fichier d'amorçage.
+« Importé 0 jour(s) » ; 63 jours avant/après ; état strictement identique
+hormis `targetHistory` (preset, base 2050, phase, calibration,
+`lastBackupAt` inchangés) ; samedi 25/07 « PAS DE CIBLE » ; zéro erreur.
+
+Vérification : `npm test` **292/292** (+3) · `vite build` ✅.

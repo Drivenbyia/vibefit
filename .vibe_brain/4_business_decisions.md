@@ -33,7 +33,7 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
   - Plusieurs changements le même jour ne figent que le premier état ; les réglages finaux valent pour la journée entière.
   - `computeWeeklyHistory` (diagnostics) n'est pas modifié : aucun de ses champs ne dépend des cibles (adhérence = jours saisis).
   - App : `dayTargets` (jour affiché) pour l'en-tête et Aujourd'hui ; Semaine résout chaque jour, plancher et cible unique pris au dernier jour écoulé de la semaine.
-  - Amorçage du développeur : une entrée `until 2026-10-23` — **Sèche légère, base 2000** (TRAIN 2000 / OFF 1600 / WE 1840, protéines 160), déclarée par le développeur — fournie hors dépôt et appliquée par « Restaurer ». La sauvegarde brute du 24/10 contenait Maintenance aux cibles par défaut : voir l'entrée suivante.
+  - Amorçage du développeur : **Sèche légère, base 2000** (TRAIN 2000 / OFF 1600, protéines 160), déclarée par le développeur, en deux entrées — `until 2026-07-28` avec un WE sans cible (`kcal: null`, la règle « WE dérivé » date du 29/07 : ces week-ends ne sont jugés contre rien), puis `until 2026-10-23` avec WE 1840 — fournie hors dépôt et appliquée par « Restaurer ». La sauvegarde brute du 24/10 contenait Maintenance aux cibles par défaut : voir l'entrée suivante.
   - **Changement de preset confirmé** (`presetSwitchMessage`) : un tap sur une carte de preset remplaçait les cibles sans confirmation ni trace. Maintenance à base 2000 = exactement `DEFAULT_TARGETS`, l'état trouvé dans la sauvegarde. Le message nomme les deux presets et les nouvelles cibles (cible unique pendant une phase). Retaper le preset actif reste immédiat.
 - **Réversibilité** : Facile — liste vide ⇒ comportement antérieur ; champ additif.
 

@@ -8,7 +8,7 @@ last_updated: 2026-10-24
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/historique-cibles`
-- **Suite de tests : Vitest, 289 tests** — `npm test`
+- **Suite de tests : Vitest, 292 tests** — `npm test`
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
 
 ### Session 2026-10-24 (suite) — PR n°4 : historique des cibles
@@ -26,9 +26,10 @@ last_updated: 2026-10-24
   recalibration passent par `recordSettingsChange`.
 - Changement de preset confirmé (`presetSwitchMessage`, `useTargetsManager`) :
   cause probable de la perte du preset Sèche légère avant le 24/10.
-- Amorçage des périodes réelles (Sèche légère base 2000 jusqu'au 23/10) : à
-  valider par le développeur, puis fichier hors dépôt à passer par
-  « Restaurer ».
+- Amorçage validé par le développeur, fichier hors dépôt (`{ days: {},
+  targetHistory }`) à passer par « Restaurer » APRÈS déploiement de la PR :
+  Sèche légère base 2000 SANS cible WE jusqu'au 28/07 (la règle « WE dérivé »
+  date du 29/07), puis WE 1840 jusqu'au 23/10 ; réglages courants dès le 24/10.
 
 ### Session 2026-10-24 (suite) — PR n°2 : visibilité de la calibration
 - `calibrationState` (adaptiveTDEE) parcourt chaque jour du début de

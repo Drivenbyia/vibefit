@@ -121,3 +121,31 @@ describe('changement de preset — confirmation', () => {
     expect(presetSwitchMessage('custom', 'maintenance', 2000)).toContain('Passer de Personnalisé à Maintenance ?');
   });
 });
+
+describe('week-end sans cible (avant le 29/07)', () => {
+  const t = computePresetTargets('cut_light', 2000);
+  const noWE = { ...t, we: { kcal: null, protein: null, carbs: null, fat: null, label: 'WE' } };
+  const history = [
+    { until: '2026-07-28', presetId: 'cut_light', baseTDEE: 2000, targets: noWE },
+    { until: '2026-10-23', presetId: 'cut_light', baseTDEE: 2000, targets: t },
+  ];
+
+  it('l’entrée est valide telle quelle', () => {
+    expect(sanitizeTargetHistory(history)).toEqual(history);
+  });
+
+  it('un samedi de juillet n’est jugé contre aucune cible, des deux côtés de la comparaison', () => {
+    const on = targetResolver(current, history);
+    // jeu 23/07 OFF 1600, sam 25/07 sans cible.
+    const days = [{ key: '2026-07-23', day: meal(1600) }, { key: '2026-07-25', day: meal(3000) }];
+    const w = calculateWeeklyBalance(days, on);
+    expect(dayTarget(on, '2026-07-25', null).kcal).toBeNull();
+    expect(w.comparableDays).toBe(1);
+    expect(w.targetGap).toBe(0);
+    expect(w.avgKcalTarget).toBe(1600);
+  });
+
+  it('dès le 01/08, le week-end est jugé contre 1840', () => {
+    expect(dayTarget(targetResolver(current, history), '2026-08-01', null).kcal).toBe(1840);
+  });
+});
