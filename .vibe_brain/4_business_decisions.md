@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-10-24 — Protocole daté au niveau racine : coupures, phases, montres
+- **Décision** : Schéma v2 additif sous la même clé `vibefit_v1`. Trois listes racine (`periods`, `phases`, `devices`) au lieu de marqueurs jour par jour. Une coupure porte un **périmètre** (`scope: 'nutrition'`) ; une phase a une fin **prévue** qui ne la ferme pas (seule `endedAt`, clôture manuelle, le fait) ; la source d'une mesure est écrite sur le jour quand elle diffère de la montre (iPhone seul), sinon **déduite** de la chronologie sans réécrire le jour.
+- **Contexte** : reprise après 2 mois sans saisie, arrêt médical daté, changement de montre Garmin → Apple Watch. Les VFC Garmin (RMSSD nocturne) et Apple ne se comparent pas ; rien dans le state ne permettait de les distinguer.
+- **Alternatives considérées** : (1) marquer chaque jour du trou — 65 jours vides qui passeraient pour des jours saisis ; (2) nouvelle clé de stockage — casse la restauration des anciens exports ; (3) backfill de la source sur tous les jours historiques — réécrit des saisies pour une information déductible.
+- **Raison du choix** : la migration ne peut ni perdre ni altérer une saisie (jours repris par référence, test sur copie réelle). Le périmètre de coupure permet d'exclure la nutrition sans perdre les nuits Apple Watch du 19 au 23/10. La fin prévue non bloquante empêche une date de rendez-vous de rouvrir les séances seule.
+- **Impact** : les listes sont restaurées par « Restaurer » ; la « Fusion » ne les touche pas (cohérent avec la décision du 2026-08-03 : un fichier de données ne change pas le protocole).
+- **Réversibilité** : Facile — listes vides ⇒ comportement v1.
+
 ### 2026-08-03 — Le sommeil devient un diagnostic, placé avant le plateau
 - **Décision** : Créer `utils/sleepDiagnosis.js` (module pur, sur le modèle de `neatDrift.js`) publiant deux statuts distincts — **DETTE** (durée moyenne < 6 h 30, seuil absolu) et **TENSION** (VFC < 85 % de sa ligne de base ou FC repos > baseline + 5 bpm, seuils relatifs). Non soumis à la porte d'adhérence. Dans `summarizeStatus`, **TENSION est arbitrée AVANT le plateau confirmé**.
 - **Contexte** : `SleepCard` structure 4 champs depuis fin juillet. Vérification par grep : ils n'apparaissaient que dans `aggregateSleep` (affichage) et `formatSleep` (export). Aucun des quatre diagnostics du produit ne les lisait. Le développeur saisissait donc score, durée, VFC et FC repos chaque matin sans qu'aucune conclusion n'en soit jamais tirée.

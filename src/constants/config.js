@@ -1,5 +1,19 @@
 export const DEFAULT_STEPS_TARGET = 8000;
 export const STORAGE_KEY = 'vibefit_v1';
+// Version du schéma stocké sous STORAGE_KEY. La clé ne change pas : la
+// migration est additive (voir models/protocol.js), un ancien export reste lisible.
+//   1 — implicite : { days, targets, presetId, baseTDEE, stepsTarget }
+//   2 — + periods (coupures), phases (protocoles datés), devices (montres)
+export const SCHEMA_VERSION = 2;
+
+// Sources d'une mesure de montre. `iphone` = iPhone seul, pas sous-estimés
+// dès que le téléphone n'est pas sur soi : jamais mélangé à une référence montre.
+export const MEASURE_SOURCES = {
+  garmin: 'Garmin',
+  apple_watch: 'Apple Watch',
+  iphone: 'iPhone seul',
+  manual: 'Saisie manuelle',
+};
 
 // 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
 export const KCAL_PER_KG = 7700;

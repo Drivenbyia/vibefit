@@ -68,13 +68,26 @@ export function mergeDays(prevDays = {}, incomingDays = {}) {
   return { days, added, enriched, fieldsFilled };
 }
 
+/**
+ * Nom du fichier de sauvegarde, horodaté à la minute en heure LOCALE :
+ * deux exports du même jour (avant / après une modification) ne doivent pas
+ * porter le même nom. Les « : » sont exclus, interdits dans un nom de fichier.
+ */
+export function backupFileName(date = new Date()) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `vibefit-${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}` +
+    `_${p(date.getHours())}h${p(date.getMinutes())}.json`;
+}
+
 export function exportBackup(data) {
-  const jsonString = JSON.stringify(data, null, 2);
+  // `exportedAt` est ajouté au FICHIER, pas au state : la restauration ne le
+  // relit pas, il sert uniquement à dater la sauvegarde sans se fier à son nom.
+  const jsonString = JSON.stringify({ ...data, exportedAt: new Date().toISOString() }, null, 2);
   const blob = new Blob([jsonString], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `vibefit-${new Date().toISOString().split('T')[0]}.json`;
+  a.download = backupFileName();
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

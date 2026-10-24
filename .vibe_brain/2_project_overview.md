@@ -1,14 +1,33 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-08-01
+last_updated: 2026-10-24
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/vibefit-garmin-integration-e9iff0`
-- **Suite de tests : Vitest, 149 tests** — `npm test`
+- Branche active : `claude/arret-medical-etape-1`
+- **Suite de tests : Vitest, 172 tests** — `npm test`
+
+### Session 2026-10-24 — Reprise après 2 mois : arrêt médical, coupure, Apple Watch
+Contexte : aucune saisie du 20/08 au 23/10/2026, arrêt médical (tout effort
+interdit, marche autorisée) depuis le 29/08 jusqu'à l'épreuve d'effort du
+01/03/2027, Garmin remplacée par une Apple Watch le 19/10. Plan en 7 étapes
+validé étape par étape.
+
+- **Étape 0 — faite** : sauvegarde horodatée de `vibefit_v1` (56 jours) et de
+  l'export Apple Santé, inventaire des mesures du trou (hors dépôt : données
+  personnelles). Constats : la synchro Garmin → Santé s'arrête le 28/09, Garmin
+  n'écrit aucune VFC dans Santé, l'Apple Watch écrit SDNN **et** RMSSD.
+- **Étape 1 — faite** : schéma v2 additif (`models/protocol.js`) — `periods`
+  (coupures à périmètre), `phases` (fin prévue ≠ clôture), `devices`
+  (chronologie des montres), source de mesure explicite ou déduite. Restauration
+  qui garde ces listes, export horodaté à la minute, phase/coupure/montre et
+  sources publiées dans le rapport. **Aucun calcul n'est encore branché.**
+- **À venir** : 2 coupure dans les calculs · 3 phase arrêt médical (cible
+  unique) · 4 recalibration (2050 kcal, 14 j croisés) · 5 suspensions ·
+  6 sources et références Apple · 7 saisie Apple (option A).
 
 ### Session 2026-08-03 — Le sommeil devient un diagnostic, le chantier une donnée
 Quatre chantiers, tous issus d'un même constat : plusieurs données étaient

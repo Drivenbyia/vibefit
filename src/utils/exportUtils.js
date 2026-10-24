@@ -1,6 +1,7 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
-import { PRESETS, DEFAULT_STEPS_TARGET } from '../constants/config.js';
+import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
+import { isExcluded, measureSource } from '../models/protocol.js';
 
 /**
  * Ligne de protocole : le réglage sur lequel tourne l'app au moment de l'export.
@@ -29,6 +30,47 @@ export function formatProtocol(data) {
     ` | Objectif pas : ${Number(steps).toLocaleString('fr-FR')}/j`
   );
 }
+
+const fmtDayFr = (key) => key.split('-').reverse().join('/');
+
+/**
+ * Lignes de contexte daté : phases, coupures, chronologie des montres.
+ *
+ * Un lecteur extérieur (cardiologue, coach) doit savoir sans deviner que le
+ * TDEE ignore une période, et qu'une VFC d'octobre ne vient pas de la même
+ * montre qu'une VFC d'août. Aucune ligne si la liste est vide : un state sans
+ * protocole daté produit le même rapport qu'avant.
+ */
+export function formatContext(data) {
+  const lines = [];
+  for (const ph of data?.phases ?? []) {
+    const end = ph.endedAt
+      ? `clôturée le ${fmtDayFr(ph.endedAt)}`
+      : ph.plannedEnd ? `fin prévue le ${fmtDayFr(ph.plannedEnd)}` : 'sans fin prévue';
+    lines.push(`🩺 Phase : ${ph.label ?? ph.type} depuis le ${fmtDayFr(ph.start)} · ${end}`);
+  }
+  for (const p of data?.periods ?? []) {
+    lines.push(
+      `⛔ ${p.label ?? 'Période non suivie'} : ${fmtDayFr(p.start)} → ${fmtDayFr(p.end)}` +
+      ` — exclue des calculs (${p.scope ?? 'nutrition'})`
+    );
+  }
+  const devices = data?.devices ?? [];
+  if (devices.length > 0) {
+    const bits = devices.map((d) => {
+      const name = MEASURE_SOURCES[d.source] ?? d.source;
+      if (d.from && d.to) return `${name} du ${fmtDayFr(d.from)} au ${fmtDayFr(d.to)}`;
+      if (d.to) return `${name} jusqu’au ${fmtDayFr(d.to)}`;
+      if (d.from) return `${name} depuis le ${fmtDayFr(d.from)}`;
+      return name;
+    });
+    lines.push(`⌚ Montre : ${bits.join(' · ')}`);
+  }
+  return lines;
+}
+
+/** Libellé de source entre parenthèses — vide si inconnue. */
+const sourceTag = (source) => (source ? ` (${MEASURE_SOURCES[source] ?? source})` : '');
 
 /** Résumé lisible du sommeil saisi — chaîne vide si rien n'est renseigné. */
 export function formatSleep(sleep) {
@@ -61,11 +103,15 @@ function hasAnyData(day) {
   );
 }
 
-function formatDay(key, day) {
+function formatDay(key, day, data) {
   const label = fmtFr(key);
   const sleepStr = formatSleep(day?.sleep);
+  const devices = data?.devices ?? [];
+  // Marque de coupure : le lecteur doit voir qu'un jour vide de la période
+  // n'est pas un oubli, et qu'un jour renseigné n'entre pas dans le TDEE.
+  const cut = isExcluded(key, data?.periods ?? []) ? ' _(période non suivie)_' : '';
 
-  if (!hasAnyData(day)) return `- **${label}** : Aucune donnée saisie`;
+  if (!hasAnyData(day)) return `- **${label}**${cut} : Aucune donnée saisie`;
 
   const parts = [];
   if (day.intake?.kcal) {
@@ -77,15 +123,20 @@ function formatDay(key, day) {
     );
   }
   if (day.expenditure?.kcal) parts.push(`Dépense: ${Math.round(day.expenditure.kcal)} kcal`);
-  if (day.expenditure?.steps) parts.push(`Pas: ${Number(day.expenditure.steps).toLocaleString('fr-FR')}`);
+  if (day.expenditure?.steps) {
+    parts.push(
+      `Pas: ${Number(day.expenditure.steps).toLocaleString('fr-FR')}` +
+      sourceTag(measureSource(key, day, 'steps', devices))
+    );
+  }
   if (day.workout) parts.push(`Séance: ${day.workout === 'none' ? 'aucune (repos déclaré)' : day.workout}`);
   if (day.heavyWork) parts.push('Chantier: oui');
   if (day.weight) parts.push(`Poids: ${day.weight} kg`);
   if (day.waist) parts.push(`Tour de taille: ${day.waist} cm`);
-  if (sleepStr) parts.push(`Sommeil: ${sleepStr}`);
+  if (sleepStr) parts.push(`Sommeil: ${sleepStr}${sourceTag(measureSource(key, day, 'sleep', devices))}`);
   if (day.notes) parts.push(`Notes: ${day.notes}`);
 
-  return `- **${label}** : ${parts.join(' | ')}`;
+  return `- **${label}**${cut} : ${parts.join(' | ')}`;
 }
 
 export function getHistoricalWeeks(data, n = 8) {
@@ -125,6 +176,7 @@ export function getHistoricalWeeks(data, n = 8) {
     `# Rapport VibeFit — ${n} dernières semaines\n`,
     header,
     formatProtocol(data),
+    ...formatContext(data),
     '',
   ];
 
@@ -142,7 +194,7 @@ export function getHistoricalWeeks(data, n = 8) {
     if (!weekHasData) {
       lines.push('Aucune donnée saisie pour cette semaine');
     } else {
-      weekDays.forEach(({ key, day }) => lines.push(formatDay(key, day)));
+      weekDays.forEach(({ key, day }) => lines.push(formatDay(key, day, data)));
     }
 
     lines.push('');

@@ -1065,3 +1065,46 @@ verdict correct dans la bande, carte Semaine présente, pill chantier mesurée �
 **zéro erreur console, zéro débordement horizontal**. Le repo a deux précédents
 de régressions invisibles au build et trouvées seulement au rendu — d'où le
 contrôle systématique.
+
+---
+
+## Session 2026-10-24 — Reprise : audit, sauvegarde, schéma v2
+
+### Contexte
+Aucune saisie du 20/08 au 23/10/2026. Arrêt médical depuis le 29/08 (effort
+interdit, marche autorisée) jusqu'à l'épreuve d'effort du 01/03/2027. Garmin
+remplacée par une Apple Watch le 19/10. Session menée en audit d'abord, puis une
+étape à la fois avec validation entre chaque.
+
+### Audit — constats principaux
+- « Intégration Garmin » = saisie manuelle uniquement, aucune source stockée.
+- TDEE aujourd'hui `null` (confiance 0 %) — juste, mais **par accident** : le
+  19/08 est sorti de l'horizon de 30 jours. Rien n'empêchait l'interpolation de
+  traverser un trou, et le seuil est 10 jours croisés, pas 14.
+- Les cibles suivent le calendrier lun/mer/ven = TRAIN même sans séance.
+- `baseTDEE` stocké : **2000** (défaut), pas les ~2330 de mémoire.
+- La restauration aurait perdu tout nouveau champ racine.
+
+### Étape 0 — sauvegarde et inventaire (hors dépôt)
+Copies en lecture seule + SHA-256. Inventaire `export.xml` : Garmin (« Connect »)
+présent jusqu'au **28/09** seulement (synchro interrompue, montre pourtant
+portée) ; Garmin n'écrit **aucune VFC** dans Santé ; iPhone seul ≈ 49 % des pas
+Garmin ; l'Apple Watch écrit SDNN **et** RMSSD. Rien importé.
+
+### Étape 1 — schéma v2
+`models/protocol.js` (pur) : `migrateData`, `sanitizeProtocol`,
+`restorableProtocol`, `isExcluded`, `periodAt`, `phaseAt`, `deviceAt`,
+`measureSource`. Branché au chargement, à la restauration et au reset ; export
+horodaté à la minute (`backupFileName`) avec `exportedAt` ; rapport enrichi
+(`formatContext`, source des pas/sommeil, marque de coupure).
+
+**Écart corrigé en cours de route** : ajouter `source` à `emptyDay()` cassait
+4 tests de forme. Le champ reste optionnel (absent ⇒ déduit) plutôt que de
+réécrire ces tests — la forme d'un jour vide n'a pas à changer.
+
+### Vérification
+`npm test` **172/172** (149 → 172) · `vite build` ✅ · test sur **copie** des
+données réelles : 56 jours et réglages strictement identiques après migration et
+restauration du fichier de protocole, `extractSignals` identique, aller-retour
+JSON stable. ESLint : aucune config dans le dépôt, non exécutable.
+
