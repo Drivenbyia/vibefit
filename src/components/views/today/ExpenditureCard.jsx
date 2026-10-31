@@ -11,27 +11,19 @@ export default function ExpenditureCard({ day, updateDay, steps, stepsTarget, sh
   const heavyWork = !!day.heavyWork;
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <Activity size={16} color={PALETTE.deep} />
         <div className="vf-body" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink, letterSpacing: '0.02em' }}>
           ACTIVITÉ — montre
         </div>
       </div>
-      <div style={{ fontSize: 11, color: PALETTE.muted, marginBottom: 12, lineHeight: 1.4 }}>
-        Les <strong>pas</strong> pilotent l'activité. Les calories de la montre sont
-        gardées <strong>à titre d'info</strong> : elles n'entrent dans aucun calcul ni aucune cible.
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <div>
-          <Label>Calories montre (info)</Label>
-          <NumberInput value={day.expenditure.kcal} onChange={(v) => updateDay({ expenditure: { ...day.expenditure, kcal: v } })} placeholder="0" suffix="kcal" />
-        </div>
-        <div>
-          <Label>
-            Pas <span style={{ color: PALETTE.muted, fontWeight: 500 }}>(cible {stepsTarget})</span>
-          </Label>
-          <NumberInput value={day.expenditure.steps} onChange={(v) => updateDay({ expenditure: { ...day.expenditure, steps: v } })} placeholder="0" />
-        </div>
+      {/* Calories de la montre retirées de la saisie (2026-10-31) : elles ne
+          servaient à aucun calcul. Les valeurs déjà saisies restent dans les données. */}
+      <div>
+        <Label>
+          Pas <span style={{ color: PALETTE.muted, fontWeight: 500 }}>(cible {stepsTarget})</span>
+        </Label>
+        <NumberInput value={day.expenditure.steps} onChange={(v) => updateDay({ expenditure: { ...day.expenditure, steps: v } })} placeholder="0" />
       </div>
       <StepsSourceToggle
         stepsSource={day.expenditure.stepsSource ?? ''}

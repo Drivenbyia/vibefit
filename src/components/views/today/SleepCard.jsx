@@ -34,31 +34,30 @@ export default function SleepCard({ day, updateDay }) {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div style={{ gridColumn: 'span 2' }}>
-          <Label>Score</Label>
+          <Label>Score de sommeil</Label>
           <NumberInput value={sleep.score ?? ''} onChange={(v) => patch({ score: v })} placeholder="ex. 85" suffix="/100" />
         </div>
-        <div>
-          {/* Libellés alignés sur la montre (VFC nocturne, FC au repos). Les clés
-              de stockage restent `hrv` et `rhr`, termes standard côté code.
-              `hrv` = RMSSD de la nuit (Garmin hier, Apple Watch aujourd'hui) ;
-              `hrvSdnn` = SDNN d'Apple Santé, en complément — jamais comparés. */}
-          <Label>VFC RMSSD nuit</Label>
+        <div style={{ gridColumn: 'span 2' }}>
+          {/* Libellés = intitulés d'Apple Santé (2026-10-31). Clés inchangées :
+              `hrv` = « VFC de récupération » (RMSSD de la nuit, Garmin avant) ;
+              `hrvSdnn` = « Variabilité de la fréquence cardiaque » (SDNN) — jamais comparés. */}
+          <Label>VFC de récupération</Label>
           <NumberInput value={sleep.hrv ?? ''} onChange={(v) => patch({ hrv: v })} placeholder="ex. 56" suffix="ms" />
         </div>
-        <div>
-          <Label>FC repos</Label>
+        <div style={{ gridColumn: 'span 2' }}>
+          <Label>Fréquence cardiaque au repos</Label>
           <NumberInput value={sleep.rhr ?? ''} onChange={(v) => patch({ rhr: v })} placeholder="ex. 52" suffix="bpm" />
         </div>
         <div style={{ gridColumn: 'span 2' }}>
-          <Label>VFC SDNN (complément)</Label>
+          <Label>Variabilité de la fréquence cardiaque</Label>
           <NumberInput value={sleep.hrvSdnn ?? ''} onChange={(v) => patch({ hrvSdnn: v })} placeholder="ex. 53" suffix="ms" />
         </div>
         <div>
-          <Label>Durée — heures</Label>
+          <Label>Temps de sommeil — h</Label>
           <NumberInput value={hours} onBlur={(v) => setDuration(v, minutes)} placeholder="ex. 6" suffix="h" />
         </div>
         <div>
-          <Label>Durée — minutes</Label>
+          <Label>Temps de sommeil — min</Label>
           <NumberInput value={minutes} onBlur={(v) => setDuration(hours, v)} placeholder="ex. 55" suffix="min" />
         </div>
       </div>

@@ -3,11 +3,10 @@ import Card from '../../ui/Card.jsx';
 import SectionLabel from '../../ui/SectionLabel.jsx';
 
 export default function NetBalanceCard({ weekly, plannedTrain, showSessions = true }) {
-  // Calories montre : affichées à titre d'info, elles n'entrent dans aucun calcul.
+  // Calories montre retirées de l'affichage (2026-10-31) : elles ne pilotaient rien.
   // Séances : masquées pendant une phase où l'effort est suspendu.
   const tiles = [
     { label: 'APPORT', value: Math.round(weekly.totalIntake), unit: 'kcal', color: PALETTE.ink },
-    { label: 'DÉPENSE MONTRE', value: Math.round(weekly.totalExp), unit: 'kcal · info', color: PALETTE.muted },
     ...(showSessions ? [{ label: 'SÉANCES', value: `${weekly.trainDone}/${plannedTrain}`, unit: '', color: weekly.trainDone >= plannedTrain ? PALETTE.deep : PALETTE.warn }] : []),
   ];
 
