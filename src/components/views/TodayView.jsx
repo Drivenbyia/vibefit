@@ -18,7 +18,7 @@ import NotesCard from './today/NotesCard.jsx';
 
 export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, onOpenWeek, backup, onExportBackup }) {
   const {
-    dt, intake, expenditure, steps, isMonday, isToday,
+    dt, intake, steps, isMonday, isToday,
     computedKcal, macroDelta, showMacroWarning, showUndereatAlert,
   } = useDayMetrics(dateKey, day, targets, data?.phases);
   const status = useVibeStatus(data, targets);
@@ -28,7 +28,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       {isToday && <StatusBand status={status} onOpenWeek={onOpenWeek} />}
       {isToday && backup?.overdue && <BackupReminderCard status={backup} onExport={onExportBackup} />}
-      <BalanceCard intake={intake} expenditure={expenditure} target={dt.kcal} />
+      <BalanceCard intake={intake} target={dt.kcal} />
       <MacrosCard
         day={day}
         dt={dt}

@@ -1616,3 +1616,17 @@ Vérification : `npm run lint` ✅ · `npm test` **327/327** (+4) · `vite build
 90,5 cm le 17/08, avant coupure) ») ; horloge fixée au lundi 26/10 ⇒ action
 tour de taille, lundi avec mesure ⇒ calibration, mardi ⇒ calibration ;
 zéro erreur, stockage inchangé.
+
+## Session 2026-10-31 — Calories montre retirées, sommeil aux intitulés Apple
+
+- **Calories montre** : champ retiré de la carte Activité, ligne « Dépense
+  montre » retirée du bilan du jour et de la tuile du bilan Semaine. Aucune
+  donnée touchée : `expenditure.kcal` reste dans le modèle, les jours déjà
+  saisis le gardent, l'export le publie encore s'il existe.
+- **Sommeil** : libellés de saisie = intitulés d'Apple Santé (Score de
+  sommeil, VFC de récupération, Fréquence cardiaque au repos, Variabilité de
+  la fréquence cardiaque, Temps de sommeil). Clés de stockage inchangées.
+  Les deux champs cardio passent en pleine largeur (libellés longs à 390 px).
+  Guide de saisie Apple aligné.
+
+Vérification : `npm run lint` ✅ · `npm test` **327/327** · `vite build` ✅.

@@ -2,10 +2,10 @@ import { PALETTE } from '../../../constants/config.js';
 
 const ITEMS = [
   ['Pas', 'total de la journée mesuré par la montre (le soir ou le lendemain matin).'],
-  ['Sommeil — durée', 'temps endormi de la nuit, phases d’éveil exclues.'],
-  ['VFC RMSSD nuit', 'valeur principale — moyenne de la nuit.'],
-  ['VFC SDNN', 'complément — ne se compare pas au RMSSD.'],
-  ['FC repos', 'fréquence cardiaque au repos du jour.'],
+  ['Temps de sommeil', 'temps endormi de la nuit, phases d’éveil exclues.'],
+  ['VFC de récupération', 'valeur principale — mesure de la nuit.'],
+  ['Variabilité de la fréquence cardiaque', 'complément — ne se compare pas à la VFC de récupération.'],
+  ['Fréquence cardiaque au repos', 'valeur du jour.'],
 ];
 
 /**

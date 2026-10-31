@@ -12,7 +12,6 @@ export function useDayMetrics(dateKey, day, targets, phases = []) {
   // Repli sur OFF si la cible unique manque (cibles non résolues) — jamais undefined.
   const dt = targets[t] ?? targets.off;
   const intake = num(day.intake.kcal);
-  const expenditure = num(day.expenditure.kcal);
   const steps = num(day.expenditure.steps);
   const isMonday = new Date(dateKey + 'T12:00:00').getDay() === 1;
   // La bande d'état parle de MAINTENANT. En feuilletant le journal sur un jour
@@ -25,7 +24,6 @@ export function useDayMetrics(dateKey, day, targets, phases = []) {
   return {
     dt,
     intake,
-    expenditure,
     steps,
     isMonday,
     isToday,

@@ -1,13 +1,13 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-10-24
+last_updated: 2026-10-31
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/lundi-et-coupure`
+- Branche active : `claude/retrait-calories-montre`
 - **Suite de tests : Vitest, 327 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
@@ -216,9 +216,13 @@ validé étape par étape.
   de sommeil de l'historique (NEAT, sommeil) — les semaines Garmin ne
   nourrissent aucune référence Apple, l'iPhone seul jamais. Sommeil : verdict
   VFC/FC repos désactivé pendant la phase, puis 4 semaines de la montre
-  courante exigées ; dette de sommeil conservée. Saisie : RMSSD nuit
-  (principal) + SDNN (complément), bouton « Pas iPhone seul » avec source
-  affichée. Calories montre : « info » partout, hors de tout calcul affiché —
+  courante exigées ; dette de sommeil conservée. Saisie aux intitulés
+  d'Apple Santé (2026-10-31) : « VFC de récupération » (`hrv`, principal),
+  « Variabilité de la fréquence cardiaque » (`hrvSdnn`, complément),
+  « Fréquence cardiaque au repos », « Score de sommeil », « Temps de sommeil » ;
+  bouton « Pas iPhone seul » avec source affichée. Calories montre : retirées
+  de la saisie et de l'affichage (2026-10-31, demande du développeur) ; les
+  valeurs déjà saisies restent dans les données et l'export —
   l'en-tête Semaine publie l'ÉCART À LA CIBLE (`targetGap`). Rappel hebdo de
   phase : protéines vs plancher (alerte écrite) et pas MONTRE vs 8000 avant
   les calories (demande du 2026-10-24). Protocole v3 : 5 jours partiels.

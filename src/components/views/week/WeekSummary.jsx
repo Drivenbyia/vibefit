@@ -4,8 +4,7 @@ import { fmtFr } from '../../../utils/dateUtils.js';
 
 /**
  * En-tête de semaine. Le chiffre de droite est l'ÉCART À LA CIBLE (apport −
- * cible, jours saisis), plus le solde apport − calories montre : celles-ci ne
- * pilotent rien. Couleur par écart MOYEN par jour, ±100 kcal = dans la cible :
+ * cible, jours saisis). Couleur par écart MOYEN par jour, ±100 kcal = dans la cible :
  * vert dans la cible, or en dessous, corail au-dessus (DESIGN.md §1).
  */
 export default function WeekSummary({ start, recordedDays, trackedDays = 7, targetGap = 0, comparableDays = 0 }) {
