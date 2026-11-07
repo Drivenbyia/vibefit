@@ -1,4 +1,6 @@
 import { etaLabel, incompleteLabel } from './calibrationCopy.js';
+import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail } from './plausibility.js';
+
 /**
  * Protocole anti-rationalisation — diagnostic PUR, sans action.
  *
@@ -35,6 +37,7 @@ export const DIAGNOSIS = {
   PLATEAU_CONFIRMED: 'PLATEAU_CONFIRMED',
   PROGRESSING: 'PROGRESSING',
   PLATEAU_SUSPENDED: 'PLATEAU_SUSPENDED',
+  IMPLAUSIBLE_MEASURE: 'IMPLAUSIBLE_MEASURE',
 };
 
 const LABELS = {
@@ -45,6 +48,7 @@ const LABELS = {
   PLATEAU_CONFIRMED: 'Plateau confirmé',
   PROGRESSING: 'Progression en cours',
   PLATEAU_SUSPENDED: 'Plateau non évalué',
+  IMPLAUSIBLE_MEASURE: 'Mesure incohérente',
 };
 
 const result = (status, detail, weeksEvaluated) => ({
@@ -116,6 +120,15 @@ export function diagnose({ signals, weeklyHistory = [], trainingSuspended = fals
     return result(
       DIAGNOSIS.INSUFFICIENT_DATA,
       'Fenêtre de 14 jours pas encore complète depuis la période non suivie.',
+      weeksEvaluated
+    );
+  }
+  // Mesure hors plage physiologique : les données existent, c'est la tendance
+  // de poids qui est faussée. « Données insuffisantes » serait faux.
+  if (signals?.tdeeCheck?.status === TDEE_CHECK.IMPLAUSIBLE) {
+    return result(
+      DIAGNOSIS.IMPLAUSIBLE_MEASURE,
+      `${IMPLAUSIBLE_LABEL} : ${implausibleDetail(signals.measuredTDEE, signals.tdeeCheck)}.`,
       weeksEvaluated
     );
   }

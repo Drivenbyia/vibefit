@@ -7,10 +7,32 @@ last_updated: 2026-10-31
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/retrait-calories-montre`
-- **Suite de tests : Vitest, 327 tests** — `npm test`
+- Branche active : `claude/stoic-fermi-55d45d`
+- **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
+- **Suite de tests : Vitest, 347 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-11-07 — PR A : garde-fou de plausibilité du TDEE, GitHub Pages
+- Premier TDEE après calibration : 963 kcal à « confiance 100 % », juste
+  arithmétiquement, faux physiologiquement (balance au kg rond, fenêtre
+  ouverte sur un jour de jeûne). Plan en 4 PR : A garde-fou, B résolution de
+  balance et incertitude, C Theil-Sen, D jours atypiques (à proposer).
+- **PR A** : profil racine `profile { sex, birthYear, heightCm }` (additif,
+  migré vide, restauré s'il est dans le fichier), carte « Profil » dans
+  Cibles. Mifflin-St Jeor au poids lissé courant. TDEE < 1,2 × BMR ou
+  > 4000 ⇒ `tdeeCheck.status = 'implausible'`, `adaptiveTDEE = null`,
+  calcul brut gardé dans `measuredTDEE` (explication seule). Statut
+  « Mesure incohérente — vérifie pesées et saisie » dans Cibles, bande
+  d'état, bilan, export, contexte coach ; il remplace la confiance. Profil
+  incomplet ⇒ TDEE « non vérifié », recalibration bloquée.
+- Règles de recalibration extraites en fonction pure
+  (`utils/recalibration.js`), testable sans React.
+- **Point ouvert** : pour 35 ans / 175 cm / 78 kg, le plancher vaut 2045 —
+  une maintenance réelle de ~2000 serait aussi marquée incohérente.
+- **Hébergement** : `VITE_BASE` dans `vite.config.js`, manifeste PWA en
+  chemins relatifs, workflow Pages. Données `localStorage` liées à l'origine :
+  exporter depuis Netlify, « Restaurer » sur github.io.
 
 ### Session 2026-10-24 (nuit) — PR lundi et coupure
 - Bilan : le LUNDI, sans tour de taille saisi, le rappel passe AVANT la

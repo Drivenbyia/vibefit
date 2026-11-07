@@ -34,4 +34,5 @@ export const ICONS = {
   [STATUS_KIND.TREND]: Activity,
   [STATUS_KIND.CALIBRATING]: Activity,
   [STATUS_KIND.PLATEAU_SUSPENDED]: Minus,
+  [STATUS_KIND.MEASURE_IMPLAUSIBLE]: AlertTriangle,
 };

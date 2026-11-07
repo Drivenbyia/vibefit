@@ -45,6 +45,20 @@ export const BACKUP_REMINDER_DAYS = 7;
 // Type de jour pendant une phase sans cyclage — clé de la cible unique.
 export const REST_DAY_TYPE = 'rest';
 
+// --- Garde-fou de plausibilité du TDEE mesuré ---
+// Un TDEE sous 1,2 × le métabolisme de base (Mifflin-St Jeor) ou au-dessus de
+// 4000 kcal n'est pas une mesure : c'est une tendance de poids faussée
+// (balance imprécise, début de fenêtre atypique). Il n'est pas publié comme
+// valide et n'ouvre aucune recalibration.
+export const TDEE_MIN_BMR_FACTOR = 1.2;
+export const TDEE_MAX_PLAUSIBLE_KCAL = 4000;
+
+// Profil physiologique — bornes de saisie (au-delà : valeur écartée).
+export const PROFILE_SEXES = { male: 'Homme', female: 'Femme' };
+export const HEIGHT_MIN_CM = 120;
+export const HEIGHT_MAX_CM = 230;
+export const BIRTH_YEAR_MIN = 1920;
+
 // 1 kg de masse corporelle ≈ 7700 kcal (hypothèse tissus mixtes — adipeux + maigre)
 export const KCAL_PER_KG = 7700;
 
