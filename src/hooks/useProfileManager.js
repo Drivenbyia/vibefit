@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { num } from '../utils/mathUtils.js';
 import { sanitizeProfile, mifflinBMR, ageAt } from '../utils/plausibility.js';
-import { TDEE_MIN_BMR_FACTOR } from '../constants/config.js';
+import { TDEE_MIN_BMR_FACTOR, TDEE_LOW_BMR_FACTOR } from '../constants/config.js';
 import { toKey } from '../utils/dateUtils.js';
 
 /**
@@ -22,6 +22,7 @@ export function useProfileManager(data, setData, smoothedWeight) {
     heightCm: profile.heightCm, weightKg: smoothedWeight,
   });
   const minKcal = bmr !== null ? Math.round(TDEE_MIN_BMR_FACTOR * bmr) : null;
+  const lowKcal = bmr !== null ? Math.round(TDEE_LOW_BMR_FACTOR * bmr) : null;
 
-  return { profile, setField, bmr, minKcal };
+  return { profile, setField, bmr, minKcal, lowKcal };
 }

@@ -1,6 +1,6 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
-import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail } from './plausibility.js';
+import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail, tdeeQualifier } from './plausibility.js';
 import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
 import { isExcluded, measureSource, isCyclingSuspended, formatInfoActivities } from '../models/protocol.js';
 import { computeSingleTarget, DEFAULT_TDEE } from './presetUtils.js';
@@ -184,8 +184,7 @@ export function getHistoricalWeeks(data, n = 8) {
       ? `${IMPLAUSIBLE_LABEL} (${implausibleDetail(signals.measuredTDEE, signals.tdeeCheck)})` +
         (data?.baseTDEE ? ` · cibles sur la dernière base valide ${data.baseTDEE} kcal` : '')
       : signals.adaptiveTDEE !== null
-        ? `${signals.adaptiveTDEE} kcal` +
-          (signals.tdeeCheck?.status === TDEE_CHECK.UNCHECKED ? ' (non vérifié : profil incomplet)' : '')
+        ? `${signals.adaptiveTDEE} kcal${tdeeQualifier(signals.tdeeCheck)}`
         : 'N/A (recouvrement poids × apport insuffisant)';
   const trendStr = signals.weightTrendPerWeek !== null
     ? `${signals.weightTrendPerWeek >= 0 ? '+' : ''}${signals.weightTrendPerWeek} kg/sem`

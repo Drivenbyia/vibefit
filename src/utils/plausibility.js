@@ -4,6 +4,7 @@ import {
   HEIGHT_MAX_CM,
   BIRTH_YEAR_MIN,
   TDEE_MIN_BMR_FACTOR,
+  TDEE_LOW_BMR_FACTOR,
   TDEE_MAX_PLAUSIBLE_KCAL,
 } from '../constants/config.js';
 
@@ -46,17 +47,18 @@ export function mifflinBMR({ sex, age, heightCm, weightKg }) {
 export const TDEE_CHECK = {
   VALID: 'valid',             // dans la plage physiologique
   IMPLAUSIBLE: 'implausible', // hors plage : mesure incohérente
+  LOW: 'low',                 // valide mais bas : à confirmer, pas de recalibration seul
   UNCHECKED: 'unchecked',     // profil incomplet : plancher incalculable
 };
 
 /**
  * Confronte un TDEE calculé à la physiologie.
  *
- * Le plafond (4000 kcal) s'applique toujours. Le plancher (1,2 × métabolisme
- * de base) exige un profil complet : sans lui, le TDEE est « non vérifié » —
+ * Le plafond (4000 kcal) s'applique toujours. Le plancher (1,1 × métabolisme
+ * de base) et la zone basse (jusqu'à 1,25 ×) exigent un profil complet : sans lui, le TDEE est « non vérifié » —
  * publié, mais jamais une base de recalibration.
  *
- * @returns {{ status, bmr, minKcal, maxKcal } | null} null sans TDEE calculé.
+ * @returns {{ status, bmr, minKcal, lowKcal, maxKcal } | null} null sans TDEE calculé.
  */
 export function checkTDEE(rawTDEE, profile, weightKg, todayKey) {
   if (rawTDEE == null) return null;
@@ -65,19 +67,34 @@ export function checkTDEE(rawTDEE, profile, weightKg, todayKey) {
     ? null
     : mifflinBMR({ sex: p.sex, age: ageAt(p.birthYear, todayKey), heightCm: p.heightCm, weightKg });
   const minKcal = bmr !== null ? Math.round(TDEE_MIN_BMR_FACTOR * bmr) : null;
+  const lowKcal = bmr !== null ? Math.round(TDEE_LOW_BMR_FACTOR * bmr) : null;
   const maxKcal = TDEE_MAX_PLAUSIBLE_KCAL;
 
   let status = TDEE_CHECK.VALID;
   if (rawTDEE > maxKcal || (minKcal !== null && rawTDEE < minKcal)) status = TDEE_CHECK.IMPLAUSIBLE;
   else if (minKcal === null) status = TDEE_CHECK.UNCHECKED;
+  else if (rawTDEE < lowKcal) status = TDEE_CHECK.LOW;
 
-  return { status, bmr, minKcal, maxKcal };
+  return { status, bmr, minKcal, lowKcal, maxKcal };
 }
 
 const fr = (n) => Math.round(n).toLocaleString('fr-FR');
 
 /** Libellé court du statut incohérent — repris tel quel partout. */
 export const IMPLAUSIBLE_LABEL = 'Mesure incohérente — vérifie pesées et saisie';
+
+/** Libellé de la zone basse — repris tel quel partout. */
+export const LOW_LABEL = 'TDEE bas — à confirmer sur la prochaine fenêtre';
+
+/**
+ * Qualificatif d'un TDEE publié (valide), à accoler au chiffre : vide s'il
+ * est vérifié et dans la plage normale.
+ */
+export function tdeeQualifier(check) {
+  if (check?.status === TDEE_CHECK.UNCHECKED) return ' (non vérifié : profil incomplet)';
+  if (check?.status === TDEE_CHECK.LOW) return ` (${LOW_LABEL})`;
+  return '';
+}
 
 /** Pourquoi la mesure est hors plage, en une phrase. */
 export function implausibleDetail(rawTDEE, check) {

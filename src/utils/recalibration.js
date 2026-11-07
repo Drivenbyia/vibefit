@@ -1,5 +1,6 @@
 import { etaLabel } from './calibrationCopy.js';
-import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail } from './plausibility.js';
+import { TDEE_LOW_BMR_FACTOR } from '../constants/config.js';
+import { TDEE_CHECK, IMPLAUSIBLE_LABEL, LOW_LABEL, implausibleDetail } from './plausibility.js';
 
 // Au-delà de cet écart, la recalibration est bloquée : un tel saut trahit une
 // saisie douteuse bien plus probablement qu'une vraie dérive métabolique.
@@ -14,7 +15,8 @@ const fr = (n) => Math.round(n).toLocaleString('fr-FR');
  * Ordre : calibration en cours, puis mesure incohérente — elle prime sur tout
  * le reste, confiance comprise : 100 % de jours saisis ne valident pas un
  * TDEE sous le métabolisme de base —, puis profil incomplet (plancher
- * incalculable, la mesure n'est pas vérifiée), puis les blocages ordinaires.
+ * incalculable, la mesure n'est pas vérifiée), puis TDEE bas (valide, mais
+ * il ne propose pas de recalibration à lui seul), puis les blocages ordinaires.
  *
  * @returns {{ blockedReason: string|null, canRecalibrate: boolean, delta: number|null }}
  */
@@ -36,6 +38,9 @@ export function recalibrationBlock(signals, baseTDEE) {
     blockedReason = `Données insuffisantes — ${overlapDays} j croisant poids et apport sur 14`;
   } else if (tdeeCheck?.status === TDEE_CHECK.UNCHECKED) {
     blockedReason = 'Profil incomplet — renseigne sexe, année de naissance et taille pour vérifier la plausibilité de la mesure.';
+  } else if (tdeeCheck?.status === TDEE_CHECK.LOW) {
+    blockedReason = `${LOW_LABEL} : sous ${fr(tdeeCheck.lowKcal)} kcal (${String(TDEE_LOW_BMR_FACTOR).replace('.', ',')} × métabolisme de base ${fr(tdeeCheck.bmr)} kcal).` +
+      ' Pas de recalibration sur cette seule mesure.';
   } else if (delta === 0) {
     blockedReason = 'Cibles déjà alignées sur le TDEE mesuré';
   } else if (Math.abs(delta) > MAX_RECALIBRATION_DELTA) {

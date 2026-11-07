@@ -1,12 +1,13 @@
 import { Activity } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import Card from '../../ui/Card.jsx';
-import { TDEE_CHECK } from '../../../utils/plausibility.js';
+import { TDEE_CHECK, LOW_LABEL } from '../../../utils/plausibility.js';
 
 export default function RecalibrateCard({ signals, delta, canRecalibrate, blockedReason, onRecalibrate }) {
   const { adaptiveTDEE, tdeeCheck, confidence, overlapDays, windowStart, windowEnd, windowAgeDays } = signals;
   const implausible = tdeeCheck?.status === TDEE_CHECK.IMPLAUSIBLE;
   const unchecked = tdeeCheck?.status === TDEE_CHECK.UNCHECKED;
+  const low = tdeeCheck?.status === TDEE_CHECK.LOW;
 
   return (
     <Card>
@@ -33,6 +34,9 @@ export default function RecalibrateCard({ signals, delta, canRecalibrate, blocke
               <span style={{ fontSize: 11, fontWeight: 700, color: PALETTE.warn, marginLeft: 8 }}>non vérifié</span>
             )}
           </div>
+          {low && (
+            <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.warn, marginTop: 3 }}>{LOW_LABEL}</div>
+          )}
           <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 3, lineHeight: 1.5 }}>
             Confiance {confidence}% · {overlapDays} j croisés · {windowStart} → {windowEnd}
             {windowAgeDays > 7 && (

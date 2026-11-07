@@ -57,14 +57,24 @@ describe('Mifflin-St Jeor', () => {
 
 describe('checkTDEE', () => {
   const at = '2026-11-07';
-  it('sous 1,2 × BMR ⇒ incohérent', () => {
+  it('sous 1,1 × BMR ⇒ incohérent', () => {
     const c = checkTDEE(963, PROFILE, 78, at);
     expect(c.status).toBe(TDEE_CHECK.IMPLAUSIBLE);
     expect(c.bmr).toBe(1704);
-    expect(c.minKcal).toBe(2045);
+    expect(c.minKcal).toBe(1874);
+    expect(c.lowKcal).toBe(2130);
   });
   it('au-dessus de 4000 ⇒ incohérent, même sans profil', () => {
     expect(checkTDEE(4200, null, 78, at).status).toBe(TDEE_CHECK.IMPLAUSIBLE);
+  });
+  it('plancher 1874 inclus, zone basse jusqu’à 2130 exclus', () => {
+    expect(checkTDEE(1873, PROFILE, 78, at).status).toBe(TDEE_CHECK.IMPLAUSIBLE);
+    expect(checkTDEE(1874, PROFILE, 78, at).status).toBe(TDEE_CHECK.LOW);
+    expect(checkTDEE(2129, PROFILE, 78, at).status).toBe(TDEE_CHECK.LOW);
+    expect(checkTDEE(2130, PROFILE, 78, at).status).toBe(TDEE_CHECK.VALID);
+  });
+  it('plancher recalculé avec le poids lissé', () => {
+    expect(checkTDEE(1900, PROFILE, 82, at).minKcal).toBe(1918); // BMR 1744
   });
   it('dans la plage ⇒ valide', () => {
     expect(checkTDEE(2300, PROFILE, 78, at).status).toBe(TDEE_CHECK.VALID);
@@ -100,7 +110,7 @@ describe('série réelle 24/10 → 06/11 — 963 kcal', () => {
     expect(s.measuredTDEE).toBe(963);
     expect(s.confidence).toBe(100);
     expect(s.tdeeCheck.status).toBe(TDEE_CHECK.IMPLAUSIBLE);
-    expect(s.tdeeCheck.minKcal).toBe(2045);
+    expect(s.tdeeCheck.minKcal).toBe(1874);
     expect(s.adaptiveTDEE).toBeNull();
   });
 
@@ -163,9 +173,34 @@ describe('série réelle 24/10 → 06/11 — 963 kcal', () => {
     expect(recalibrationBlock(s, 2050).blockedReason).toMatch(/Profil incomplet/);
   });
 
-  it('segment plat 30/10 → 06/11 (~1990 kcal) : sous le plancher 2045 aussi', () => {
-    // Signalé dans la PR : à 1,2 × BMR, une maintenance plausible de ~2000
-    // kcal serait elle aussi marquée incohérente pour ce profil.
-    expect(checkTDEE(1990, PROFILE, 78, '2026-11-07').status).toBe(TDEE_CHECK.IMPLAUSIBLE);
+  it('segment plat 30/10 → 06/11 (~1990 kcal) : valide mais « bas », pas de recalibration', () => {
+    const c = checkTDEE(1990, PROFILE, 78, '2026-11-07');
+    expect(c.status).toBe(TDEE_CHECK.LOW);
+  });
+});
+
+describe('TDEE bas (1,1 à 1,25 × BMR)', () => {
+  // 30/10 → 06/11 recentré : poids plat à 78, apport ~1990 ⇒ TDEE ≈ 1990.
+  const flat = () => {
+    const d = realData();
+    for (const k of ['2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29']) {
+      d.days[k] = { weight: '78', intake: { kcal: '1990' } };
+    }
+    return d;
+  };
+
+  it('publié comme valide, qualifié « bas », sans proposition de recalibration', () => {
+    const s = extractSignals(flat());
+    expect(s.tdeeCheck.status).toBe(TDEE_CHECK.LOW);
+    expect(s.adaptiveTDEE).toBe(s.measuredTDEE);
+    const r = recalibrationBlock(s, 2050);
+    expect(r.canRecalibrate).toBe(false);
+    expect(r.blockedReason).toMatch(/^TDEE bas — à confirmer sur la prochaine fenêtre/);
+  });
+
+  it('export et coach portent la mention', () => {
+    const header = getHistoricalWeeks(flat()).split('\n').find((l) => l.startsWith('⚡'));
+    expect(header).toContain('(TDEE bas — à confirmer sur la prochaine fenêtre)');
+    expect(formatCoachContext(flat(), { today: '2026-11-07' }).join('\n')).toContain('TDEE bas');
   });
 });

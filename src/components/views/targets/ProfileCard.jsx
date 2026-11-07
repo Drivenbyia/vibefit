@@ -12,7 +12,7 @@ const LABEL = { fontSize: 11, color: PALETTE.muted };
  * garde-fou du TDEE mesuré : métabolisme de base Mifflin-St Jeor au poids
  * lissé courant, et le plancher qui en découle.
  */
-export default function ProfileCard({ sex, birthYear, heightCm, bmr, minKcal, onFieldChange }) {
+export default function ProfileCard({ sex, birthYear, heightCm, bmr, minKcal, lowKcal, onFieldChange }) {
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -54,7 +54,7 @@ export default function ProfileCard({ sex, birthYear, heightCm, bmr, minKcal, on
       </div>
       <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 10, lineHeight: 1.5 }}>
         {bmr !== null
-          ? `Métabolisme de base ≈ ${fr(bmr)} kcal (Mifflin-St Jeor, poids lissé). Un TDEE mesuré sous ${fr(minKcal)} kcal ou au-dessus de ${fr(TDEE_MAX_PLAUSIBLE_KCAL)} kcal est déclaré incohérent.`
+          ? `Métabolisme de base ≈ ${fr(bmr)} kcal (Mifflin-St Jeor, poids lissé). Un TDEE mesuré sous ${fr(minKcal)} kcal ou au-dessus de ${fr(TDEE_MAX_PLAUSIBLE_KCAL)} kcal est déclaré incohérent ; sous ${fr(lowKcal)} kcal, il est « bas — à confirmer ».`
           : 'Renseigne sexe, année de naissance et taille : sans eux, le TDEE mesuré ne peut pas être vérifié ni servir à recalibrer.'}
       </div>
     </Card>

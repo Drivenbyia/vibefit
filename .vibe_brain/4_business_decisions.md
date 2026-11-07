@@ -24,12 +24,12 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 ## Décisions enregistrées
 
 ### 2026-11-07 — Garde-fou de plausibilité du TDEE mesuré (Mifflin-St Jeor)
-- **Décision** : un TDEE calculé < 1,2 × métabolisme de base (Mifflin-St Jeor, profil + poids lissé courant) ou > 4000 kcal n'est pas publié : statut « Mesure incohérente — vérifie pesées et saisie », pas de recalibration, cibles sur la dernière base valide. Le statut prime sur la confiance. Profil incomplet ⇒ TDEE « non vérifié », recalibration bloquée. Nouveau champ racine `profile { sex, birthYear, heightCm }`.
+- **Décision** : un TDEE calculé < 1,1 × métabolisme de base (Mifflin-St Jeor, profil + poids lissé courant) ou > 4000 kcal n'est pas publié : statut « Mesure incohérente — vérifie pesées et saisie », pas de recalibration, cibles sur la dernière base valide. Le statut prime sur la confiance. Profil incomplet ⇒ TDEE « non vérifié », recalibration bloquée. Entre 1,1 et 1,25 × : valide mais « TDEE bas — à confirmer sur la prochaine fenêtre », sans proposition de recalibration à lui seul. Nouveau champ racine `profile { sex, birthYear, heightCm }`.
 - **Contexte** : 963 kcal à confiance 100 % après la calibration ; la confiance ne mesure que la complétude de saisie.
 - **Alternatives considérées** : (1) plancher fixe (ex. 1500) — ignore le gabarit ; (2) bloquer tout TDEE sans profil — casse le comportement sans profil et 300 tests ; (3) âge saisi — vieillit en silence, d'où l'année de naissance.
-- **Raison du choix** : un TDEE sous le métabolisme de base ×1,2 n'est pas une mesure ; le publier, c'est risquer d'y recalibrer.
-- **Impact** : `adaptiveTDEE` peut être nul avec des données complètes ; `measuredTDEE` et `tdeeCheck` expliquent pourquoi. Seuil 1,2 = 2045 pour 35 ans / 175 cm / 78 kg, à surveiller.
-- **Réversibilité** : Facile — constantes `TDEE_MIN_BMR_FACTOR` / `TDEE_MAX_PLAUSIBLE_KCAL`.
+- **Raison du choix** : un TDEE sous le métabolisme de base ×1,1 n'est pas une mesure ; le publier, c'est risquer d'y recalibrer. 1,2 (proposé d'abord) donnait 2045 pour ce profil et aurait rejeté une maintenance plausible de ~2000 : arbitré à 1,1 par le développeur, avec la zone basse pour ne pas recalibrer sur une valeur limite.
+- **Impact** : `adaptiveTDEE` peut être nul avec des données complètes ; `measuredTDEE` et `tdeeCheck` expliquent pourquoi. Pour 35 ans / 175 cm / 78 kg : plancher 1874, zone basse < 2130.
+- **Réversibilité** : Facile — constantes `TDEE_MIN_BMR_FACTOR` / `TDEE_LOW_BMR_FACTOR` / `TDEE_MAX_PLAUSIBLE_KCAL`.
 
 ### 2026-11-07 — Hébergement GitHub Pages (remplace Netlify)
 - **Décision** : publication par GitHub Actions sur GitHub Pages (`pages.yml`), sous `/vibefit/` ; `base` Vite piloté par `VITE_BASE` (défaut `/`). `netlify.toml` conservé, inerte.

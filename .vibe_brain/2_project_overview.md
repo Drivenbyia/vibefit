@@ -9,7 +9,7 @@ last_updated: 2026-10-31
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/stoic-fermi-55d45d`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 347 tests** — `npm test`
+- **Suite de tests : Vitest, 351 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
 
@@ -20,7 +20,7 @@ last_updated: 2026-10-31
   balance et incertitude, C Theil-Sen, D jours atypiques (à proposer).
 - **PR A** : profil racine `profile { sex, birthYear, heightCm }` (additif,
   migré vide, restauré s'il est dans le fichier), carte « Profil » dans
-  Cibles. Mifflin-St Jeor au poids lissé courant. TDEE < 1,2 × BMR ou
+  Cibles. Mifflin-St Jeor au poids lissé courant. TDEE < 1,1 × BMR ou
   > 4000 ⇒ `tdeeCheck.status = 'implausible'`, `adaptiveTDEE = null`,
   calcul brut gardé dans `measuredTDEE` (explication seule). Statut
   « Mesure incohérente — vérifie pesées et saisie » dans Cibles, bande
@@ -28,8 +28,9 @@ last_updated: 2026-10-31
   incomplet ⇒ TDEE « non vérifié », recalibration bloquée.
 - Règles de recalibration extraites en fonction pure
   (`utils/recalibration.js`), testable sans React.
-- **Point ouvert** : pour 35 ans / 175 cm / 78 kg, le plancher vaut 2045 —
-  une maintenance réelle de ~2000 serait aussi marquée incohérente.
+- Seuil arbitré : plancher dur 1,1 × BMR (1874 pour 35 ans / 175 cm /
+  78 kg). Entre 1,1 et 1,25 × (< 2130) : valide, « TDEE bas — à confirmer
+  sur la prochaine fenêtre », pas de recalibration proposée à lui seul.
 - **Hébergement** : `VITE_BASE` dans `vite.config.js`, manifeste PWA en
   chemins relatifs, workflow Pages. Données `localStorage` liées à l'origine :
   exporter depuis Netlify, « Restaurer » sur github.io.

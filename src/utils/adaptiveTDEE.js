@@ -285,7 +285,7 @@ export function calibrationProgress(data, today = toKey(new Date())) {
  *   adaptiveTDEE        — TDEE sur la fenêtre optimale (kcal/j) ou null si données < seuil
  *                         ou si la mesure est physiologiquement incohérente
  *   measuredTDEE        — calcul brut, publié même hors plage (explication seule)
- *   tdeeCheck           — plausibilité : { status, bmr, minKcal, maxKcal } ou null
+ *   tdeeCheck           — plausibilité : { status, bmr, minKcal, lowKcal, maxKcal } ou null
  *   weightTrendPerWeek  — pente de poids lissée (kg/semaine) ou null
  *   avgIntake           — apport moyen journalier sur la fenêtre (kcal) ou null
  *   confidence          — recouvrement poids × apport, 0–100 %
@@ -427,7 +427,7 @@ export function extractSignals(data) {
     adaptiveTDEE,
     // Calcul brut, même hors plage — affichage d'explication uniquement.
     measuredTDEE,
-    // null sans TDEE calculé ; sinon { status, bmr, minKcal, maxKcal }
+    // null sans TDEE calculé ; sinon { status, bmr, minKcal, lowKcal, maxKcal }
     tdeeCheck,
     // null sans calibration ; sinon { start, seedTDEE, requiredDays, crossedDays, active }
     calibration,

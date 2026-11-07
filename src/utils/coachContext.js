@@ -1,6 +1,6 @@
 import { addDays, toKey } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
-import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail } from './plausibility.js';
+import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail, tdeeQualifier } from './plausibility.js';
 import { aggregateSleep, num, nutritionScope, proteinAverage, watchStepsAverage } from './mathUtils.js';
 import { computeRecovery } from './recoveryBaseline.js';
 import { resolveTargets } from './presetUtils.js';
@@ -86,7 +86,7 @@ export function formatCoachContext(data, { today = toKey(new Date()) } = {}) {
       (signals.windowStart ? ` · fenêtre ${dm(signals.windowStart)} → ${dm(signals.windowEnd)}` : '');
   } else if (signals.adaptiveTDEE != null) {
     tdeeStr = `${int(signals.adaptiveTDEE)} kcal` +
-      (signals.tdeeCheck?.status === TDEE_CHECK.UNCHECKED ? ' (non vérifié : profil incomplet)' : '') +
+      tdeeQualifier(signals.tdeeCheck) +
       (signals.windowStart ? ` · fenêtre ${dm(signals.windowStart)} → ${dm(signals.windowEnd)}` : '') +
       ` · confiance ${signals.confidence} %`;
   }

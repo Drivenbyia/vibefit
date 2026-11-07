@@ -1659,3 +1659,14 @@ Seuil 1,2 × BMR = 2 045 pour ce profil : une maintenance plausible de ~2 000
 tomberait dessous. Gardé tel que demandé, signalé pour arbitrage.
 
 Vérification : `npm run lint` ✅ · `npm test` **347/347** (+20) · `vite build` ✅.
+
+## Session 2026-11-07 (suite) — Seuil arbitré : 1,1 × BMR et zone « TDEE bas »
+
+- Plancher dur passé de 1,2 à 1,1 × BMR (1 874 au poids actuel, recalculé
+  avec le poids lissé). 963 reste « Mesure incohérente » (testé).
+- Nouveau statut `low` (1,1 à 1,25 × BMR, < 2 130 ici) : TDEE publié,
+  qualifié « TDEE bas — à confirmer sur la prochaine fenêtre » (Cibles,
+  bilan, export, coach), recalibration bloquée sur cette seule mesure.
+- Helper `tdeeQualifier` partagé par l'export et le contexte coach.
+
+Vérification : `npm run lint` ✅ · `npm test` **351/351** (+4).

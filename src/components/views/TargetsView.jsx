@@ -18,7 +18,7 @@ export default function TargetsView({ data, setData }) {
     useTargetsManager(data, setData);
   const { signals, canRecalibrate, delta, blockedReason, recalibrate } =
     useAdaptiveTargets(data, setData);
-  const { profile, setField: setProfileField, bmr, minKcal } =
+  const { profile, setField: setProfileField, bmr, minKcal, lowKcal } =
     useProfileManager(data, setData, signals.smoothedWeight);
   const { phase, canClose, closePhase, setPlannedEnd } = usePhaseManager(data, setData);
   const suspended = phase ? ' · suspendu pendant la phase' : '';
@@ -54,6 +54,7 @@ export default function TargetsView({ data, setData }) {
         heightCm={profile.heightCm}
         bmr={bmr}
         minKcal={minKcal}
+        lowKcal={lowKcal}
         onFieldChange={setProfileField}
       />
       <StepsCard stepsTarget={stepsTarget} onChange={setStepsTarget} />

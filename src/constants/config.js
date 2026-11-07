@@ -46,11 +46,14 @@ export const BACKUP_REMINDER_DAYS = 7;
 export const REST_DAY_TYPE = 'rest';
 
 // --- Garde-fou de plausibilité du TDEE mesuré ---
-// Un TDEE sous 1,2 × le métabolisme de base (Mifflin-St Jeor) ou au-dessus de
+// Un TDEE sous 1,1 × le métabolisme de base (Mifflin-St Jeor) ou au-dessus de
 // 4000 kcal n'est pas une mesure : c'est une tendance de poids faussée
 // (balance imprécise, début de fenêtre atypique). Il n'est pas publié comme
 // valide et n'ouvre aucune recalibration.
-export const TDEE_MIN_BMR_FACTOR = 1.2;
+// Entre 1,1 et 1,25 × : valide, mais « TDEE bas — à confirmer sur la
+// prochaine fenêtre », et il n'ouvre pas de recalibration à lui seul.
+export const TDEE_MIN_BMR_FACTOR = 1.1;
+export const TDEE_LOW_BMR_FACTOR = 1.25;
 export const TDEE_MAX_PLAUSIBLE_KCAL = 4000;
 
 // Profil physiologique — bornes de saisie (au-delà : valeur écartée).
