@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-11-07 — Résolution de balance et incertitude de la tendance
+- **Décision** : nouveau réglage racine `scaleResolutionKg` (0,1 / 0,5 / 1 kg, défaut 0,5). Intervalle à 95 % sur le TDEE = t(n−2) × erreur standard de la pente × 7700, variance = résidus/(n−2) + résolution²/12, sur les seules pesées mesurées. Au-delà de ±300 kcal : « Tendance pas encore lisible », fenêtre allongée (21 puis 28 j), pas de recalibration. « Confiance » scindée en Complétude et Précision.
+- **Contexte** : balance à aiguille, pesées au kg rond ; une régression sur 14 jours ne distingue pas ±100 kcal. Des lectures identiques (78, 78, 78) donnent des résidus nuls : sans le terme de quantification, l'intervalle serait faussement étroit.
+- **Alternatives considérées** : (1) résolution par pesée — réécrirait le modèle des jours, refusé (aucune donnée modifiée) ; (2) 1,96 fixe — sous-estime de ~10 % à 14 points ; (3) compter les poids interpolés — gonfle n à tort.
+- **Raison du choix** : un réglage unique suffit (une balance), additif, sans migration de données.
+- **Impact** : avec un bruit jour à jour normal (~0,3 kg), 14 jours dépassent presque toujours ±300 ; 21 jours sont en pratique le minimum lisible.
+- **Réversibilité** : Facile — constantes `TREND_MAX_CI95_KCAL`, `TREND_WINDOW_SIZES`.
+
 ### 2026-11-07 — Garde-fou de plausibilité du TDEE mesuré (Mifflin-St Jeor)
 - **Décision** : un TDEE calculé < 1,1 × métabolisme de base (Mifflin-St Jeor, profil + poids lissé courant) ou > 4000 kcal n'est pas publié : statut « Mesure incohérente — vérifie pesées et saisie », pas de recalibration, cibles sur la dernière base valide. Le statut prime sur la confiance. Profil incomplet ⇒ TDEE « non vérifié », recalibration bloquée. Entre 1,1 et 1,25 × : valide mais « TDEE bas — à confirmer sur la prochaine fenêtre », sans proposition de recalibration à lui seul. Nouveau champ racine `profile { sex, birthYear, heightCm }`.
 - **Contexte** : 963 kcal à confiance 100 % après la calibration ; la confiance ne mesure que la complétude de saisie.

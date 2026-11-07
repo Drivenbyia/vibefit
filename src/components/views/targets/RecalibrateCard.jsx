@@ -1,13 +1,15 @@
 import { Activity } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import Card from '../../ui/Card.jsx';
-import { TDEE_CHECK, LOW_LABEL } from '../../../utils/plausibility.js';
+import { TDEE_CHECK } from '../../../utils/plausibility.js';
+import TdeeReading from './TdeeReading.jsx';
 
 export default function RecalibrateCard({ signals, delta, canRecalibrate, blockedReason, onRecalibrate }) {
-  const { adaptiveTDEE, tdeeCheck, confidence, overlapDays, windowStart, windowEnd, windowAgeDays } = signals;
+  const {
+    adaptiveTDEE, tdeeCheck, tdeeCi95, trendReadable, confidence, overlapDays,
+    windowSize, windowStart, windowEnd, windowAgeDays,
+  } = signals;
   const implausible = tdeeCheck?.status === TDEE_CHECK.IMPLAUSIBLE;
-  const unchecked = tdeeCheck?.status === TDEE_CHECK.UNCHECKED;
-  const low = tdeeCheck?.status === TDEE_CHECK.LOW;
 
   return (
     <Card>
@@ -19,7 +21,7 @@ export default function RecalibrateCard({ signals, delta, canRecalibrate, blocke
       </div>
 
       {implausible ? (
-        // Le statut prime sur la confiance : ni chiffre, ni pourcentage.
+        // Le statut prime sur la complétude et la précision : ni chiffre, ni pourcentage.
         <div role="status" style={{ fontSize: 12, color: PALETTE.warn, fontWeight: 700, lineHeight: 1.5 }}>
           {blockedReason}
         </div>
@@ -27,22 +29,18 @@ export default function RecalibrateCard({ signals, delta, canRecalibrate, blocke
         <div style={{ fontSize: 12, color: PALETTE.muted, lineHeight: 1.5 }}>{blockedReason}</div>
       ) : (
         <>
-          <div className="vf-tabular" style={{ fontSize: 24, fontWeight: 900, color: PALETTE.ink }}>
-            {adaptiveTDEE}
-            <span style={{ fontSize: 12, fontWeight: 500, color: PALETTE.muted, marginLeft: 5 }}>kcal/j</span>
-            {unchecked && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: PALETTE.warn, marginLeft: 8 }}>non vérifié</span>
-            )}
-          </div>
-          {low && (
-            <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.warn, marginTop: 3 }}>{LOW_LABEL}</div>
-          )}
-          <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 3, lineHeight: 1.5 }}>
-            Confiance {confidence}% · {overlapDays} j croisés · {windowStart} → {windowEnd}
-            {windowAgeDays > 7 && (
-              <span style={{ color: PALETTE.warn, fontWeight: 700 }}> · fenêtre vieille de {windowAgeDays} j</span>
-            )}
-          </div>
+          <TdeeReading
+            tdee={adaptiveTDEE}
+            ci95={tdeeCi95}
+            checkStatus={tdeeCheck?.status}
+            readable={trendReadable}
+            completeness={confidence}
+            overlapDays={overlapDays}
+            windowSize={windowSize}
+            windowStart={windowStart}
+            windowEnd={windowEnd}
+            windowAgeDays={windowAgeDays}
+          />
 
           {canRecalibrate ? (
             <button

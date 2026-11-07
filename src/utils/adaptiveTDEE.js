@@ -9,6 +9,8 @@ import {
 import { toKey, addDays } from './dateUtils.js';
 import { isExcluded, sanitizeProtocol } from '../models/protocol.js';
 import { checkTDEE, TDEE_CHECK } from './plausibility.js';
+import { slopeWithError, tdeeCi95, isReadable, sanitizeScaleResolution } from './trendUncertainty.js';
+import { TREND_WINDOW_SIZES } from '../constants/config.js';
 
 const SMOOTHING_WINDOW = 7;
 const HISTORY_SCAN_DAYS = 30;  // horizon de scan pour la fenêtre glissante
@@ -288,7 +290,10 @@ export function calibrationProgress(data, today = toKey(new Date())) {
  *   tdeeCheck           — plausibilité : { status, bmr, minKcal, lowKcal, maxKcal } ou null
  *   weightTrendPerWeek  — pente de poids lissée (kg/semaine) ou null
  *   avgIntake           — apport moyen journalier sur la fenêtre (kcal) ou null
- *   confidence          — recouvrement poids × apport, 0–100 %
+ *   confidence          — complétude : recouvrement poids × apport, 0–100 %
+ *   tdeeCi95            — ±kcal à 95 % sur le TDEE (pente + quantification)
+ *   trendReadable       — intervalle ≤ ±300 kcal (sinon : pas de recalibration)
+ *   windowSize          — 14, 21 ou 28 j (allongée tant que la tendance est illisible)
  *   hasEnoughData       — true si recouvrement ≥ MIN_OVERLAP_DAYS sur la fenêtre
  *   overlapDays         — jours avec poids ET apport sur la fenêtre
  *   interpolatedCount   — poids reconstruits par interpolation sur la fenêtre
@@ -334,21 +339,7 @@ export function extractSignals(data) {
   // Sélection de la fenêtre optimale par Data Quality Score. `null` ⇒ aucune
   // fenêtre complète hors coupure : tout le reste se dégrade en « pas de TDEE ».
   const best = findBestWindow(entries);
-  const { startIdx, endIdx, size } = best ?? { startIdx: 0, endIdx: -1, size: 0 };
-  const bestWindow = entries.slice(startIdx, endIdx + 1);
-  const windowStart = bestWindow[0]?.date ?? null;
-  const windowEnd = bestWindow[bestWindow.length - 1]?.date ?? null;
-  const windowAgeDays = best ? entries.length - 1 - endIdx : null;
-
-  // Qualité = recouvrement poids × apport sur la fenêtre
-  const overlapDays = windowQualityScore(bestWindow);
-  // Jours d'effort lourd hors séance contenus dans la fenêtre retenue. Ne
-  // corrige RIEN au calcul — c'est une mesure de représentativité : deux
-  // fenêtres de même qualité formelle ne décrivent pas la même vie si l'une
-  // contient quatre jours de chantier et l'autre zéro.
-  const heavyWorkDays = bestWindow.filter((e) => e.heavyWork).length;
-  const confidence = size > 0 ? Math.round((overlapDays / size) * 100) : 0;
-  const hasEnoughData = size > 0 && overlapDays >= Math.min(MIN_OVERLAP_DAYS, size);
+  const { startIdx, endIdx } = best ?? { startIdx: 0, endIdx: -1 };
 
   // Lissage sur l'historique complet pour une baseline plus robuste
   const interpolated = bySegment(entries, interpolateWeights);
@@ -366,30 +357,75 @@ export function extractSignals(data) {
       ? round2(recent7.reduce((s, e) => s + e.smoothed, 0) / recent7.length)
       : null;
 
-  // Tendance : pente des moindres carrés sur les poids INTERPOLÉS, pas lissés.
+  const resolutionKg = sanitizeScaleResolution(data?.scaleResolutionKg);
+
+  // Estimation sur une fenêtre [start, end] : pente, apport, incertitude.
   //
+  // Tendance : pente des moindres carrés sur les poids INTERPOLÉS, pas lissés.
   // Pré-lisser avant de régresser biaise la pente : la moyenne mobile est tronquée
   // aux bords de série, ce qui aplatit les derniers points et sous-estime la pente
-  // (mesuré : −42 kcal/j sur données parfaites). L'OLS est déjà un estimateur
-  // optimal du bruit sous hypothèse iid — le lissage préalable n'apporte rien et
-  // introduit de l'autocorrélation. La moyenne mobile reste utilisée pour
-  // `smoothedWeight`, la valeur AFFICHÉE à l'utilisateur.
+  // (mesuré : −42 kcal/j sur données parfaites). La moyenne mobile reste utilisée
+  // pour `smoothedWeight`, la valeur AFFICHÉE à l'utilisateur.
   //
   // L'index x est l'index réel dans la fenêtre — filtrer avant de l'affecter
   // décalerait la pente en présence de trous.
-  const tdeeWindow = interpolated.slice(startIdx, endIdx + 1);
-  const slopeKgPerDay = olsSlope(
-    tdeeWindow.map((e, i) => ({ x: i, y: e.weight })).filter((p) => p.y !== null)
-  );
-  const weightTrendPerWeek = slopeKgPerDay !== null ? round2(slopeKgPerDay * 7) : null;
-  const interpolatedCount = tdeeWindow.filter((e) => e.interpolated).length;
+  //
+  // Incertitude : erreur standard de la pente sur les seules pesées MESURÉES,
+  // bruit de quantification de la balance inclus, convertie en ±kcal à 95 %.
+  const estimate = (start, end) => {
+    const win = entries.slice(start, end + 1);
+    const size = win.length;
+    const overlap = windowQualityScore(win);
+    const tdeeWindow = interpolated.slice(start, end + 1);
+    const slope = olsSlope(tdeeWindow.map((e, i) => ({ x: i, y: e.weight })).filter((p) => p.y !== null));
+    const fit = slopeWithError(win.map((e, i) => ({ x: i, y: e.weight })).filter((p) => p.y !== null), resolutionKg);
+    const intakeDays = win.filter((e) => e.intake !== null);
+    return {
+      start, end, size, win, overlap, slope,
+      ci95: tdeeCi95(fit),
+      // 10 jours croisés sur 14, au prorata sur 21 ou 28.
+      hasEnough: size > 0 && overlap >= Math.min(Math.ceil((MIN_OVERLAP_DAYS * size) / WINDOW_SIZE), size),
+      interpolatedCount: tdeeWindow.filter((e) => e.interpolated).length,
+      avgIntake: intakeDays.length > 0
+        ? Math.round(intakeDays.reduce((s, e) => s + e.intake, 0) / intakeDays.length)
+        : null,
+    };
+  };
 
-  // Apport moyen sur la fenêtre (jours saisis uniquement)
-  const intakeDays = bestWindow.filter((e) => e.intake !== null);
-  const avgIntake =
-    intakeDays.length > 0
-      ? Math.round(intakeDays.reduce((s, e) => s + e.intake, 0) / intakeDays.length)
-      : null;
+  // Fenêtre retenue : 14 jours ; si la tendance n'y est pas lisible, on
+  // remonte le début à 21 puis 28 jours, même fin, tant que la fenêtre
+  // allongée reste hors coupure (et après le début de calibration) et
+  // suffisamment saisie. Faute de mieux, la plus longue tentée reste.
+  let est = best ? estimate(startIdx, endIdx) : null;
+  if (est && !isReadable(est.ci95)) {
+    for (const len of TREND_WINDOW_SIZES.filter((l) => l > est.size)) {
+      const s0 = endIdx - len + 1;
+      if (s0 < 0 || entries.slice(s0, endIdx + 1).some((e) => e.excluded)) break;
+      const longer = estimate(s0, endIdx);
+      if (!longer.hasEnough) break;
+      est = longer;
+      if (isReadable(est.ci95)) break;
+    }
+  }
+
+  const chosen = est?.win ?? [];
+  const size = est?.size ?? 0;
+  const windowStart = chosen[0]?.date ?? null;
+  const windowEnd = chosen[chosen.length - 1]?.date ?? null;
+  const windowAgeDays = best ? entries.length - 1 - endIdx : null;
+
+  // Complétude = recouvrement poids × apport sur la fenêtre (ex-« confiance »)
+  const overlapDays = est?.overlap ?? 0;
+  // Jours d'effort lourd hors séance contenus dans la fenêtre retenue. Ne
+  // corrige RIEN au calcul — c'est une mesure de représentativité.
+  const heavyWorkDays = chosen.filter((e) => e.heavyWork).length;
+  const confidence = size > 0 ? Math.round((overlapDays / size) * 100) : 0;
+  const hasEnoughData = !!est?.hasEnough;
+
+  const slopeKgPerDay = est?.slope ?? null;
+  const weightTrendPerWeek = slopeKgPerDay !== null ? round2(slopeKgPerDay * 7) : null;
+  const interpolatedCount = est?.interpolatedCount ?? 0;
+  const avgIntake = est?.avgIntake ?? null;
 
   // TDEE adaptatif : apport moyen − déséquilibre énergétique journalier.
   // La pente OLS est déjà en kg/JOUR — aucune division par la taille de fenêtre.
@@ -401,6 +437,9 @@ export function extractSignals(data) {
   if (!calibration?.active && hasEnoughData && slopeKgPerDay !== null && avgIntake !== null) {
     measuredTDEE = Math.round(avgIntake - slopeKgPerDay * KCAL_PER_KG);
   }
+  // Intervalle à 95 % du TDEE (±kcal) et lisibilité — publiés avec le TDEE.
+  const tdeeCi95Kcal = measuredTDEE !== null ? (est?.ci95 ?? null) : null;
+  const trendReadable = measuredTDEE !== null ? isReadable(tdeeCi95Kcal) : null;
 
   // Garde-fou de plausibilité : un résultat juste arithmétiquement peut être
   // faux physiologiquement (tendance de poids faussée par une balance au kg
@@ -429,6 +468,13 @@ export function extractSignals(data) {
     measuredTDEE,
     // null sans TDEE calculé ; sinon { status, bmr, minKcal, lowKcal, maxKcal }
     tdeeCheck,
+    // Demi-largeur de l'intervalle à 95 % du TDEE (kcal), null sans TDEE.
+    tdeeCi95: tdeeCi95Kcal,
+    // Intervalle ≤ ±300 kcal ? null sans TDEE.
+    trendReadable,
+    // Taille de la fenêtre retenue (14, 21 ou 28 j) et résolution de balance.
+    windowSize: size,
+    scaleResolutionKg: resolutionKg,
     // null sans calibration ; sinon { start, seedTDEE, requiredDays, crossedDays, active }
     calibration,
     weightTrendPerWeek,

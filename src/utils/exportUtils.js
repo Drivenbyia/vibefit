@@ -1,6 +1,7 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail, tdeeQualifier } from './plausibility.js';
+import { fmtTDEE, fmtPrecision, UNREADABLE_LABEL } from './trendUncertainty.js';
 import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
 import { isExcluded, measureSource, isCyclingSuspended, formatInfoActivities } from '../models/protocol.js';
 import { computeSingleTarget, DEFAULT_TDEE } from './presetUtils.js';
@@ -184,17 +185,20 @@ export function getHistoricalWeeks(data, n = 8) {
       ? `${IMPLAUSIBLE_LABEL} (${implausibleDetail(signals.measuredTDEE, signals.tdeeCheck)})` +
         (data?.baseTDEE ? ` · cibles sur la dernière base valide ${data.baseTDEE} kcal` : '')
       : signals.adaptiveTDEE !== null
-        ? `${signals.adaptiveTDEE} kcal${tdeeQualifier(signals.tdeeCheck)}`
+        ? `${fmtTDEE(signals.adaptiveTDEE, signals.tdeeCi95)}${tdeeQualifier(signals.tdeeCheck)}` +
+          (signals.trendReadable === false ? ` — ${UNREADABLE_LABEL}, pas de recalibration` : '')
         : 'N/A (recouvrement poids × apport insuffisant)';
   const trendStr = signals.weightTrendPerWeek !== null
     ? `${signals.weightTrendPerWeek >= 0 ? '+' : ''}${signals.weightTrendPerWeek} kg/sem`
     : 'N/A';
   const intakeStr = signals.avgIntake !== null ? `${signals.avgIntake} kcal` : 'N/A';
-  // Le statut incohérent prime sur la confiance : 100 % de jours saisis ne
-  // disent rien de la qualité d'une mesure hors plage physiologique.
-  const confidenceStr = implausible
+  // Deux indicateurs : la complétude (jours saisis) et la précision (largeur
+  // de l'intervalle). Le statut incohérent prime sur les deux : 100 % de jours
+  // saisis ne disent rien d'une mesure hors plage physiologique.
+  const completenessStr = implausible
     ? `sans objet, mesure incohérente (${signals.overlapDays} j croisés)`
-    : `${signals.confidence}% (${signals.overlapDays} j croisés)`;
+    : `${signals.confidence}% (${signals.overlapDays} j croisés sur ${signals.windowSize} j)`;
+  const precisionStr = implausible ? 'sans objet' : fmtPrecision(signals.tdeeCi95);
 
   const periodStr =
     signals.windowStart && signals.windowEnd
@@ -211,7 +215,7 @@ export function getHistoricalWeeks(data, n = 8) {
 
   const header =
     `⚡ TDEE adaptatif : ${tdeeStr} | Tendance poids : ${trendStr}` +
-    ` | Confiance : ${confidenceStr} | Apport moyen : ${intakeStr}` +
+    ` | Complétude : ${completenessStr} | Précision : ${precisionStr} | Apport moyen : ${intakeStr}` +
     ` | Période : ${periodStr} | ${heavyStr}`;
 
   const lines = [

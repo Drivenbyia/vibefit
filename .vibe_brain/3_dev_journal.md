@@ -1670,3 +1670,21 @@ Vérification : `npm run lint` ✅ · `npm test` **347/347** (+20) · `vite buil
 - Helper `tdeeQualifier` partagé par l'export et le contexte coach.
 
 Vérification : `npm run lint` ✅ · `npm test` **351/351** (+4).
+
+## Session 2026-11-07 (suite) — PR B : résolution de balance et incertitude
+
+- PR #31 mergée, GitHub Pages en ligne (https://drivenbyia.github.io/vibefit/).
+- `utils/trendUncertainty.js` : `slopeWithError` (quantification incluse),
+  `tdeeCi95` (t de Student), précision, `fmtTDEE` « ~X kcal (±Y) ».
+- `extractSignals` : estimation par fenêtre factorisée ; si illisible, début
+  reculé à 21 puis 28 j (même fin) tant que hors coupure et assez saisie.
+  Nouveaux champs : `tdeeCi95`, `trendReadable`, `windowSize`, `scaleResolutionKg`.
+- Recalibration bloquée si illisible (après « Profil incomplet »). Bande
+  d'état : verdict `TREND_UNREADABLE`, readout sans « conf. % ».
+- Export / coach / bilan / Cibles : Complétude et Précision séparées.
+- Carte « Résolution de la balance » ; `NumberInput` transmet enfin `step`
+  (il était ignoré : 77.5 passait pour invalide au pas de 1).
+- Série réelle : ±491 kcal à 0,5 kg (±466 à 0,1, ±565 à 1).
+
+Vérification : `npm run lint` ✅ · `npm test` **367/367** (+16) · `vite build` ✅ ·
+Chromium 390 px sans erreur.

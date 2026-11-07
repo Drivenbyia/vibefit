@@ -9,9 +9,21 @@ last_updated: 2026-10-31
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/stoic-fermi-55d45d`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 351 tests** — `npm test`
+- **Suite de tests : Vitest, 367 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-11-07 — PR B : résolution de balance, incertitude de la tendance
+- Réglage racine `scaleResolutionKg` (0,1 / 0,5 / 1, défaut 0,5), carte
+  « Résolution de la balance » dans Cibles ; la saisie du poids suit ce pas.
+- Erreur standard de la pente (pesées mesurées seules), variance =
+  résidus/(n−2) + résolution²/12, convertie en ±kcal à 95 % (t de Student).
+- Intervalle > ±300 kcal ⇒ « Tendance pas encore lisible », fenêtre allongée
+  à 21 puis 28 j (même fin, hors coupure et après calibration), pas de
+  recalibration. TDEE affiché « ~X kcal (±Y) » partout.
+- « Confiance » séparée en Complétude (jours croisés) et Précision
+  (±kcal : bonne ≤ 150, moyenne ≤ 300, insuffisante au-delà).
+- Série réelle : ±491 kcal (0,5 kg), non allongeable (calibration au 24/10).
 
 ### Session 2026-11-07 — PR A : garde-fou de plausibilité du TDEE, GitHub Pages
 - Premier TDEE après calibration : 963 kcal à « confiance 100 % », juste

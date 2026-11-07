@@ -56,6 +56,20 @@ export const TDEE_MIN_BMR_FACTOR = 1.1;
 export const TDEE_LOW_BMR_FACTOR = 1.25;
 export const TDEE_MAX_PLAUSIBLE_KCAL = 4000;
 
+// --- Résolution de la balance et lisibilité de la tendance ---
+// Pas d'affichage de la balance (kg). Une pesée lue au 0,5 kg près porte un
+// bruit de quantification de variance résolution²/12, invisible dans les
+// résidus quand les lectures se répètent (78, 78, 78…) : il est AJOUTÉ à la
+// variance résiduelle de la régression.
+export const SCALE_RESOLUTIONS = [0.1, 0.5, 1];
+export const DEFAULT_SCALE_RESOLUTION = 0.5;
+// Au-delà de ±300 kcal (intervalle à 95 %), la tendance n'est pas lisible :
+// la fenêtre s'allonge (21 puis 28 jours) et aucune recalibration n'est proposée.
+export const TREND_MAX_CI95_KCAL = 300;
+export const TREND_WINDOW_SIZES = [14, 21, 28];
+// Précision affichée : ≤ 150 bonne, ≤ 300 moyenne, au-delà insuffisante.
+export const TREND_GOOD_CI95_KCAL = 150;
+
 // Profil physiologique — bornes de saisie (au-delà : valeur écartée).
 export const PROFILE_SEXES = { male: 'Homme', female: 'Femme' };
 export const HEIGHT_MIN_CM = 120;
