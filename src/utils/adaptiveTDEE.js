@@ -44,6 +44,30 @@ export function olsSlope(points) {
   return den === 0 ? null : num / den;
 }
 
+const median = (sorted) => {
+  const n = sorted.length;
+  return n % 2 ? sorted[(n - 1) / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+};
+
+/**
+ * Pente de Theil-Sen : médiane des pentes entre toutes les paires de points
+ * d'abscisses distinctes. Insensible à un point de début ou de fin atypique
+ * (jusqu'à ~29 % de points aberrants), là où les moindres carrés le suivent.
+ * @param {{x: number, y: number}[]} points — x = index réel du jour
+ * @returns {number|null} pente en unité/jour, ou null sans paire exploitable
+ */
+export function theilSenSlope(points) {
+  const slopes = [];
+  for (let i = 0; i < points.length; i++) {
+    for (let j = i + 1; j < points.length; j++) {
+      const dx = points[j].x - points[i].x;
+      if (dx !== 0) slopes.push((points[j].y - points[i].y) / dx);
+    }
+  }
+  if (slopes.length === 0) return null;
+  return median(slopes.sort((a, b) => a - b));
+}
+
 /**
  * Écarte les poids aberrants : un point est rejeté s'il est en désaccord avec
  * TOUS ses voisins connus (écart > MAX_DAILY_WEIGHT_JUMP_KG × jours écoulés).
@@ -292,6 +316,7 @@ export function calibrationProgress(data, today = toKey(new Date())) {
  *   avgIntake           — apport moyen journalier sur la fenêtre (kcal) ou null
  *   confidence          — complétude : recouvrement poids × apport, 0–100 %
  *   tdeeCi95            — ±kcal à 95 % sur le TDEE (pente + quantification)
+ *   control             — calcul de contrôle moindres carrés { slopeKgPerWeek, tdee } (debug)
  *   trendReadable       — intervalle ≤ ±300 kcal (sinon : pas de recalibration)
  *   windowSize          — 14, 21 ou 28 j (allongée tant que la tendance est illisible)
  *   hasEnoughData       — true si recouvrement ≥ MIN_OVERLAP_DAYS sur la fenêtre
@@ -361,27 +386,32 @@ export function extractSignals(data) {
 
   // Estimation sur une fenêtre [start, end] : pente, apport, incertitude.
   //
-  // Tendance : pente des moindres carrés sur les poids INTERPOLÉS, pas lissés.
-  // Pré-lisser avant de régresser biaise la pente : la moyenne mobile est tronquée
-  // aux bords de série, ce qui aplatit les derniers points et sous-estime la pente
-  // (mesuré : −42 kcal/j sur données parfaites). La moyenne mobile reste utilisée
-  // pour `smoothedWeight`, la valeur AFFICHÉE à l'utilisateur.
+  // Tendance retenue : Theil-Sen sur les pesées MESURÉES, jamais lissées ni
+  // interpolées (un poids interpolé fabriquerait des paires parfaitement
+  // alignées et tirerait la médiane vers lui). Un début ou une fin de fenêtre
+  // atypique (jeûne, gros restaurant) ne pèse plus qu'une paire parmi d'autres.
+  //
+  // Contrôle : l'ancienne pente des moindres carrés sur les poids INTERPOLÉS,
+  // conservée et exposée (`control`) pour comparaison en debug. Elle n'entre
+  // dans aucune décision.
   //
   // L'index x est l'index réel dans la fenêtre — filtrer avant de l'affecter
   // décalerait la pente en présence de trous.
   //
-  // Incertitude : erreur standard de la pente sur les seules pesées MESURÉES,
-  // bruit de quantification de la balance inclus, convertie en ±kcal à 95 %.
+  // Incertitude : résidus autour de la droite de Theil-Sen, bruit de
+  // quantification de la balance inclus, convertie en ±kcal à 95 %.
   const estimate = (start, end) => {
     const win = entries.slice(start, end + 1);
     const size = win.length;
     const overlap = windowQualityScore(win);
     const tdeeWindow = interpolated.slice(start, end + 1);
-    const slope = olsSlope(tdeeWindow.map((e, i) => ({ x: i, y: e.weight })).filter((p) => p.y !== null));
-    const fit = slopeWithError(win.map((e, i) => ({ x: i, y: e.weight })).filter((p) => p.y !== null), resolutionKg);
+    const measured = win.map((e, i) => ({ x: i, y: e.weight })).filter((p) => p.y !== null);
+    const slope = theilSenSlope(measured);
+    const olsControl = olsSlope(tdeeWindow.map((e, i) => ({ x: i, y: e.weight })).filter((p) => p.y !== null));
+    const fit = slopeWithError(measured, resolutionKg, slope);
     const intakeDays = win.filter((e) => e.intake !== null);
     return {
-      start, end, size, win, overlap, slope,
+      start, end, size, win, overlap, slope, olsControl,
       ci95: tdeeCi95(fit),
       // 10 jours croisés sur 14, au prorata sur 21 ou 28.
       hasEnough: size > 0 && overlap >= Math.min(Math.ceil((MIN_OVERLAP_DAYS * size) / WINDOW_SIZE), size),
@@ -437,6 +467,15 @@ export function extractSignals(data) {
   if (!calibration?.active && hasEnoughData && slopeKgPerDay !== null && avgIntake !== null) {
     measuredTDEE = Math.round(avgIntake - slopeKgPerDay * KCAL_PER_KG);
   }
+  // Calcul de contrôle (debug) : même fenêtre, même apport, pente OLS.
+  const olsSlopeKgPerDay = est?.olsControl ?? null;
+  const control = measuredTDEE !== null && olsSlopeKgPerDay !== null
+    ? {
+      method: 'ols',
+      slopeKgPerWeek: round2(olsSlopeKgPerDay * 7),
+      tdee: Math.round(avgIntake - olsSlopeKgPerDay * KCAL_PER_KG),
+    }
+    : null;
   // Intervalle à 95 % du TDEE (±kcal) et lisibilité — publiés avec le TDEE.
   const tdeeCi95Kcal = measuredTDEE !== null ? (est?.ci95 ?? null) : null;
   const trendReadable = measuredTDEE !== null ? isReadable(tdeeCi95Kcal) : null;
@@ -468,6 +507,9 @@ export function extractSignals(data) {
     measuredTDEE,
     // null sans TDEE calculé ; sinon { status, bmr, minKcal, lowKcal, maxKcal }
     tdeeCheck,
+    // Méthode de la pente retenue, et calcul de contrôle OLS (debug seul).
+    slopeMethod: 'theil-sen',
+    control,
     // Demi-largeur de l'intervalle à 95 % du TDEE (kcal), null sans TDEE.
     tdeeCi95: tdeeCi95Kcal,
     // Intervalle ≤ ±300 kcal ? null sans TDEE.

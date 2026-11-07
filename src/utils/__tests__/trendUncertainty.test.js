@@ -99,17 +99,17 @@ describe('réglage « Résolution de la balance » — modèle additif', () => {
 });
 
 describe('série réelle 24/10 → 06/11', () => {
-  it('±491 kcal à 0,5 kg : tendance illisible, fenêtre non allongeable (calibration)', () => {
+  it('±516 kcal à 0,5 kg : tendance illisible, fenêtre non allongeable (calibration)', () => {
     const s = extractSignals(realData());
-    expect(s.measuredTDEE).toBe(963);
-    expect(s.tdeeCi95).toBe(491);
+    expect(s.measuredTDEE).toBe(1154);
+    expect(s.tdeeCi95).toBe(516);
     expect(s.trendReadable).toBe(false);
     expect(s.windowSize).toBe(14);
   });
 
-  it('la résolution change l’intervalle : 0,1 → ±466, 1 → ±565', () => {
-    expect(extractSignals(realData({ scaleResolutionKg: 0.1 })).tdeeCi95).toBe(466);
-    expect(extractSignals(realData({ scaleResolutionKg: 1 })).tdeeCi95).toBe(565);
+  it('la résolution change l’intervalle : 0,1 → ±492, 1 → ±586', () => {
+    expect(extractSignals(realData({ scaleResolutionKg: 0.1 })).tdeeCi95).toBe(492);
+    expect(extractSignals(realData({ scaleResolutionKg: 1 })).tdeeCi95).toBe(586);
   });
 
   it('le statut « Mesure incohérente » reste prioritaire', () => {

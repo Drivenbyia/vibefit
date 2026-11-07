@@ -9,9 +9,20 @@ last_updated: 2026-10-31
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/stoic-fermi-55d45d`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 367 tests** — `npm test`
+- **Suite de tests : Vitest, 374 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-11-07 — PR C : régression robuste Theil-Sen
+- Pente retenue : Theil-Sen (médiane des pentes entre paires) sur les pesées
+  mesurées seules. Ancienne OLS sur poids interpolés gardée en contrôle
+  (`signals.control`), visible dans « Détail du calcul » (Cibles, replié).
+- Incertitude : résidus autour de la droite de Theil-Sen (ordonnée =
+  médiane de y − pente·x), même formule qu'en PR B.
+- Série réelle : Theil-Sen +0,70 kg/sem → 1 154 kcal ; OLS +0,87 → 963.
+  Toujours « Mesure incohérente » : la hausse s'étale sur 6 jours, ce n'est
+  pas un point isolé. Exclure 24-25/10 (PR D) donnerait encore 1 253 (TS) /
+  887 (OLS) : seule une fenêtre plus longue tranchera.
 
 ### Session 2026-11-07 — PR B : résolution de balance, incertitude de la tendance
 - Réglage racine `scaleResolutionKg` (0,1 / 0,5 / 1, défaut 0,5), carte

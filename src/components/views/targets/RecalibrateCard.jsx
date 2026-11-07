@@ -3,11 +3,13 @@ import { PALETTE } from '../../../constants/config.js';
 import Card from '../../ui/Card.jsx';
 import { TDEE_CHECK } from '../../../utils/plausibility.js';
 import TdeeReading from './TdeeReading.jsx';
+import CalcDetails from './CalcDetails.jsx';
 
 export default function RecalibrateCard({ signals, delta, canRecalibrate, blockedReason, onRecalibrate }) {
   const {
     adaptiveTDEE, tdeeCheck, tdeeCi95, trendReadable, confidence, overlapDays,
     windowSize, windowStart, windowEnd, windowAgeDays,
+    measuredTDEE, weightTrendPerWeek, control, avgIntake, scaleResolutionKg,
   } = signals;
   const implausible = tdeeCheck?.status === TDEE_CHECK.IMPLAUSIBLE;
 
@@ -62,6 +64,14 @@ export default function RecalibrateCard({ signals, delta, canRecalibrate, blocke
           )}
         </>
       )}
+      <CalcDetails
+        measuredTDEE={measuredTDEE}
+        trendPerWeek={weightTrendPerWeek}
+        control={control}
+        avgIntake={avgIntake}
+        windowSize={windowSize}
+        resolutionKg={scaleResolutionKg}
+      />
     </Card>
   );
 }

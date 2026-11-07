@@ -1688,3 +1688,18 @@ Vérification : `npm run lint` ✅ · `npm test` **351/351** (+4).
 
 Vérification : `npm run lint` ✅ · `npm test` **367/367** (+16) · `vite build` ✅ ·
 Chromium 390 px sans erreur.
+
+## Session 2026-11-07 (suite) — PR C : Theil-Sen
+
+- PR #32 mergée.
+- `theilSenSlope` (adaptiveTDEE.js) ; `estimate` l'applique aux pesées
+  mesurées. `olsControl` = ancienne pente OLS interpolée ⇒ `signals.control`
+  { method, slopeKgPerWeek, tdee } et `signals.slopeMethod`.
+- `slopeWithError(points, r, givenSlope)` : résidus autour d'une pente donnée.
+- `CalcDetails.jsx` : `<details>` « Détail du calcul » dans la carte TDEE,
+  visible même si la mesure est incohérente.
+- Série réelle : TS +0,100 kg/j (1 154 kcal) vs OLS +0,125 (963) ; ±516 kcal
+  à 0,5 kg. Sans 24-25/10 : 1 253 / 887 — PR D ne suffirait pas seule.
+
+Vérification : `npm run lint` ✅ · `npm test` **374/374** (+7) · `vite build` ✅ ·
+Chromium 390 px sans erreur.

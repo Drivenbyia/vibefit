@@ -105,9 +105,10 @@ describe('profil — modèle de données additif', () => {
 });
 
 describe('série réelle 24/10 → 06/11 — 963 kcal', () => {
-  it('le calcul brut reste 963 kcal, mais n’est pas publié', () => {
+  it('Theil-Sen 1154, contrôle OLS 963 : incohérent, non publié', () => {
     const s = extractSignals(realData());
-    expect(s.measuredTDEE).toBe(963);
+    expect(s.measuredTDEE).toBe(1154);
+    expect(s.control.tdee).toBe(963);
     expect(s.confidence).toBe(100);
     expect(s.tdeeCheck.status).toBe(TDEE_CHECK.IMPLAUSIBLE);
     expect(s.tdeeCheck.minKcal).toBe(1874);
@@ -140,7 +141,7 @@ describe('série réelle 24/10 → 06/11 — 963 kcal', () => {
     const report = getHistoricalWeeks(realData());
     const header = report.split('\n').find((l) => l.startsWith('⚡'));
     expect(header).toContain('Mesure incohérente — vérifie pesées et saisie');
-    expect(header).toContain('calcul brut 963 kcal');
+    expect(header).toMatch(/calcul brut 1\s154 kcal/);
     expect(header).toContain('cibles sur la dernière base valide 2050 kcal');
     expect(header).not.toMatch(/Confiance : 100%/);
   });
