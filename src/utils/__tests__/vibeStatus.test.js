@@ -62,16 +62,17 @@ describe('summarizeStatus — arbitrage entre les deux diagnostics', () => {
 });
 
 describe('summarizeStatus — ligne de mesure', () => {
-  it('compose tendance, TDEE et confiance', () => {
+  it('compose tendance et TDEE « ~X kcal (±Y) », sans pourcentage de confiance', () => {
     const s = summarizeStatus({
       diagnosis: diag(DIAGNOSIS.PROGRESSING),
       neat: neat(NEAT.STABLE),
-      signals: signals(),
+      signals: { ...signals(), tdeeCi95: 180, trendReadable: true },
     });
     expect(s.tone).toBe(TONE.GOOD);
     expect(s.readout).toContain('−0,42 kg/sem');
     expect(s.readout).toContain('TDEE');
-    expect(s.readout).toContain('conf. 86 %');
+    expect(s.readout).toMatch(/TDEE ~2\s551 kcal \(±180\)/);
+    expect(s.readout).not.toContain('conf.');
     // Une seule ligne à 390 px — cf. buildReadout.
     expect(s.readout.length).toBeLessThanOrEqual(44);
   });

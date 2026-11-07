@@ -9,6 +9,7 @@ import PresetPickerCard from './targets/PresetPickerCard.jsx';
 import RecalibrateCard from './targets/RecalibrateCard.jsx';
 import StepsCard from './targets/StepsCard.jsx';
 import ProfileCard from './targets/ProfileCard.jsx';
+import ScaleCard from './targets/ScaleCard.jsx';
 import TargetEditor from './targets/TargetEditor.jsx';
 import { ResetCard, HelpCard } from './targets/FooterCards.jsx';
 
@@ -18,7 +19,7 @@ export default function TargetsView({ data, setData }) {
     useTargetsManager(data, setData);
   const { signals, canRecalibrate, delta, blockedReason, recalibrate } =
     useAdaptiveTargets(data, setData);
-  const { profile, setField: setProfileField, bmr, minKcal, lowKcal } =
+  const { profile, setField: setProfileField, bmr, minKcal, lowKcal, scaleResolutionKg, setScaleResolution } =
     useProfileManager(data, setData, signals.smoothedWeight);
   const { phase, canClose, closePhase, setPlannedEnd } = usePhaseManager(data, setData);
   const suspended = phase ? ' · suspendu pendant la phase' : '';
@@ -57,6 +58,7 @@ export default function TargetsView({ data, setData }) {
         lowKcal={lowKcal}
         onFieldChange={setProfileField}
       />
+      <ScaleCard resolutionKg={scaleResolutionKg} onChange={setScaleResolution} />
       <StepsCard stepsTarget={stepsTarget} onChange={setStepsTarget} />
       <TargetEditor
         title="JOUR D'ENTRAÎNEMENT"

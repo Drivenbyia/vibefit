@@ -1,5 +1,6 @@
 import { SCHEMA_VERSION, MEASURE_SOURCES, PHASE_TYPES, CALIBRATION_REQUIRED_DAYS } from '../constants/config.js';
 import { sanitizeProfile } from '../utils/plausibility.js';
+import { sanitizeScaleResolution } from '../utils/trendUncertainty.js';
 
 /**
  * Protocole daté de l'app : coupures, phases et montres.
@@ -114,6 +115,8 @@ export function migrateData(raw) {
     targetHistory: sanitizeTargetHistory(base.targetHistory),
     // Profil physiologique (garde-fou du TDEE) — additif : absent ⇒ incomplet.
     profile: sanitizeProfile(base.profile),
+    // Résolution de la balance (kg) — réglage, défaut 0,5. Aucune pesée réécrite.
+    scaleResolutionKg: sanitizeScaleResolution(base.scaleResolutionKg),
     schemaVersion: SCHEMA_VERSION,
   };
 }
@@ -140,6 +143,7 @@ export function restorableProtocol(parsed) {
   if (Array.isArray(parsed?.targetHistory)) out.targetHistory = sanitizeTargetHistory(parsed.targetHistory);
   // Profil : même contrat — absent du fichier, le profil courant reste.
   if (parsed?.profile && typeof parsed.profile === 'object') out.profile = sanitizeProfile(parsed.profile);
+  if (typeof parsed?.scaleResolutionKg === 'number') out.scaleResolutionKg = sanitizeScaleResolution(parsed.scaleResolutionKg);
   // `calibration: null` explicite dans le fichier = pas de calibration.
   if (parsed && Object.hasOwn(parsed, 'calibration')) out.calibration = clean.calibration;
   return out;

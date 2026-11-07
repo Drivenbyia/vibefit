@@ -43,7 +43,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
         ? <PhaseRestCard label={phase.label ?? phase.type} stepsTarget={stepsTarget} />
         : <WorkoutCard day={day} updateDay={updateDay} />}
       <InfoActivitiesCard activities={day.infoActivities} />
-      <WeightCard day={day} updateDay={updateDay} />
+      <WeightCard day={day} updateDay={updateDay} scaleResolutionKg={data?.scaleResolutionKg} />
       {(isMonday || day.waist) && <WaistCard day={day} updateDay={updateDay} isMonday={isMonday} />}
       {deviceAt(dateKey, data?.devices ?? []) === 'apple_watch' && <AppleEntryGuide />}
       <SleepCard day={day} updateDay={updateDay} />

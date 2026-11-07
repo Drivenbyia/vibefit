@@ -3,7 +3,7 @@ import { PALETTE } from '../../../constants/config.js';
 import Card from '../../ui/Card.jsx';
 import NumberInput from '../../ui/NumberInput.jsx';
 
-export function WeightCard({ day, updateDay }) {
+export function WeightCard({ day, updateDay, scaleResolutionKg = 0.5 }) {
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -17,8 +17,7 @@ export function WeightCard({ day, updateDay }) {
         onChange={(v) => updateDay({ weight: v })}
         placeholder="ex. 78.5"
         suffix="kg"
-        inputMode="decimal"
-        step="0.1"
+        step={scaleResolutionKg}
       />
     </Card>
   );

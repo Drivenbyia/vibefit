@@ -1,6 +1,7 @@
 import { addDays, toKey } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
 import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail, tdeeQualifier } from './plausibility.js';
+import { fmtTDEE, fmtPrecision, UNREADABLE_LABEL } from './trendUncertainty.js';
 import { aggregateSleep, num, nutritionScope, proteinAverage, watchStepsAverage } from './mathUtils.js';
 import { computeRecovery } from './recoveryBaseline.js';
 import { resolveTargets } from './presetUtils.js';
@@ -85,10 +86,11 @@ export function formatCoachContext(data, { today = toKey(new Date()) } = {}) {
     tdeeStr = `${IMPLAUSIBLE_LABEL} · ${implausibleDetail(signals.measuredTDEE, signals.tdeeCheck)}` +
       (signals.windowStart ? ` · fenêtre ${dm(signals.windowStart)} → ${dm(signals.windowEnd)}` : '');
   } else if (signals.adaptiveTDEE != null) {
-    tdeeStr = `${int(signals.adaptiveTDEE)} kcal` +
+    tdeeStr = fmtTDEE(signals.adaptiveTDEE, signals.tdeeCi95) +
       tdeeQualifier(signals.tdeeCheck) +
-      (signals.windowStart ? ` · fenêtre ${dm(signals.windowStart)} → ${dm(signals.windowEnd)}` : '') +
-      ` · confiance ${signals.confidence} %`;
+      (signals.trendReadable === false ? ` · ${UNREADABLE_LABEL}` : '') +
+      (signals.windowStart ? ` · fenêtre ${dm(signals.windowStart)} → ${dm(signals.windowEnd)} (${signals.windowSize} j)` : '') +
+      ` · complétude ${signals.confidence} % · précision ${fmtPrecision(signals.tdeeCi95)}`;
   }
 
   const cycling = !isCyclingSuspended(today, phases);

@@ -3,6 +3,7 @@ import { NEAT } from './neatDrift.js';
 import { SLEEP } from './sleepDiagnosis.js';
 import { etaLabel, incompleteLabel } from './calibrationCopy.js';
 import { implausibleDetail } from './plausibility.js';
+import { fmtTDEE, UNREADABLE_LABEL } from './trendUncertainty.js';
 
 /**
  * Bande d'état — LE VERDICT, PAS LE TABLEAU DE BORD.
@@ -39,6 +40,7 @@ export const STATUS_KIND = {
   WATER_RETENTION: 'WATER_RETENTION',
   CALIBRATING: 'CALIBRATING',
   MEASURE_IMPLAUSIBLE: 'MEASURE_IMPLAUSIBLE',
+  TREND_UNREADABLE: 'TREND_UNREADABLE',
   PLATEAU_SUSPENDED: 'PLATEAU_SUSPENDED',
   LOW_ADHERENCE: 'LOW_ADHERENCE',
   PROGRESSING: 'PROGRESSING',
@@ -66,11 +68,11 @@ const kcalSuffix = (kcal) =>
  * Tenue sur UNE ligne à 360 px en Azeret Mono 10px. D'où « conf. » abrégé et
  * les séparateurs à une espace.
  */
-function buildReadout({ trendPerWeek, tdee, confidence }, hasChart) {
+function buildReadout({ trendPerWeek, tdee, ci95 }, hasChart) {
   const parts = [];
   if (!hasChart && trendPerWeek !== null) parts.push(`${signedKg(trendPerWeek)} kg/sem`);
-  if (tdee !== null) parts.push(`TDEE ${fmtInt(tdee)} kcal`);
-  if (confidence !== null) parts.push(`conf. ${confidence} %`);
+  // « ~X kcal (±Y) » : la précision tient dans le ±, plus de « conf. % ».
+  if (tdee !== null) parts.push(`TDEE ${fmtTDEE(tdee, ci95)}`);
   return parts.length > 0 ? parts.join(' · ') : null;
 }
 
@@ -153,11 +155,9 @@ function calibrationDetail(calib, fallback) {
 export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPerWeek = null } = {}) {
   const trendPerWeek = signals?.weightTrendPerWeek ?? null;
   const tdee = signals?.adaptiveTDEE ?? null;
-  // La confiance n'est publiée qu'avec un TDEE : seule, c'est le pourcentage
-  // d'un chiffre qu'on n'affiche pas.
-  const confidence = tdee !== null ? (signals?.confidence ?? null) : null;
+  const ci95 = tdee !== null ? (signals?.tdeeCi95 ?? null) : null;
   const trend = buildTrend(signals?.weightSeries, expectedKgPerWeek, trendPerWeek);
-  const readout = buildReadout({ trendPerWeek, tdee, confidence }, trend !== null);
+  const readout = buildReadout({ trendPerWeek, tdee, ci95 }, trend !== null);
 
   const verdict = (tone, kind, headline, detail) => ({ tone, kind, headline, detail, readout, trend });
 
@@ -186,6 +186,13 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
   if (diagnosis?.status === DIAGNOSIS.IMPLAUSIBLE_MEASURE) {
     return verdict(TONE.WARN, STATUS_KIND.MEASURE_IMPLAUSIBLE, 'Mesure incohérente',
       `Vérifie pesées et saisie : ${implausibleDetail(signals?.measuredTDEE, signals?.tdeeCheck)}. Cibles inchangées.`);
+  }
+
+  // Tendance illisible : le TDEE existe mais son intervalle dépasse ±300 kcal.
+  // Rien à décider, mais à dire — sinon le chiffre serait lu comme une mesure.
+  if (tdee !== null && signals?.trendReadable === false) {
+    return verdict(TONE.IDLE, STATUS_KIND.TREND_UNREADABLE, UNREADABLE_LABEL,
+      `TDEE ${fmtTDEE(tdee, ci95)} sur ${signals.windowSize} j : la fenêtre s’allonge, continue les pesées. Cibles inchangées.`);
   }
 
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {

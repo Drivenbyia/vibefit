@@ -12,7 +12,7 @@ import { PALETTE } from '../../constants/config.js';
  * Dans les deux modes, la valeur parente (`value`) est resynchronisée dans le champ
  * uniquement quand l'input n'est pas focusé (ex: clic sur un preset).
  */
-export default function NumberInput({ value, onChange, onBlur: onBlurProp, placeholder, suffix, min = 0 }) {
+export default function NumberInput({ value, onChange, onBlur: onBlurProp, placeholder, suffix, min = 0, step }) {
   const [localValue, setLocalValue] = useState(value != null ? String(value) : '');
   const isFocused = useRef(false);
 
@@ -55,6 +55,7 @@ export default function NumberInput({ value, onChange, onBlur: onBlurProp, place
         type="number"
         inputMode="decimal"
         min={min}
+        step={step}
         value={localValue}
         onChange={handleChange}
         onFocus={handleFocus}
