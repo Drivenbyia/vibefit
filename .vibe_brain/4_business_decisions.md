@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-11-07 — Pente de Theil-Sen, moindres carrés en contrôle
+- **Décision** : la tendance de poids du TDEE est la pente de Theil-Sen sur les pesées mesurées (sans interpolation). L'OLS sur poids interpolés reste calculée (`control`) et affichée dans « Détail du calcul », sans entrer dans aucune décision.
+- **Contexte** : une fenêtre ouverte sur un jour atypique (jeûne) tirait la pente OLS.
+- **Alternatives considérées** : (1) Huber / IRLS — paramètre de seuil à régler ; (2) Theil-Sen sur poids interpolés — paires fictives parfaitement alignées qui biaisent la médiane ; (3) supprimer l'OLS — perd le point de comparaison demandé.
+- **Raison du choix** : sans paramètre, robuste jusqu'à ~29 % de points aberrants, efficacité ~91 % sous bruit gaussien (l'erreur standard OLS reste une bonne approximation).
+- **Impact** : sur la série réelle, 963 → 1 154 kcal, toujours incohérent : Theil-Sen corrige un point isolé, pas une hausse étalée sur une semaine.
+- **Réversibilité** : Facile — une ligne dans `estimate`.
+
 ### 2026-11-07 — Résolution de balance et incertitude de la tendance
 - **Décision** : nouveau réglage racine `scaleResolutionKg` (0,1 / 0,5 / 1 kg, défaut 0,5). Intervalle à 95 % sur le TDEE = t(n−2) × erreur standard de la pente × 7700, variance = résidus/(n−2) + résolution²/12, sur les seules pesées mesurées. Au-delà de ±300 kcal : « Tendance pas encore lisible », fenêtre allongée (21 puis 28 j), pas de recalibration. « Confiance » scindée en Complétude et Précision.
 - **Contexte** : balance à aiguille, pesées au kg rond ; une régression sur 14 jours ne distingue pas ±100 kcal. Des lectures identiques (78, 78, 78) donnent des résidus nuls : sans le terme de quantification, l'intervalle serait faussement étroit.
