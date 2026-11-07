@@ -1,5 +1,6 @@
 import { toKey, startOfWeek, addDays, fmtFr } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
+import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail, tdeeQualifier } from './plausibility.js';
 import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
 import { isExcluded, measureSource, isCyclingSuspended, formatInfoActivities } from '../models/protocol.js';
 import { computeSingleTarget, DEFAULT_TDEE } from './presetUtils.js';
@@ -175,17 +176,25 @@ export function getHistoricalWeeks(data, n = 8) {
   const currentWeekStart = startOfWeek(today);
 
   const signals = extractSignals(data);
+  const implausible = signals.tdeeCheck?.status === TDEE_CHECK.IMPLAUSIBLE;
   const tdeeStr = signals.calibration?.active
     ? `calibration en cours (${signals.calibration.crossedDays}/${signals.calibration.requiredDays} j croisés` +
       ` depuis le ${signals.calibration.start}) — TDEE de départ ${signals.calibration.seedTDEE} kcal`
-    : signals.adaptiveTDEE !== null
-      ? `${signals.adaptiveTDEE} kcal`
-      : 'N/A (recouvrement poids × apport insuffisant)';
+    : implausible
+      ? `${IMPLAUSIBLE_LABEL} (${implausibleDetail(signals.measuredTDEE, signals.tdeeCheck)})` +
+        (data?.baseTDEE ? ` · cibles sur la dernière base valide ${data.baseTDEE} kcal` : '')
+      : signals.adaptiveTDEE !== null
+        ? `${signals.adaptiveTDEE} kcal${tdeeQualifier(signals.tdeeCheck)}`
+        : 'N/A (recouvrement poids × apport insuffisant)';
   const trendStr = signals.weightTrendPerWeek !== null
     ? `${signals.weightTrendPerWeek >= 0 ? '+' : ''}${signals.weightTrendPerWeek} kg/sem`
     : 'N/A';
   const intakeStr = signals.avgIntake !== null ? `${signals.avgIntake} kcal` : 'N/A';
-  const confidenceStr = `${signals.confidence}% (${signals.overlapDays} j croisés)`;
+  // Le statut incohérent prime sur la confiance : 100 % de jours saisis ne
+  // disent rien de la qualité d'une mesure hors plage physiologique.
+  const confidenceStr = implausible
+    ? `sans objet, mesure incohérente (${signals.overlapDays} j croisés)`
+    : `${signals.confidence}% (${signals.overlapDays} j croisés)`;
 
   const periodStr =
     signals.windowStart && signals.windowEnd

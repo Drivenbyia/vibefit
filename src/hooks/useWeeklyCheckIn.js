@@ -54,7 +54,7 @@ export function useWeeklyCheckIn(data, targets, stepsTarget) {
       steps: watchStepsAverage(days, { devices: data?.devices ?? [], periods }),
       stepsTarget,
       calibration: signals.calibration,
-      tdee: { adaptiveTDEE: signals.adaptiveTDEE, delta, canRecalibrate },
+      tdee: { adaptiveTDEE: signals.adaptiveTDEE, measuredTDEE: signals.measuredTDEE, check: signals.tdeeCheck, delta, canRecalibrate },
     });
   }, [data, targets, stepsTarget, signals, canRecalibrate, delta]);
 }

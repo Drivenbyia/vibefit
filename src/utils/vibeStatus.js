@@ -2,6 +2,7 @@ import { DIAGNOSIS } from './plateauProtocol.js';
 import { NEAT } from './neatDrift.js';
 import { SLEEP } from './sleepDiagnosis.js';
 import { etaLabel, incompleteLabel } from './calibrationCopy.js';
+import { implausibleDetail } from './plausibility.js';
 
 /**
  * Bande d'état — LE VERDICT, PAS LE TABLEAU DE BORD.
@@ -37,6 +38,7 @@ export const STATUS_KIND = {
   SLEEP_DEBT: 'SLEEP_DEBT',
   WATER_RETENTION: 'WATER_RETENTION',
   CALIBRATING: 'CALIBRATING',
+  MEASURE_IMPLAUSIBLE: 'MEASURE_IMPLAUSIBLE',
   PLATEAU_SUSPENDED: 'PLATEAU_SUSPENDED',
   LOW_ADHERENCE: 'LOW_ADHERENCE',
   PROGRESSING: 'PROGRESSING',
@@ -177,6 +179,13 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
   // distincts, qui ont leurs propres garde-fous.
   if (diagnosis?.status === DIAGNOSIS.CALIBRATING) {
     return verdict(TONE.IDLE, STATUS_KIND.CALIBRATING, 'Calibration en cours', calibrationDetail(signals?.calibration, diagnosis.detail));
+  }
+
+  // Mesure incohérente : même place que la calibration. Le TDEE n'est pas
+  // publié, la confiance non plus (la ligne de mesure ne les porte pas).
+  if (diagnosis?.status === DIAGNOSIS.IMPLAUSIBLE_MEASURE) {
+    return verdict(TONE.WARN, STATUS_KIND.MEASURE_IMPLAUSIBLE, 'Mesure incohérente',
+      `Vérifie pesées et saisie : ${implausibleDetail(signals?.measuredTDEE, signals?.tdeeCheck)}. Cibles inchangées.`);
   }
 
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {

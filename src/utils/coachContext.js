@@ -1,5 +1,6 @@
 import { addDays, toKey } from './dateUtils.js';
 import { extractSignals } from './adaptiveTDEE.js';
+import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail, tdeeQualifier } from './plausibility.js';
 import { aggregateSleep, num, nutritionScope, proteinAverage, watchStepsAverage } from './mathUtils.js';
 import { computeRecovery } from './recoveryBaseline.js';
 import { resolveTargets } from './presetUtils.js';
@@ -80,8 +81,12 @@ export function formatCoachContext(data, { today = toKey(new Date()) } = {}) {
     const eta = etaLabel(calib);
     tdeeStr = `calibration ${calib.crossedDays}/${calib.requiredDays} j croisés depuis le ${dmy(calib.start)}` +
       (eta ? ` · ${eta}` : '') + ` · TDEE de départ ${int(calib.seedTDEE)} kcal`;
+  } else if (signals.tdeeCheck?.status === TDEE_CHECK.IMPLAUSIBLE) {
+    tdeeStr = `${IMPLAUSIBLE_LABEL} · ${implausibleDetail(signals.measuredTDEE, signals.tdeeCheck)}` +
+      (signals.windowStart ? ` · fenêtre ${dm(signals.windowStart)} → ${dm(signals.windowEnd)}` : '');
   } else if (signals.adaptiveTDEE != null) {
     tdeeStr = `${int(signals.adaptiveTDEE)} kcal` +
+      tdeeQualifier(signals.tdeeCheck) +
       (signals.windowStart ? ` · fenêtre ${dm(signals.windowStart)} → ${dm(signals.windowEnd)}` : '') +
       ` · confiance ${signals.confidence} %`;
   }

@@ -35,7 +35,16 @@ Le résultat est dans `dist/`.
 
 ---
 
-## Déployer sur Netlify
+## Déployer sur GitHub Pages (actuel)
+
+Le workflow `.github/workflows/pages.yml` publie l'app à chaque push sur `main`
+sous `https://drivenbyia.github.io/vibefit/`. Une seule fois : **Settings →
+Pages → Source : GitHub Actions**.
+
+Les données restent dans le navigateur, par site : en changeant d'adresse,
+exporte une sauvegarde JSON depuis l'ancienne, puis « Restaurer » sur la nouvelle.
+
+## Déployer sur Netlify (ancien)
 
 ### Option A — Auto-deploy depuis GitHub (recommandé)
 

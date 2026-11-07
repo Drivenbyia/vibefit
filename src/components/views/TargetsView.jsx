@@ -1,12 +1,14 @@
 import { PALETTE } from '../../constants/config.js';
 import { useTargetsManager } from '../../hooks/useTargetsManager.js';
 import { useAdaptiveTargets } from '../../hooks/useAdaptiveTargets.js';
+import { useProfileManager } from '../../hooks/useProfileManager.js';
 import { macroConflictKcal, computeSingleTarget } from '../../utils/presetUtils.js';
 import { usePhaseManager } from '../../hooks/usePhase.js';
 import PhaseCard from './targets/PhaseCard.jsx';
 import PresetPickerCard from './targets/PresetPickerCard.jsx';
 import RecalibrateCard from './targets/RecalibrateCard.jsx';
 import StepsCard from './targets/StepsCard.jsx';
+import ProfileCard from './targets/ProfileCard.jsx';
 import TargetEditor from './targets/TargetEditor.jsx';
 import { ResetCard, HelpCard } from './targets/FooterCards.jsx';
 
@@ -16,6 +18,8 @@ export default function TargetsView({ data, setData }) {
     useTargetsManager(data, setData);
   const { signals, canRecalibrate, delta, blockedReason, recalibrate } =
     useAdaptiveTargets(data, setData);
+  const { profile, setField: setProfileField, bmr, minKcal, lowKcal } =
+    useProfileManager(data, setData, signals.smoothedWeight);
   const { phase, canClose, closePhase, setPlannedEnd } = usePhaseManager(data, setData);
   const suspended = phase ? ' · suspendu pendant la phase' : '';
 
@@ -43,6 +47,15 @@ export default function TargetsView({ data, setData }) {
         canRecalibrate={canRecalibrate}
         blockedReason={blockedReason}
         onRecalibrate={recalibrate}
+      />
+      <ProfileCard
+        sex={profile.sex}
+        birthYear={profile.birthYear}
+        heightCm={profile.heightCm}
+        bmr={bmr}
+        minKcal={minKcal}
+        lowKcal={lowKcal}
+        onFieldChange={setProfileField}
       />
       <StepsCard stepsTarget={stepsTarget} onChange={setStepsTarget} />
       <TargetEditor

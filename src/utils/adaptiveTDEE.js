@@ -8,6 +8,7 @@ import {
 } from '../constants/config.js';
 import { toKey, addDays } from './dateUtils.js';
 import { isExcluded, sanitizeProtocol } from '../models/protocol.js';
+import { checkTDEE, TDEE_CHECK } from './plausibility.js';
 
 const SMOOTHING_WINDOW = 7;
 const HISTORY_SCAN_DAYS = 30;  // horizon de scan pour la fenêtre glissante
@@ -282,6 +283,9 @@ export function calibrationProgress(data, today = toKey(new Date())) {
  * Retourne :
  *   smoothedWeight      — poids lissé 7j (kg, 2 décimales) ou null
  *   adaptiveTDEE        — TDEE sur la fenêtre optimale (kcal/j) ou null si données < seuil
+ *                         ou si la mesure est physiologiquement incohérente
+ *   measuredTDEE        — calcul brut, publié même hors plage (explication seule)
+ *   tdeeCheck           — plausibilité : { status, bmr, minKcal, lowKcal, maxKcal } ou null
  *   weightTrendPerWeek  — pente de poids lissée (kg/semaine) ou null
  *   avgIntake           — apport moyen journalier sur la fenêtre (kcal) ou null
  *   confidence          — recouvrement poids × apport, 0–100 %
@@ -393,10 +397,19 @@ export function extractSignals(data) {
   // Calibration en cours : AUCUNE valeur publiée, même si une fenêtre à 10
   // jours croisés existe déjà. Un TDEE affiché trop tôt serait lu, et une
   // valeur lue est une valeur sur laquelle on recalibre.
-  let adaptiveTDEE = null;
+  let measuredTDEE = null;
   if (!calibration?.active && hasEnoughData && slopeKgPerDay !== null && avgIntake !== null) {
-    adaptiveTDEE = Math.round(avgIntake - slopeKgPerDay * KCAL_PER_KG);
+    measuredTDEE = Math.round(avgIntake - slopeKgPerDay * KCAL_PER_KG);
   }
+
+  // Garde-fou de plausibilité : un résultat juste arithmétiquement peut être
+  // faux physiologiquement (tendance de poids faussée par une balance au kg
+  // près ou un début de fenêtre atypique). Hors plage, AUCUN TDEE n'est publié :
+  // `adaptiveTDEE` passe à null, et tout ce qui en dépend (recalibration,
+  // plateau, bilan) le traite comme absent. Le calcul brut reste exposé dans
+  // `measuredTDEE` pour l'expliquer, jamais pour s'en servir.
+  const tdeeCheck = checkTDEE(measuredTDEE, data?.profile, smoothedWeight, today);
+  const adaptiveTDEE = tdeeCheck?.status === TDEE_CHECK.IMPLAUSIBLE ? null : measuredTDEE;
 
   // Série lissée destinée au TRACÉ seul (bande d'état). `x` est l'index réel
   // dans l'horizon de scan, jamais l'index après filtrage : un trou de pesée
@@ -412,6 +425,10 @@ export function extractSignals(data) {
     smoothedWeight,
     weightSeries,
     adaptiveTDEE,
+    // Calcul brut, même hors plage — affichage d'explication uniquement.
+    measuredTDEE,
+    // null sans TDEE calculé ; sinon { status, bmr, minKcal, lowKcal, maxKcal }
+    tdeeCheck,
     // null sans calibration ; sinon { start, seedTDEE, requiredDays, crossedDays, active }
     calibration,
     weightTrendPerWeek,

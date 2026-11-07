@@ -1,4 +1,5 @@
 import { SCHEMA_VERSION, MEASURE_SOURCES, PHASE_TYPES, CALIBRATION_REQUIRED_DAYS } from '../constants/config.js';
+import { sanitizeProfile } from '../utils/plausibility.js';
 
 /**
  * Protocole daté de l'app : coupures, phases et montres.
@@ -111,6 +112,8 @@ export function migrateData(raw) {
     ...sanitizeProtocol(base),
     lastBackupAt: isValidInstant(base.lastBackupAt) ? base.lastBackupAt : null,
     targetHistory: sanitizeTargetHistory(base.targetHistory),
+    // Profil physiologique (garde-fou du TDEE) — additif : absent ⇒ incomplet.
+    profile: sanitizeProfile(base.profile),
     schemaVersion: SCHEMA_VERSION,
   };
 }
@@ -135,6 +138,8 @@ export function restorableProtocol(parsed) {
   // Historique des cibles : même contrat. Une ancienne sauvegarde qui ne le
   // porte pas laisse l'historique courant intact.
   if (Array.isArray(parsed?.targetHistory)) out.targetHistory = sanitizeTargetHistory(parsed.targetHistory);
+  // Profil : même contrat — absent du fichier, le profil courant reste.
+  if (parsed?.profile && typeof parsed.profile === 'object') out.profile = sanitizeProfile(parsed.profile);
   // `calibration: null` explicite dans le fichier = pas de calibration.
   if (parsed && Object.hasOwn(parsed, 'calibration')) out.calibration = clean.calibration;
   return out;

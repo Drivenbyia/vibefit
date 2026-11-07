@@ -1630,3 +1630,43 @@ zéro erreur, stockage inchangé.
   Guide de saisie Apple aligné.
 
 Vérification : `npm run lint` ✅ · `npm test` **327/327** · `vite build` ✅.
+
+## Session 2026-11-07 — Garde-fou de plausibilité du TDEE (PR A), GitHub Pages
+
+Constat : premier TDEE mesuré après calibration = 963 kcal, confiance 100 %
+(homme 35 ans, 1,75 m, 78 kg, ~8 000 pas/j ⇒ Mifflin ≈ 1 704). Reproduit à
+l'identique en test sur la série réelle 24/10 → 06/11 : apport moyen 1 924,
+pente OLS +0,124 kg/j ⇒ 1 924 − 961 = 963. Le calcul est juste ; la tendance
+est fausse (pesées au kg rond, départ sur un jour de jeûne).
+
+- `utils/plausibility.js` : profil (`sanitizeProfile`), `mifflinBMR`,
+  `checkTDEE` (valid / implausible / unchecked), libellés.
+- `extractSignals` : `measuredTDEE` (brut), `tdeeCheck`, `adaptiveTDEE`
+  nul si incohérent — tous les consommateurs existants le traitent déjà
+  comme absent (recalibration, plateau).
+- `utils/recalibration.js` : `recalibrationBlock` (pur), la mesure
+  incohérente passe juste après la calibration en cours.
+- Diagnostic `IMPLAUSIBLE_MEASURE` (plateau) et verdict
+  `MEASURE_IMPLAUSIBLE` (bande) — au lieu d'un faux « données insuffisantes ».
+- Export / contexte coach / bilan : statut à la place du chiffre, confiance
+  « sans objet ».
+- Carte Profil (Cibles) : sexe, année de naissance, taille ; affiche le BMR
+  et le plancher.
+- GitHub Pages : `base` piloté par `VITE_BASE`, manifeste relatif, workflow
+  `pages.yml`. Build vérifié sous `/vibefit/` (polices, SW, manifeste).
+
+Seuil 1,2 × BMR = 2 045 pour ce profil : une maintenance plausible de ~2 000
+tomberait dessous. Gardé tel que demandé, signalé pour arbitrage.
+
+Vérification : `npm run lint` ✅ · `npm test` **347/347** (+20) · `vite build` ✅.
+
+## Session 2026-11-07 (suite) — Seuil arbitré : 1,1 × BMR et zone « TDEE bas »
+
+- Plancher dur passé de 1,2 à 1,1 × BMR (1 874 au poids actuel, recalculé
+  avec le poids lissé). 963 reste « Mesure incohérente » (testé).
+- Nouveau statut `low` (1,1 à 1,25 × BMR, < 2 130 ici) : TDEE publié,
+  qualifié « TDEE bas — à confirmer sur la prochaine fenêtre » (Cibles,
+  bilan, export, coach), recalibration bloquée sur cette seule mesure.
+- Helper `tdeeQualifier` partagé par l'export et le contexte coach.
+
+Vérification : `npm run lint` ✅ · `npm test` **351/351** (+4).

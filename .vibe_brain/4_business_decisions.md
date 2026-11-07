@@ -23,6 +23,22 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-11-07 — Garde-fou de plausibilité du TDEE mesuré (Mifflin-St Jeor)
+- **Décision** : un TDEE calculé < 1,1 × métabolisme de base (Mifflin-St Jeor, profil + poids lissé courant) ou > 4000 kcal n'est pas publié : statut « Mesure incohérente — vérifie pesées et saisie », pas de recalibration, cibles sur la dernière base valide. Le statut prime sur la confiance. Profil incomplet ⇒ TDEE « non vérifié », recalibration bloquée. Entre 1,1 et 1,25 × : valide mais « TDEE bas — à confirmer sur la prochaine fenêtre », sans proposition de recalibration à lui seul. Nouveau champ racine `profile { sex, birthYear, heightCm }`.
+- **Contexte** : 963 kcal à confiance 100 % après la calibration ; la confiance ne mesure que la complétude de saisie.
+- **Alternatives considérées** : (1) plancher fixe (ex. 1500) — ignore le gabarit ; (2) bloquer tout TDEE sans profil — casse le comportement sans profil et 300 tests ; (3) âge saisi — vieillit en silence, d'où l'année de naissance.
+- **Raison du choix** : un TDEE sous le métabolisme de base ×1,1 n'est pas une mesure ; le publier, c'est risquer d'y recalibrer. 1,2 (proposé d'abord) donnait 2045 pour ce profil et aurait rejeté une maintenance plausible de ~2000 : arbitré à 1,1 par le développeur, avec la zone basse pour ne pas recalibrer sur une valeur limite.
+- **Impact** : `adaptiveTDEE` peut être nul avec des données complètes ; `measuredTDEE` et `tdeeCheck` expliquent pourquoi. Pour 35 ans / 175 cm / 78 kg : plancher 1874, zone basse < 2130.
+- **Réversibilité** : Facile — constantes `TDEE_MIN_BMR_FACTOR` / `TDEE_LOW_BMR_FACTOR` / `TDEE_MAX_PLAUSIBLE_KCAL`.
+
+### 2026-11-07 — Hébergement GitHub Pages (remplace Netlify)
+- **Décision** : publication par GitHub Actions sur GitHub Pages (`pages.yml`), sous `/vibefit/` ; `base` Vite piloté par `VITE_BASE` (défaut `/`). `netlify.toml` conservé, inerte.
+- **Contexte** : quota de déploiements Netlify atteint, dernière version non publiée.
+- **Alternatives considérées** : Vercel, Cloudflare Pages — nouveau compte, nouveau quota.
+- **Raison du choix** : gratuit, sans quota de builds pratique, dans le dépôt.
+- **Impact** : nouvelle origine ⇒ `localStorage` vide : exporter depuis Netlify, « Restaurer » sur github.io. L'app installée sur l'écran d'accueil est à réinstaller.
+- **Réversibilité** : Facile.
+
 ### 2026-10-24 — Linter ESLint, en dépendance de développement uniquement
 - **Décision** : ESLint 9 (config plate `eslint.config.js`) avec `@eslint/js`, `eslint-plugin-react`, `eslint-plugin-react-hooks` et `globals`, en `devDependencies`. Script `npm run lint`, exécuté par la CI avant les tests. Règles : recommandées JS et React, `rules-of-hooks` et `exhaustive-deps` en **erreur** (react-rules §4), composants classe interdits via `no-restricted-syntax` (react-rules §1), `prop-types` désactivé (pas de PropTypes ni TS, props déstructurées — §5), `no-unescaped-entities` limité à `>` et `}` (l'apostrophe française s'affiche correctement en JSX).
 - **Contexte** : `CLAUDE.md` autorise `npm run lint` / `npx eslint`, mais aucun linter n'existait. Les règles React du projet n'étaient vérifiées qu'à la relecture.

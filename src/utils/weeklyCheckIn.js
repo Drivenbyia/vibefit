@@ -1,4 +1,5 @@
 import { etaLabel, incompleteLabel } from './calibrationCopy.js';
+import { TDEE_CHECK } from './plausibility.js';
 import { GAP_ON_TARGET_KCAL } from './longTrend.js';
 import { ddmm, fmtGap } from './longTrendCopy.js';
 
@@ -52,10 +53,12 @@ export function weeklyCheckIn({
     // passaient sur deux).
     lines.push({ label: 'Calibration', value: `${calibration.crossedDays}/${calibration.requiredDays} j`,
       note: calibration.earliestCompletion ? `au plus tôt le ${ddmm(calibration.earliestCompletion)}` : '' });
+  } else if (tdee?.check?.status === TDEE_CHECK.IMPLAUSIBLE) {
+    lines.push({ label: 'TDEE mesuré', value: 'incohérent', note: 'vérifie pesées et saisie' });
   } else if (tdee?.adaptiveTDEE != null) {
     const d = tdee.delta;
     lines.push({ label: 'TDEE mesuré', value: `${fmtInt(tdee.adaptiveTDEE)} kcal`,
-      note: d ? `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))} vs cibles` : 'aligné sur les cibles' });
+      note: tdee?.check?.status === TDEE_CHECK.LOW ? 'bas — à confirmer' : d ? `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))} vs cibles` : 'aligné sur les cibles' });
   }
 
   return { title: `Semaine du ${ddmm(week.weekStart)}${inProgress ? ' · en cours' : ''}`, lines, action: pickAction({ week, waistMissing, isMonday, protein, steps, stepsTarget, calibration, tdee }) };
@@ -71,6 +74,9 @@ function pickAction({ week, waistMissing, isMonday, protein, steps, stepsTarget,
     const eta = etaLabel(calibration);
     return { kind: 'calibration',
       text: `Calibration ${calibration.crossedDays}/${calibration.requiredDays} : pesée et apport chaque jour${eta ? `, ${eta}` : ''}.` };
+  }
+  if (tdee?.check?.status === TDEE_CHECK.IMPLAUSIBLE) {
+    return { kind: 'measure', tab: 'targets', text: 'TDEE mesuré incohérent : vérifie pesées et saisie. Cibles inchangées, aucune recalibration.' };
   }
   if (waistMissing) return WAIST_ACTION;
   if (tdee?.canRecalibrate) {
