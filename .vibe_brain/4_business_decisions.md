@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-11-14 — Import Apple Santé par presse-papier (raccourci iOS)
+- **Décision** : un raccourci iOS « VibeFit Santé » lit Santé (MyFitnessPal y écrit les repas, l'Apple Watch le reste) et copie un dictionnaire JSON plat `{ date, kcal, protein, carbs, fat, steps, weight, sleepMin, rhr, hrvSdnn, hrv }` dans le presse-papier. Sur Aujourd'hui, un bouton « Importer depuis Santé » le lit (`navigator.clipboard.readText`) et le fusionne avec `mergeDays` : seuls les champs vides sont remplis.
+- **Contexte** : la saisie quotidienne (Santé puis MyFitnessPal, valeur par valeur) est le premier coût du suivi. Le développeur utilise l'app installée sur l'écran d'accueil.
+- **Alternatives considérées** : (1) lien `?import=` ouvert par le raccourci, écarté : il s'ouvre dans Safari, dont le stockage est séparé de celui de l'app de l'écran d'accueil ; (2) fichier JSON puis « Fusionner », gardé en secours mais trop de manipulations au quotidien ; (3) application tierce d'export Santé, écartée : dépendance payante et données hors appareil.
+- **Raison du choix** : un appui côté app, zéro serveur (Local First), et aucune saisie manuelle n'est écrasée. Les valeurs hors bornes sont ignorées plutôt qu'importées.
+- **Impact** : `utils/healthImport.js`, `hooks/useHealthImport.js`, `HealthImportCard` (jour courant). `TodayView` reçoit `setData`. La VFC de récupération (RMSSD) n'est pas dans la liste de Raccourcis vue le 14/11 : seule la SDNN (`hrvSdnn`) est importée, la clé `hrv` reste prête.
+- **Réversibilité** : Facile — additif.
+
 ### 2026-11-14 — Allongement de la fenêtre TDEE borné par les ruptures, protéines de phase à 130 g, jour atypique
 - **Décision** : (1) L'allongement de la fenêtre (14 → 21 → 28 j) est refusé si la partie ajoutée, plus les `TDEE_RUPTURE_MARGIN_DAYS` (3) jours qui la précèdent, contient une rupture : coupure, jour d'avant calibration ou jour marqué `atypical`. Il est aussi refusé quand la fenêtre allongée donne un TDEE incohérent alors que la courte ne l'était pas. Refus ⇒ la fenêtre courte reste, avec son intervalle large : verdict « Lecture provisoire », `signals.extensionBlocked = { reason, date }`. (2) Cible unique de phase : protéines `REST_PROTEIN_G` = 130 g (≈ 1,7 g/kg à 78 kg) quel que soit le preset, à la place de ≥ 160. (3) Nouveau champ de jour `atypical` (jeûne, resto, écart), carte « Jour atypique » sur Aujourd'hui, publié dans l'export.
 - **Contexte** : rapport du 14/11. Fenêtre de 14 j (31/10 → 13/11) : poids plat, ~1 956 kcal, ±454 kcal ⇒ illisible ⇒ allongée à 21 j. Elle a alors avalé le jeûne du 24/10 et le remplissage du glycogène qui a suivi : +0,49 kg/sem, TDEE brut 1 375, « Mesure incohérente ». C'est la résolution de la balance (PR B) qui avait déclenché l'allongement. Protéines : 93 g/j sur 7 j contre un plancher de 160 g jamais atteint, sans musculation possible (myocardite).

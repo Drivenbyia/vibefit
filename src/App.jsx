@@ -67,7 +67,7 @@ export default function VibeFit() {
     >
       <FontStyles />
       <Header dateKey={dateKey} setDateKey={setDateKey} day={day} updateDay={updateDay} targets={dayTargets} phases={data.phases} />
-      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={dayTargets} stepsTarget={data.stepsTarget} data={data} onOpenWeek={openWeek} backup={backup} onExportBackup={exportBackupNow} />}
+      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={dayTargets} stepsTarget={data.stepsTarget} data={data} setData={setData} onOpenWeek={openWeek} backup={backup} onExportBackup={exportBackupNow} />}
       {tab === 'week' && <WeekView dateKey={dateKey} data={data} setDateKey={setDateKey} targets={targets} stepsTarget={data.stepsTarget} />}
       {tab === 'targets' && <TargetsView data={data} setData={setData} />}
       {tab === 'data' && <DataView data={data} setData={setData} backup={backup} storageStatus={storageStatus} />}
