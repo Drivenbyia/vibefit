@@ -1,8 +1,7 @@
-import { PALETTE } from '../../constants/config.js';
 import { useTargetsManager } from '../../hooks/useTargetsManager.js';
 import { useAdaptiveTargets } from '../../hooks/useAdaptiveTargets.js';
 import { useProfileManager } from '../../hooks/useProfileManager.js';
-import { macroConflictKcal, computeSingleTarget } from '../../utils/presetUtils.js';
+import { computeSingleTarget } from '../../utils/presetUtils.js';
 import { usePhaseManager } from '../../hooks/usePhase.js';
 import PhaseCard from './targets/PhaseCard.jsx';
 import PresetPickerCard from './targets/PresetPickerCard.jsx';
@@ -10,8 +9,10 @@ import RecalibrateCard from './targets/RecalibrateCard.jsx';
 import StepsCard from './targets/StepsCard.jsx';
 import ProfileCard from './targets/ProfileCard.jsx';
 import ScaleCard from './targets/ScaleCard.jsx';
-import TargetEditor from './targets/TargetEditor.jsx';
+import CycleEditors from './targets/CycleEditors.jsx';
 import { ResetCard, HelpCard } from './targets/FooterCards.jsx';
+import Fold from '../ui/Fold.jsx';
+import { fmtDec } from '../../utils/format.js';
 
 export default function TargetsView({ data, setData }) {
   const { targets, stepsTarget, presetId, baseTDEE } = data;
@@ -22,7 +23,9 @@ export default function TargetsView({ data, setData }) {
   const { profile, setField: setProfileField, bmr, minKcal, lowKcal, scaleResolutionKg, setScaleResolution } =
     useProfileManager(data, setData, signals.smoothedWeight);
   const { phase, canClose, closePhase, setPlannedEnd } = usePhaseManager(data, setData);
-  const suspended = phase ? ' · suspendu pendant la phase' : '';
+
+  // Pendant une phase, le cyclage est suspendu : ses trois éditeurs se replient.
+  const editors = <CycleEditors targets={targets} suspended={!!phase} onChange={updateField} />;
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -50,41 +53,28 @@ export default function TargetsView({ data, setData }) {
         onRecalibrate={recalibrate}
         baseTDEE={baseTDEE}
       />
-      <ProfileCard
-        sex={profile.sex}
-        birthYear={profile.birthYear}
-        heightCm={profile.heightCm}
-        bmr={bmr}
-        minKcal={minKcal}
-        lowKcal={lowKcal}
-        onFieldChange={setProfileField}
-      />
-      <ScaleCard resolutionKg={scaleResolutionKg} onChange={setScaleResolution} />
       <StepsCard stepsTarget={stepsTarget} onChange={setStepsTarget} />
-      <TargetEditor
-        title="JOUR D'ENTRAÎNEMENT"
-        subtitle={`Lundi · Mercredi · Vendredi${suspended}`}
-        accent={PALETTE.deep}
-        target={targets.train}
-        conflictKcal={macroConflictKcal(targets.train)}
-        onChange={(field, val) => updateField('train', field, val)}
-      />
-      <TargetEditor
-        title="JOUR DE REPOS"
-        subtitle={`Mardi · Jeudi${suspended}`}
-        accent={PALETTE.deep}
-        target={targets.off}
-        conflictKcal={macroConflictKcal(targets.off)}
-        onChange={(field, val) => updateField('off', field, val)}
-      />
-      <TargetEditor
-        title="WEEK-END"
-        subtitle={`Samedi · Dimanche · Laisse vide pour 'pas de cible'${suspended}`}
-        accent={PALETTE.muted}
-        target={targets.we}
-        onChange={(field, val) => updateField('we', field, val)}
-        allowEmpty
-      />
+      <Fold
+        title="Réglages de mesure"
+        hint={`profil · balance ${fmtDec(scaleResolutionKg)} kg`}
+        defaultOpen={bmr == null}
+      >
+        <ProfileCard
+          sex={profile.sex}
+          birthYear={profile.birthYear}
+          heightCm={profile.heightCm}
+          bmr={bmr}
+          minKcal={minKcal}
+          lowKcal={lowKcal}
+          onFieldChange={setProfileField}
+        />
+        <ScaleCard resolutionKg={scaleResolutionKg} onChange={setScaleResolution} />
+      </Fold>
+      {phase ? (
+        <Fold title="Cibles cyclées" hint="suspendues · reprennent à la clôture">
+          {editors}
+        </Fold>
+      ) : editors}
       <ResetCard onReset={resetDefaults} />
       <HelpCard />
     </div>

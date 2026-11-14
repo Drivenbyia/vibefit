@@ -63,7 +63,7 @@ export function weeklyCheckIn({
         : tdee?.check?.status === TDEE_CHECK.LOW ? 'bas — à confirmer' : d ? `${d > 0 ? '+' : '−'}${fmtInt(Math.abs(d))} vs cibles` : 'aligné sur les cibles' });
   }
 
-  return { title: `Semaine du ${ddmm(week.weekStart)}${inProgress ? ' · en cours' : ''}`, lines, action: pickAction({ week, waistMissing, isMonday, protein, steps, stepsTarget, calibration, tdee }) };
+  return { title: `Semaine du ${ddmm(week.weekStart)}${inProgress ? ' · en cours' : ' · écoulée'}`, lines, action: pickAction({ week, waistMissing, isMonday, protein, steps, stepsTarget, calibration, tdee }) };
 }
 
 const WAIST_ACTION = { kind: 'waist', text: 'Mesure ton tour de taille à jeun : aucune mesure cette semaine.' };

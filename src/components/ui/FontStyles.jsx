@@ -71,6 +71,8 @@ export default function FontStyles() {
       @keyframes vfpulse {
         0%, 100% { opacity: 1; } 50% { opacity: 0.55; }
       }
+      .vf-fold > summary::-webkit-details-marker { display: none; }
+      .vf-fold[open] > summary .vf-fold-chevron { transform: rotate(180deg); }
       .vf-fadein { animation: vffadein 200ms ease-out; }
       @keyframes vffadein {
         from { opacity: 0; transform: translateY(4px); }

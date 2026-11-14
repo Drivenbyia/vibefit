@@ -38,6 +38,9 @@ section **Backlog** ; lots 1 à 3 livrés dans cette PR, lots 4 à 6 à arbitrer
   Sommeil, Apport, Pas) sous la bande, un tap mène à la carte et au champ ;
   sur le jour courant, « Hier à compléter : … » ouvre la veille. La pesée
   d'hier n'est jamais réclamée (elle ne se rattrape pas).
+- **Lots 4 et 5** (accord du développeur le 14/11) : `ui/Fold.jsx` (`<details>`
+  natif), `week/WeekSection.jsx`, `targets/CycleEditors.jsx`. Carte d'apport :
+  « depuis MyFitnessPal ».
 - Aucune donnée ni schéma modifié ; aucun fichier supprimé.
 
 ### Session 2026-11-14 (suite) — Import Apple Santé (raccourci iOS)
@@ -678,22 +681,16 @@ src/
   date au plus tôt d'une tendance lisible.
 - [x] **Lot 3 — La saisie se voit** (M) : liste de saisie du jour, rattrapage
   d'hier.
-- [ ] **Lot 4 — Semaine allégée** (M) — *à arbitrer, retire des cartes* :
-  14 cartes, 3,8 écrans. Protéines, pas et écart sont dits trois fois (Bilan
-  en haut, Moyennes au milieu, Rappel hebdo en bas) ; le Bilan parle de la
-  semaine PRÉCÉDENTE au-dessus d'un écran de la semaine en cours. Proposé :
-  Rappel hebdo fondu dans le Bilan (un seul texte, une action), Bilan aligné
-  sur la semaine affichée, sections « Cette semaine » / « Tendances » /
-  « Coach », cartes de détail (Poids, Tour de taille) repliables.
-- [ ] **Lot 5 — Cibles allégées** (S) — *à arbitrer* : pendant une phase, les
-  trois éditeurs TRAIN / OFF / WE (suspendus) occupent 1,5 écran ; les
-  replier sous « Cibles cyclées — reprennent à la clôture ». Profil et
-  balance (réglés une fois) sous « Réglages de mesure ».
+- [x] **Lot 4 — Semaine allégée** (M) : intertitres « Cette semaine » /
+  « Tendances » ; pesées, tour de taille, apport total et rappel hebdo sous
+  « Détail de la semaine » (replié, rien de retiré). 3,8 → 2,9 écrans. Le
+  bilan précise « · écoulée » quand il parle de la semaine précédente.
+- [x] **Lot 5 — Cibles allégées** (S) : profil et balance sous « Réglages de
+  mesure » (ouvert tant que le profil est incomplet) ; pendant une phase, les
+  éditeurs TRAIN / OFF / WE sous « Cibles cyclées ». 3,8 → 2,3 écrans.
 - [~] **Lot 6 — Saisie sans recopie** = n°5 : bouton « Importer depuis
   Santé » livré côté app (PR #35), raccourci iOS à monter. La liste de saisie
   montre alors ce que l'import n'a pas rempli (sommeil, VFC de récupération).
-- Libellé à revoir : la carte d'apport dit « depuis FatSecret », la
-  nutrition vient désormais de MyFitnessPal via Santé (PR #35).
 
 **Engagé, dans l'ordre**
 - [x] **n°3 — CI GitHub** (S) : tests + build sur chaque PR. *Mergée — PR #17.*

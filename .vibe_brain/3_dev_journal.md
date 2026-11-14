@@ -1773,3 +1773,17 @@ débordement horizontal.
 
 Vérification : `npm run lint` ✅ · `npm test` **387/387** (+6) · `vite build` ✅.
 
+
+## Session 2026-11-14 (suite) — Lots 4 et 5, fusion de main
+
+- PR #36 en conflit avec `main` (PR #35, import Santé) : `main` fusionné, les
+  deux côtés gardés ; sur Aujourd'hui, l'import précède la liste de saisie.
+- Accord du développeur (« fais ce que tu juges utile ») : lots 4 et 5.
+  `Fold`, `WeekSection`, `CycleEditors` ; Semaine réordonnée (bilan, cette
+  semaine, tendances, détail replié) ; Cibles : réglages de mesure et cibles
+  cyclées repliés. Carte d'apport « depuis MyFitnessPal ». Bilan « · écoulée ».
+
+Vérification : `npm run lint` ✅ · `npm test` **403/403** · `vite build` ✅ ·
+Chromium 360 px : sections ouvertes au tap, restent ouvertes pendant
+l'édition, valeur enregistrée, zéro erreur, zéro débordement. Semaine 3,8 →
+2,9 écrans, Cibles 3,8 → 2,3.

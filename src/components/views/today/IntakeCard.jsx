@@ -12,7 +12,7 @@ export default function IntakeCard({ day, updateDay, intake, showUndereatAlert }
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <Flame size={16} color={PALETTE.deep} />
         <div className="vf-body" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink, letterSpacing: '0.02em' }}>
-          APPORT — depuis FatSecret
+          APPORT — depuis MyFitnessPal
         </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

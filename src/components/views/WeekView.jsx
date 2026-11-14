@@ -9,6 +9,8 @@ import { usePhase } from '../../hooks/usePhase.js';
 import { useCalibrationDays } from '../../hooks/useCalibrationDays.js';
 import WeekDiagnostics from './week/WeekDiagnostics.jsx';
 import Card from '../ui/Card.jsx';
+import Fold from '../ui/Fold.jsx';
+import WeekSection from './week/WeekSection.jsx';
 import WeekSummary from './week/WeekSummary.jsx';
 import WeekCalendar from './week/WeekCalendar.jsx';
 import NetBalanceCard from './week/NetBalanceCard.jsx';
@@ -41,13 +43,12 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <CheckInCard data={data} targets={resolvedTargets} stepsTarget={stepsTarget} />
+      <WeekSection>Cette semaine</WeekSection>
       <Card>
         <WeekSummary start={start} recordedDays={weekly.recordedDays} trackedDays={trackedDays} targetGap={weekly.targetGap} comparableDays={weekly.comparableDays} />
         <WeekCalendar days={days} dateKey={dateKey} setDateKey={setDateKey} phases={data.phases} calibration={calibrationDays} />
       </Card>
       <WeekDiagnostics diagnosis={diagnosis} neat={neat} sleep={sleepDiagnosis} />
-      <RecoveryCard data={data} />
-      <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} showSessions={!inPhase} />
       <KcalTrendCard days={days} dateKey={dateKey} setDateKey={setDateKey} targetsOn={targetsOn} phases={data.phases} />
       <AveragesCard
         weekly={weekly}
@@ -57,14 +58,21 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
         daysUnderProtein={daysUnderProtein}
         daysNotLogged={daysNotLogged}
       />
-      <WaistCard waistSeries={waistSeries} />
-      <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} scaleResolutionKg={data.scaleResolutionKg} />
+      <WeekSection>Tendances</WeekSection>
       <LongTrendCard data={data} targets={resolvedTargets} />
-      <WeekReminder
-        presetId={data.presetId} weekly={weekly} inPhase={inPhase} phaseLabel={phase?.label}
-        restTarget={restTarget} protein={protein} watchSteps={watchSteps}
-        proteinFloor={proteinFloor} stepsTarget={stepsTarget}
-      />
+      <RecoveryCard data={data} />
+      {/* Détail : ce que le bilan, les moyennes et les tendances disent déjà,
+          dans sa forme longue — pesées jour par jour, total, rappel rédigé. */}
+      <Fold title="Détail de la semaine" hint="pesées · tour de taille · apport total · rappel">
+        <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} scaleResolutionKg={data.scaleResolutionKg} />
+        <WaistCard waistSeries={waistSeries} />
+        <NetBalanceCard weekly={weekly} plannedTrain={plannedTrain} showSessions={!inPhase} />
+        <WeekReminder
+          presetId={data.presetId} weekly={weekly} inPhase={inPhase} phaseLabel={phase?.label}
+          restTarget={restTarget} protein={protein} watchSteps={watchSteps}
+          proteinFloor={proteinFloor} stepsTarget={stepsTarget}
+        />
+      </Fold>
       <ExportButton copied={copied} onExport={handleExport} />
     </div>
   );

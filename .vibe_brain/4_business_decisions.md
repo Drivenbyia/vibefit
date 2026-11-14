@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-11-14 — Sections repliables : le détail et les réglages rares se replient, rien n'est retiré
+- **Décision** : `ui/Fold.jsx` (`<details>` natif). Semaine : pesées, tour de taille, apport total et rappel hebdo sous « Détail de la semaine », replié. Cibles : profil et balance sous « Réglages de mesure » ; pendant une phase, éditeurs TRAIN / OFF / WE sous « Cibles cyclées ».
+- **Contexte** : Semaine et Cibles faisaient 3,8 écrans à 390 px. Le rappel hebdo redit le bilan et les moyennes ; les éditeurs cyclés sont sans effet pendant l'arrêt. Accord du développeur le 14/11.
+- **Alternatives considérées** : supprimer le rappel hebdo et la carte Bilan net — écarté, le texte rédigé et la liste des pesées restent utiles à la demande ; onglets internes — écarté, un niveau de navigation de plus.
+- **Raison du choix** : ce qui se lit chaque jour reste visible, ce qui se consulte une fois par semaine est à un tap. « Réglages de mesure » s'ouvre seul tant que le profil est incomplet (sinon la recalibration bloquée n'aurait pas d'explication visible).
+- **Impact** : Semaine 2,9 écrans, Cibles 2,3. Aucun composant supprimé. L'ouverture initiale est figée au montage.
+- **Réversibilité** : Facile — retirer l'enveloppe `Fold`.
+
 ### 2026-11-14 — Conventions de lecture : une unité par mesure, pas de verdict sur deux pesées, incertitude dite en fourchette
 - **Décision** : (1) L'écart à la cible s'affiche en **kcal par jour comparable** sur tous les écrans (en-tête Semaine compris) ; plus de cumul hebdomadaire. (2) L'écart première → dernière pesée de la semaine est une information **neutre** (encre, jamais vert/corail), « stable » sous `scaleResolutionKg`. (3) Une incertitude se dit en **fourchette** (« entre 1 502 et 2 410 kcal/j ») dans les textes courts et se montre sur une piste (`TdeeRange`) avec la base des cibles ; le « ± à 95 % » reste dans le détail. (4) `signals.readableFrom` annonce la date **au plus tôt** d'une tendance lisible ; lecture seule, aucune décision ne s'y appuie. (5) Liste de saisie sur Aujourd'hui (`EntryChecklist`) : quatre mesures, rattrapage d'hier sans la pesée. (6) Formats français dans `utils/format.js`.
 - **Contexte** : audit au rendu du 14/11. Sur un même écran : « −53 kcal/j » (Bilan, semaine précédente), « −1 088 kcal » (en-tête, cumul), « −218 kcal/j » (tendance, rappel). Carte Poids : « −1.0 kg sur la semaine » en vert, sous une bande d'état qui dit « lecture provisoire ». Carte TDEE : quatre formulations de la même incertitude, dates ISO. Saisie : pesée et sommeil (matin) à 2,5 écrans sous l'apport, rien n'indique ce qui manque.
