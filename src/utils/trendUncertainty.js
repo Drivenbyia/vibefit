@@ -1,4 +1,5 @@
-import { KCAL_PER_KG, SCALE_RESOLUTIONS, DEFAULT_SCALE_RESOLUTION, TREND_MAX_CI95_KCAL, TREND_GOOD_CI95_KCAL } from '../constants/config.js';
+import { KCAL_PER_KG, SCALE_RESOLUTIONS, DEFAULT_SCALE_RESOLUTION, TREND_MAX_CI95_KCAL, TREND_GOOD_CI95_KCAL, TREND_WINDOW_SIZES, TDEE_RUPTURE_MARGIN_DAYS } from '../constants/config.js';
+import { addDays } from './dateUtils.js';
 
 /** Résolution de la balance (kg) : une des valeurs admises, sinon le défaut. */
 export const sanitizeScaleResolution = (v) =>
@@ -24,7 +25,8 @@ const t975 = (df) => (df >= 1 && df <= 30 ? T975[df - 1] : 1.96);
  * observation, il gonflerait n et rétrécirait l'intervalle à tort.
  *
  * @param {{x: number, y: number}[]} points — x = index réel du jour
- * @returns {{ slope, se, df } | null} null sous 3 points ou x tous égaux
+ * @returns {{ slope, se, df, sigma } | null} null sous 3 points ou x tous égaux.
+ *   `sigma` (kg) = bruit d'une pesée autour de la droite, quantification incluse.
  */
 export function slopeWithError(points, resolutionKg, givenSlope = null) {
   const n = points.length;
@@ -45,7 +47,7 @@ export function slopeWithError(points, resolutionKg, givenSlope = null) {
   let ssr = 0;
   for (const p of points) ssr += (p.y - predict(p.x)) ** 2;
   const variance = ssr / (n - 2) + (resolutionKg ** 2) / 12;
-  return { slope, se: Math.sqrt(variance / sxx), df: n - 2 };
+  return { slope, se: Math.sqrt(variance / sxx), df: n - 2, sigma: Math.sqrt(variance) };
 }
 
 function medianOf(values) {
@@ -75,6 +77,37 @@ export const isReadable = (ci95) => ci95 != null && ci95 <= TREND_MAX_CI95_KCAL;
 
 export const UNREADABLE_LABEL = 'Tendance pas encore lisible';
 
+/**
+ * Quand la tendance deviendra-t-elle lisible ? Date AU PLUS TÔT, pas une
+ * promesse : elle suppose une pesée par jour et un bruit de pesée inchangé
+ * (`sigmaKg`). Sur n pesées quotidiennes, Σ(x − x̄)² = n(n² − 1)/12 : la
+ * largeur de l'intervalle ne dépend plus que de la longueur de la fenêtre.
+ *
+ * Une fenêtre plus longue n'est possible que si son début reste après la
+ * rupture qui bloque l'allongement (plus la marge), ou, sans rupture, après
+ * le début de la fenêtre actuelle — ce qui précède n'a pas pu être utilisé.
+ *
+ * @returns {{ date: string, windowSize: number } | null} null si rien ne
+ *   permet de l'annoncer : bruit trop fort même sur la fenêtre la plus longue,
+ *   allongement refusé pour incohérence, ou tendance déjà lisible.
+ */
+export function projectReadability({ sigmaKg, windowSize, windowStart, windowEnd, extensionBlocked }) {
+  if (!(sigmaKg > 0) || !windowStart || !windowEnd) return null;
+  if (extensionBlocked?.reason === 'implausible') return null;
+  const minStart = extensionBlocked?.date
+    ? addDays(extensionBlocked.date, TDEE_RUPTURE_MARGIN_DAYS + 1)
+    : windowStart;
+  let best = null;
+  for (const len of TREND_WINDOW_SIZES.filter((l) => l > windowSize)) {
+    const ci = t975(len - 2) * sigmaKg * KCAL_PER_KG / Math.sqrt((len * (len * len - 1)) / 12);
+    if (ci > TREND_MAX_CI95_KCAL) continue;
+    const end = addDays(minStart, len - 1);
+    const date = end > windowEnd ? end : addDays(windowEnd, 1);
+    if (!best || date < best.date) best = { date, windowSize: len };
+  }
+  return best;
+}
+
 const EXTENSION_CAUSES = {
   atypical: 'jour atypique',
   cut: 'reprise après coupure',
@@ -98,6 +131,15 @@ const fr = (n) => Math.round(n).toLocaleString('fr-FR');
 /** « ~1 924 kcal (±491) » — jamais un chiffre sec. */
 export const fmtTDEE = (tdee, ci95) =>
   `~${fr(tdee)} kcal` + (ci95 != null ? ` (±${fr(ci95)})` : '');
+
+/** « entre 1 502 et 2 410 kcal/j » — l'intervalle dit en clair, sans « ± ». */
+export const fmtRange = (tdee, ci95) => `entre ${fr(tdee - ci95)} et ${fr(tdee + ci95)} kcal/j`;
+
+/** « Lisible au plus tôt le 17/11 avec une pesée par jour. » — vide si imprévisible. */
+export const readableFromLabel = (readableFrom) =>
+  readableFrom
+    ? `Lisible au plus tôt le ${readableFrom.date.slice(8, 10)}/${readableFrom.date.slice(5, 7)} avec une pesée par jour.`
+    : '';
 
 /** « ±491 kcal (insuffisante) » */
 export const fmtPrecision = (ci95) =>

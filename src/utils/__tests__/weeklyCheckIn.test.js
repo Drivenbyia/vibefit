@@ -12,7 +12,7 @@ describe('weeklyCheckIn', () => {
   it('lignes : poids et variation, écart, protéines, pas, TDEE', () => {
     const r = weeklyCheckIn({ week, prevWeek, protein: okProtein, steps: okSteps,
       tdee: { adaptiveTDEE: 2290, delta: 240, canRecalibrate: false } });
-    expect(r.title).toBe('Semaine du 02/11');
+    expect(r.title).toBe('Semaine du 02/11 · écoulée');
     expect(r.lines.map((l) => l.label)).toEqual(['Poids', 'Écart à la cible', 'Protéines', 'Pas montre', 'TDEE mesuré']);
     expect(r.lines[0].note).toBe('−0,4 kg vs sem. préc.');
     expect(r.lines[2].value).toBe('7/7 j');

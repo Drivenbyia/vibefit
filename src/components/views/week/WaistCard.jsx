@@ -1,3 +1,4 @@
+import { fmtDec } from '../../../utils/format.js';
 import { Ruler } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import { fmtFr } from '../../../utils/dateUtils.js';
@@ -26,7 +27,7 @@ export default function WaistCard({ waistSeries }) {
               {fmtFr(key)}
             </span>
             <span className="vf-mono vf-tabular" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink }}>
-              {w} cm
+              {fmtDec(w)} cm
             </span>
           </div>
         ))

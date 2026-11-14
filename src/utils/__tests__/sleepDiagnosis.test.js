@@ -25,7 +25,7 @@ describe('diagnoseSleep — porte de données', () => {
     const out = diagnoseSleep({ weeklyHistory: history });
 
     expect(out.status).toBe(SLEEP.INSUFFICIENT_DATA);
-    expect(out.detail).toContain(`${SLEEP_MIN_NIGHTS - 1} nuit(s)`);
+    expect(out.detail).toContain(`${SLEEP_MIN_NIGHTS - 1} nuits sur`);
   });
 
   it('ignore la semaine en cours, incomplète par nature', () => {

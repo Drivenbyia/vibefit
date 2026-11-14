@@ -1,3 +1,4 @@
+import { plural, fmtSigned } from './format.js';
 import { etaLabel, incompleteLabel } from './calibrationCopy.js';
 import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail } from './plausibility.js';
 
@@ -142,7 +143,7 @@ export function diagnose({ signals, weeklyHistory = [], trainingSuspended = fals
   if (weeksEvaluated < PLATEAU_MIN_WEEKS) {
     return result(
       DIAGNOSIS.INSUFFICIENT_DATA,
-      `${weeksEvaluated} semaine(s) complète(s) d’historique${cutSuffix} — il en faut ${PLATEAU_MIN_WEEKS} pour conclure.`,
+      `${weeksEvaluated} ${plural(weeksEvaluated, 'semaine complète', 'semaines complètes')} d’historique${cutSuffix} — il en faut ${PLATEAU_MIN_WEEKS} pour conclure.`,
       weeksEvaluated
     );
   }
@@ -160,7 +161,7 @@ export function diagnose({ signals, weeklyHistory = [], trainingSuspended = fals
     const worst = Math.min(...weak.map((w) => w.recordedDays));
     return result(
       DIAGNOSIS.LOW_ADHERENCE,
-      `${weak.length} semaine(s) sous ${ADHERENCE_MIN_DAYS} jours saisis (minimum observé : ${worst}/7). Impossible de distinguer un plateau d’un défaut de suivi.`,
+      `${weak.length} ${plural(weak.length, 'semaine')} sous ${ADHERENCE_MIN_DAYS} jours saisis (minimum observé : ${worst}/7). Impossible de distinguer un plateau d’un défaut de suivi.`,
       weeksEvaluated
     );
   }
@@ -192,7 +193,7 @@ export function diagnose({ signals, weeklyHistory = [], trainingSuspended = fals
   if (weeklyRate > PLATEAU_WEIGHT_NOISE_KG && waistStable === true) {
     return result(
       DIAGNOSIS.WATER_RETENTION_SUSPECTED,
-      `Poids +${weeklyRate.toFixed(2)} kg/sem mais tour de taille stable (${waistDelta >= 0 ? '+' : ''}${waistDelta.toFixed(1)} cm). Rétention d’eau probable — ne pas couper les calories sur ce signal.`,
+      `Poids ${fmtSigned(weeklyRate, 2)} kg/sem mais tour de taille stable (${fmtSigned(waistDelta)} cm). Rétention d’eau probable — ne pas couper les calories sur ce signal.`,
       weeksEvaluated
     );
   }
@@ -225,14 +226,14 @@ export function diagnose({ signals, weeklyHistory = [], trainingSuspended = fals
   if (weightStable && tdeeStable) {
     return result(
       DIAGNOSIS.PLATEAU_CONFIRMED,
-      `Poids ${weeklyRate >= 0 ? '+' : ''}${weeklyRate.toFixed(2)} kg/sem, TDEE stable à ±${Math.round(tdeeSpread)} kcal, adhérence ≥ ${ADHERENCE_MIN_DAYS} j/sem sur ${weeksEvaluated} semaines. Les trois signaux concordent.`,
+      `Poids ${fmtSigned(weeklyRate, 2)} kg/sem, TDEE stable à ±${Math.round(tdeeSpread)} kcal, adhérence ≥ ${ADHERENCE_MIN_DAYS} j/sem sur ${weeksEvaluated} semaines. Les trois signaux concordent.`,
       weeksEvaluated
     );
   }
 
   return result(
     DIAGNOSIS.PROGRESSING,
-    `Poids ${weeklyRate >= 0 ? '+' : ''}${weeklyRate.toFixed(2)} kg/sem, TDEE variant de ${Math.round(tdeeSpread)} kcal. Pas de plateau : au moins un signal bouge encore.`,
+    `Poids ${fmtSigned(weeklyRate, 2)} kg/sem, TDEE variant de ${Math.round(tdeeSpread)} kcal. Pas de plateau : au moins un signal bouge encore.`,
     weeksEvaluated
   );
 }

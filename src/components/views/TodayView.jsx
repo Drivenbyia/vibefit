@@ -16,16 +16,19 @@ import AppleEntryGuide from './today/AppleEntryGuide.jsx';
 import { WeightCard, WaistCard } from './today/BodyCards.jsx';
 import SleepCard from './today/SleepCard.jsx';
 import NotesCard from './today/NotesCard.jsx';
+import EntryChecklist from './today/EntryChecklist.jsx';
+import { useEntryChecklist } from '../../hooks/useEntryChecklist.js';
 import HealthImportCard from './today/HealthImportCard.jsx';
 import { useHealthImport } from '../../hooks/useHealthImport.js';
 
-export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, setData, onOpenWeek, backup, onExportBackup }) {
+export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, setData, onOpenWeek, backup, onExportBackup, setDateKey }) {
   const {
     dt, intake, steps, isMonday, isToday,
     computedKcal, macroDelta, showMacroWarning, showUndereatAlert,
   } = useDayMetrics(dateKey, day, targets, data?.phases);
   const status = useVibeStatus(data, targets);
   const { phase, trainingSuspended } = usePhase(data, dateKey);
+  const { items, yesterday, jumpTo } = useEntryChecklist(data, dateKey, day, isToday);
   const healthImport = useHealthImport(data?.days ?? {}, setData);
 
   return (
@@ -33,6 +36,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
       {isToday && <StatusBand status={status} onOpenWeek={onOpenWeek} />}
       {isToday && backup?.overdue && <BackupReminderCard status={backup} onExport={onExportBackup} />}
       {isToday && setData && <HealthImportCard status={healthImport.status} onImport={healthImport.importFromClipboard} />}
+      <EntryChecklist items={items} isToday={isToday} yesterday={yesterday} onJump={jumpTo} onOpenYesterday={() => setDateKey(yesterday.key)} />
       <BalanceCard intake={intake} target={dt.kcal} />
       <MacrosCard
         day={day}
@@ -42,17 +46,17 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
         macroDelta={macroDelta}
         showMacroWarning={showMacroWarning}
       />
-      <IntakeCard day={day} updateDay={updateDay} intake={intake} showUndereatAlert={showUndereatAlert} />
+      <div id="entry-intake"><IntakeCard day={day} updateDay={updateDay} intake={intake} showUndereatAlert={showUndereatAlert} /></div>
       <AtypicalDayCard atypical={!!day.atypical} onToggle={() => updateDay({ atypical: !day.atypical })} />
-      <ExpenditureCard day={day} updateDay={updateDay} steps={steps} stepsTarget={stepsTarget} showHeavyWork={!trainingSuspended} derivedStepsSource={deviceAt(dateKey, data?.devices ?? [])} />
+      <div id="entry-steps"><ExpenditureCard day={day} updateDay={updateDay} steps={steps} stepsTarget={stepsTarget} showHeavyWork={!trainingSuspended} derivedStepsSource={deviceAt(dateKey, data?.devices ?? [])} /></div>
       {trainingSuspended
         ? <PhaseRestCard label={phase.label ?? phase.type} stepsTarget={stepsTarget} />
         : <WorkoutCard day={day} updateDay={updateDay} />}
       <InfoActivitiesCard activities={day.infoActivities} />
-      <WeightCard day={day} updateDay={updateDay} scaleResolutionKg={data?.scaleResolutionKg} />
+      <div id="entry-weight"><WeightCard day={day} updateDay={updateDay} scaleResolutionKg={data?.scaleResolutionKg} /></div>
       {(isMonday || day.waist) && <WaistCard day={day} updateDay={updateDay} isMonday={isMonday} />}
       {deviceAt(dateKey, data?.devices ?? []) === 'apple_watch' && <AppleEntryGuide />}
-      <SleepCard day={day} updateDay={updateDay} />
+      <div id="entry-sleep"><SleepCard day={day} updateDay={updateDay} /></div>
       <NotesCard day={day} updateDay={updateDay} />
     </div>
   );

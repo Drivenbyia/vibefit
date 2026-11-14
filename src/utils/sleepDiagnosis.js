@@ -1,3 +1,5 @@
+import { plural } from './format.js';
+
 /**
  * Diagnostic de sommeil — module PUR, sans action.
  *
@@ -86,7 +88,7 @@ export function diagnoseSleep({ weeklyHistory = [], strainEnabled = true, minStr
   if (!isUsable(latest)) {
     return result(
       SLEEP.INSUFFICIENT_DATA,
-      `Dernière semaine complète : ${latest?.sleep?.nights ?? 0} nuit(s) sur ${SLEEP_MIN_NIGHTS} requises.`
+      `Dernière semaine complète : ${latest?.sleep?.nights ?? 0} ${plural(latest?.sleep?.nights ?? 0, 'nuit')} sur ${SLEEP_MIN_NIGHTS} requises.`
     );
   }
 
