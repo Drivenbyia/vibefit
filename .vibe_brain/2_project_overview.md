@@ -9,7 +9,7 @@ last_updated: 2026-11-14
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/peaceful-ptolemy-3kmgad`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 397 tests** — `npm test`
+- **Suite de tests : Vitest, 403 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
 
@@ -39,6 +39,13 @@ section **Backlog** ; lots 1 à 3 livrés dans cette PR, lots 4 à 6 à arbitrer
   sur le jour courant, « Hier à compléter : … » ouvre la veille. La pesée
   d'hier n'est jamais réclamée (elle ne se rattrape pas).
 - Aucune donnée ni schéma modifié ; aucun fichier supprimé.
+
+### Session 2026-11-14 (suite) — Import Apple Santé (raccourci iOS)
+- Bouton « Importer depuis Santé » sur Aujourd'hui : lit le presse-papier
+  rempli par le raccourci « VibeFit Santé » et fusionne sans écraser.
+- Raccourci à monter par le développeur (nutrition MyFitnessPal via Santé,
+  pas, poids, FC repos, VFC SDNN). Sommeil et VFC de récupération : saisie
+  manuelle en attendant de valider leur lecture dans Raccourcis.
 
 ### Session 2026-11-14 — PR D : ruptures de fenêtre, protéines de phase, jour atypique
 - L'allongement de la fenêtre TDEE s'arrête aux ruptures (coupure, début de
@@ -682,11 +689,11 @@ src/
   trois éditeurs TRAIN / OFF / WE (suspendus) occupent 1,5 écran ; les
   replier sous « Cibles cyclées — reprennent à la clôture ». Profil et
   balance (réglés une fois) sous « Réglages de mesure ».
-- [ ] **Lot 6 — Saisie sans recopie** (M–L) = n°5 : Raccourci iOS → JSON →
-  Fusionner. Reste le coût n°1 ; la liste de saisie le rend visible, elle ne
-  le supprime pas. À vérifier d'abord : Raccourcis lit-il le RMSSD ?
-- Questions ouvertes : la carte d'apport dit « depuis FatSecret », le journal
-  du 14/11 parle de MyFitnessPal — libellé à confirmer.
+- [~] **Lot 6 — Saisie sans recopie** = n°5 : bouton « Importer depuis
+  Santé » livré côté app (PR #35), raccourci iOS à monter. La liste de saisie
+  montre alors ce que l'import n'a pas rempli (sommeil, VFC de récupération).
+- Libellé à revoir : la carte d'apport dit « depuis FatSecret », la
+  nutrition vient désormais de MyFitnessPal via Santé (PR #35).
 
 **Engagé, dans l'ordre**
 - [x] **n°3 — CI GitHub** (S) : tests + build sur chaque PR. *Mergée — PR #17.*
@@ -705,9 +712,9 @@ src/
 **En attente**
 - [x] **Linter** (S) : *mergée — PR #21*. PR séparée. `CLAUDE.md` cite `npm run lint`, absent de
   `package.json`. Ajoute une devDependency ⇒ décision à documenter.
-- [ ] **n°5 — Raccourci iOS → JSON → Fusionner** (M–L, option B) : à
-  vérifier d'abord que Raccourcis lit le RMSSD. **Remonté en priorité le
-  14/11** : la saisie quotidienne (Santé + MyFitnessPal) est le coût n°1.
+- [~] **n°5 — Raccourci iOS → presse-papier → Importer** (option B) : côté
+  app livré le 14/11 (bouton « Importer depuis Santé »). Reste : sommeil et
+  VFC de récupération dans le raccourci.
 - [x] **n°6 — Historique graphique multi-semaines** (M) : *mergée — PR #23*.
   Poids, tour de taille, écart à la cible sur 12 semaines, lecture seule.
 - [x] **n°9 — Tendance calorique lisible sans la couleur** (S) : *mergée — PR #24*.

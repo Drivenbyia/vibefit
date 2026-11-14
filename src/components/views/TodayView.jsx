@@ -18,8 +18,10 @@ import SleepCard from './today/SleepCard.jsx';
 import NotesCard from './today/NotesCard.jsx';
 import EntryChecklist from './today/EntryChecklist.jsx';
 import { useEntryChecklist } from '../../hooks/useEntryChecklist.js';
+import HealthImportCard from './today/HealthImportCard.jsx';
+import { useHealthImport } from '../../hooks/useHealthImport.js';
 
-export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, onOpenWeek, backup, onExportBackup, setDateKey }) {
+export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, setData, onOpenWeek, backup, onExportBackup, setDateKey }) {
   const {
     dt, intake, steps, isMonday, isToday,
     computedKcal, macroDelta, showMacroWarning, showUndereatAlert,
@@ -27,11 +29,13 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
   const status = useVibeStatus(data, targets);
   const { phase, trainingSuspended } = usePhase(data, dateKey);
   const { items, yesterday, jumpTo } = useEntryChecklist(data, dateKey, day, isToday);
+  const healthImport = useHealthImport(data?.days ?? {}, setData);
 
   return (
     <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
       {isToday && <StatusBand status={status} onOpenWeek={onOpenWeek} />}
       {isToday && backup?.overdue && <BackupReminderCard status={backup} onExport={onExportBackup} />}
+      {isToday && setData && <HealthImportCard status={healthImport.status} onImport={healthImport.importFromClipboard} />}
       <EntryChecklist items={items} isToday={isToday} yesterday={yesterday} onJump={jumpTo} onOpenYesterday={() => setDateKey(yesterday.key)} />
       <BalanceCard intake={intake} target={dt.kcal} />
       <MacrosCard
