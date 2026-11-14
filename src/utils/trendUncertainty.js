@@ -75,6 +75,24 @@ export const isReadable = (ci95) => ci95 != null && ci95 <= TREND_MAX_CI95_KCAL;
 
 export const UNREADABLE_LABEL = 'Tendance pas encore lisible';
 
+const EXTENSION_CAUSES = {
+  atypical: 'jour atypique',
+  cut: 'reprise après coupure',
+  implausible: 'elle donnerait un TDEE incohérent',
+};
+
+/**
+ * Pourquoi la fenêtre ne s'allonge pas — « fenêtre non allongée (jour
+ * atypique du 24/10) ». Chaîne vide si rien ne bloque.
+ */
+export function extensionBlockedLabel(blocked) {
+  if (!blocked) return '';
+  const cause = EXTENSION_CAUSES[blocked.reason] ?? blocked.reason;
+  const date = blocked.date && blocked.reason !== 'implausible'
+    ? ` du ${blocked.date.slice(8, 10)}/${blocked.date.slice(5, 7)}` : '';
+  return `fenêtre non allongée (${cause}${date})`;
+}
+
 const fr = (n) => Math.round(n).toLocaleString('fr-FR');
 
 /** « ~1 924 kcal (±491) » — jamais un chiffre sec. */

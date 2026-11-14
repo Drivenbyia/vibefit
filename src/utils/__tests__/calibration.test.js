@@ -142,7 +142,7 @@ describe('diagnostic, bande d’état, export — « calibration en cours »', (
 });
 
 describe('TDEE de départ 2050 — cible unique de la phase', () => {
-  it('Maintenance pendant l’arrêt médical : 2050 kcal, 160 g de protéines', () => {
-    expect(computeSingleTarget('maintenance', 2050)).toMatchObject({ kcal: 2050, protein: 160 });
+  it('Maintenance pendant l’arrêt médical : 2050 kcal, 130 g de protéines', () => {
+    expect(computeSingleTarget('maintenance', 2050)).toMatchObject({ kcal: 2050, protein: 130 });
   });
 });

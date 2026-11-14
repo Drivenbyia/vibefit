@@ -22,11 +22,11 @@ afterEach(() => vi.useRealTimers());
 describe('computeSingleTarget — milieu (TRAIN+OFF)/2 puis plancher 1600', () => {
   // Tableau validé le 2026-10-24, TDEE 2050.
   it.each([
-    ['maintenance', 2050, 160, 73, 188],
-    ['cut_light', 1850, 160, 70, 145],
-    ['cut_strong', 1650, 170, 65, 96],
-    ['bulk', 2350, 160, 78, 252],
-    ['diet_break', 2050, 160, 80, 173],
+    ['maintenance', 2050, 130, 73, 218],
+    ['cut_light', 1850, 130, 70, 175],
+    ['cut_strong', 1650, 130, 65, 136],
+    ['bulk', 2350, 130, 78, 282],
+    ['diet_break', 2050, 130, 80, 203],
   ])('%s à 2050 → %i kcal, P %i, L %i, G %i', (preset, kcal, protein, fat, carbs) => {
     expect(computeSingleTarget(preset, 2050)).toMatchObject({ kcal, protein, fat, carbs });
   });
@@ -44,17 +44,17 @@ describe('computeSingleTarget — milieu (TRAIN+OFF)/2 puis plancher 1600', () =
     expect(computeSingleTarget('cut_strong', 2050).kcal).toBe(1650);
   });
 
-  it('plancher 1600 appliqué directement, et protéines jamais sous 160', () => {
+  it('plancher 1600 appliqué directement, protéines de phase 130 g quel que soit le preset', () => {
     expect(computeSingleTarget('cut_strong', 1800).kcal).toBe(1600);
     expect(computeSingleTarget('custom', 2000, {
       train: { kcal: 1500, protein: 120, fat: 60 }, off: { kcal: 1400, protein: 120, fat: 60 },
-    })).toMatchObject({ kcal: 1600, protein: 160 });
+    })).toMatchObject({ kcal: 1600, protein: 130 });
   });
 
   it('preset personnalisé : milieu des cibles saisies', () => {
     expect(computeSingleTarget('custom', 2000, {
       train: { kcal: 2300, protein: 180, fat: 70 }, off: { kcal: 1900, protein: 170, fat: 80 },
-    })).toMatchObject({ kcal: 2100, protein: 180, fat: 75 });
+    })).toMatchObject({ kcal: 2100, protein: 130, fat: 75 });
   });
 
   it('macros cohérentes : P×4 + L×9 + G×4 ≈ kcal', () => {
@@ -144,7 +144,7 @@ describe('export — la ligne de protocole publie la cible unique', () => {
       stepsTarget: 8000, phases: [PHASE],
     });
     expect(line).toContain('Cible unique : 2050 kcal/j (cyclage TRAIN/OFF suspendu)');
-    expect(line).toContain('protéines 160 g');
+    expect(line).toContain('protéines 130 g');
     expect(line).not.toContain('TRAIN 2250');
   });
 

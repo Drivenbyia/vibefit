@@ -146,7 +146,9 @@ describe('fenêtre qui s’allonge', () => {
     const r = recalibrationBlock(s, 2050);
     expect(r.canRecalibrate).toBe(false);
     expect(r.blockedReason).toMatch(/^Tendance pas encore lisible — ±\d+ kcal à 95 % sur 14 j/);
-    expect(r.blockedReason).toContain('La fenêtre s\'allonge (21 puis 28 j)');
+    // La coupure finit à J-16 : l'allongement à 21 j la franchirait.
+    expect(r.blockedReason).toContain('Lecture provisoire : fenêtre non allongée (reprise après coupure');
+    expect(s.extensionBlocked).toMatchObject({ reason: 'cut' });
   });
 
   it('bande d’état : « Tendance pas encore lisible », TDEE en « ~X (±Y) »', () => {

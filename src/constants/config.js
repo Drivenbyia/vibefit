@@ -67,6 +67,11 @@ export const DEFAULT_SCALE_RESOLUTION = 0.5;
 // la fenêtre s'allonge (21 puis 28 jours) et aucune recalibration n'est proposée.
 export const TREND_MAX_CI95_KCAL = 300;
 export const TREND_WINDOW_SIZES = [14, 21, 28];
+// Rupture : coupure, début de calibration ou jour atypique (jeûne, resto).
+// L'allongement de la fenêtre ne remonte ni sur une rupture ni sur les
+// N jours qui la SUIVENT (glycogène et eau qui se reconstituent : le 24/10,
+// un jeûne en début de fenêtre a fabriqué +0,49 kg/sem et un TDEE de 1375).
+export const TDEE_RUPTURE_MARGIN_DAYS = 3;
 // Précision affichée : ≤ 150 bonne, ≤ 300 moyenne, au-delà insuffisante.
 export const TREND_GOOD_CI95_KCAL = 150;
 
@@ -101,6 +106,12 @@ export const MAX_DAILY_WEIGHT_JUMP_KG = 2;
 // computePresetTargets(). Le définir ici créerait un cycle config → presetUtils.
 export const KCAL_FLOOR = 1600;    // plancher calorique, hors week-end
 export const PROTEIN_FLOOR = 160;  // plancher protéines, tous les jours
+// Protéines de la cible unique d'une phase sans entraînement (arrêt médical) :
+// 130 g ≈ 1,7 g/kg à 78 kg. Sans stimulus de musculation, 160 g n'était jamais
+// atteint (93 g/j mi-novembre) et une cible jamais tenue ne protège rien.
+// Règle de LECTURE de la phase : à sa clôture, les cibles cyclées (≥ 160 g)
+// reprennent sans migration. Décision du 2026-11-14.
+export const REST_PROTEIN_G = 130;
 export const MIN_BASE_TDEE = 1800; // = KCAL_FLOOR + 200 : garantit OFF ≥ plancher
 export const MIN_CYCLE_GAP = 400;  // écart nominal TRAIN − OFF du cyclage
 

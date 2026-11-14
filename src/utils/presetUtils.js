@@ -1,4 +1,4 @@
-import { PRESETS, KCAL_FLOOR, PROTEIN_FLOOR, KCAL_PER_KG, REST_DAY_TYPE } from '../constants/config.js';
+import { PRESETS, KCAL_FLOOR, PROTEIN_FLOOR, REST_PROTEIN_G, KCAL_PER_KG, REST_DAY_TYPE } from '../constants/config.js';
 import { toKey, addDays, startOfWeek, dayTypeFromKey } from './dateUtils.js';
 
 export const DEFAULT_TDEE = 2000;
@@ -123,31 +123,30 @@ export const DEFAULT_TARGETS = computePresetTargets('maintenance', DEFAULT_TDEE)
  *     plancher du cyclage (OFF relevé ⇒ TRAIN relevé), qui n'a plus d'objet
  *     sans cyclage — Sèche forte à 2050 donnerait 1800 au lieu de 1650.
  * Preset « custom » : milieu des cibles TRAIN/OFF saisies, même plancher.
+ * Protéines : REST_PROTEIN_G (130 g) quel que soit le preset — la phase est
+ * sans musculation, le plancher 160 g des cibles cyclées ne s'y applique pas.
  *
  * Dérivée à la volée, jamais stockée : elle suit le preset et le TDEE.
  */
 export function computeSingleTarget(presetId, baseTDEE, targets) {
   const formula = PRESETS[presetId] ? RAW_FORMULAS[presetId] : null;
   let kcalRaw;
-  let protein;
   let fat;
 
   if (formula) {
     const raw = formula(baseTDEE);
     const { train: ct, off: co } = PRESETS[presetId].targets;
     kcalRaw = (raw.train + raw.off) / 2;
-    protein = Math.max(ct.protein, co.protein);
     fat = Math.round((ct.fat + co.fat) / 2);
   } else {
     const tr = targets?.train ?? {};
     const of = targets?.off ?? {};
     kcalRaw = tr.kcal != null && of.kcal != null ? (tr.kcal + of.kcal) / 2 : (tr.kcal ?? of.kcal ?? baseTDEE);
-    protein = Math.max(tr.protein ?? PROTEIN_FLOOR, of.protein ?? PROTEIN_FLOOR);
     const fats = [tr.fat, of.fat].filter((v) => v != null);
     fat = fats.length > 0 ? Math.round(fats.reduce((a, b) => a + b, 0) / fats.length) : 72;
   }
 
-  protein = Math.max(PROTEIN_FLOOR, protein);
+  const protein = REST_PROTEIN_G;
   const kcal = Math.max(KCAL_FLOOR, Math.round(kcalRaw));
   return {
     kcal,

@@ -5,6 +5,7 @@ import BackupReminderCard from './today/BackupReminderCard.jsx';
 import BalanceCard from './today/BalanceCard.jsx';
 import MacrosCard from './today/MacrosCard.jsx';
 import IntakeCard from './today/IntakeCard.jsx';
+import AtypicalDayCard from './today/AtypicalDayCard.jsx';
 import ExpenditureCard from './today/ExpenditureCard.jsx';
 import WorkoutCard from './today/WorkoutCard.jsx';
 import PhaseRestCard from './today/PhaseRestCard.jsx';
@@ -38,6 +39,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
         showMacroWarning={showMacroWarning}
       />
       <IntakeCard day={day} updateDay={updateDay} intake={intake} showUndereatAlert={showUndereatAlert} />
+      <AtypicalDayCard atypical={!!day.atypical} onToggle={() => updateDay({ atypical: !day.atypical })} />
       <ExpenditureCard day={day} updateDay={updateDay} steps={steps} stepsTarget={stepsTarget} showHeavyWork={!trainingSuspended} derivedStepsSource={deviceAt(dateKey, data?.devices ?? [])} />
       {trainingSuspended
         ? <PhaseRestCard label={phase.label ?? phase.type} stepsTarget={stepsTarget} />
