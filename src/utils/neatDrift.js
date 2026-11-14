@@ -1,3 +1,4 @@
+import { plural } from './format.js';
 import { KCAL_PER_STEP_PER_KG } from '../constants/config.js';
 
 /**
@@ -70,7 +71,7 @@ export function diagnoseNeat({ weeklyHistory = [], weightKg = null }) {
   if (!isUsable(latest)) {
     return result(
       NEAT.INSUFFICIENT_DATA,
-      `Dernière semaine complète : ${latest?.stepsDays ?? 0} jour(s) de pas sur ${NEAT_MIN_DAYS} requis.`
+      `Dernière semaine complète : ${latest?.stepsDays ?? 0} ${plural(latest?.stepsDays ?? 0, 'jour')} de pas sur ${NEAT_MIN_DAYS} requis.`
     );
   }
 
@@ -78,7 +79,7 @@ export function diagnoseNeat({ weeklyHistory = [], weightKg = null }) {
   if (usable.length < 2) {
     return result(
       NEAT.INSUFFICIENT_DATA,
-      `${usable.length} semaine(s) complète(s) avec au moins ${NEAT_MIN_DAYS} jours de pas — il en faut 2.`
+      `${usable.length} ${plural(usable.length, 'semaine complète', 'semaines complètes')} avec au moins ${NEAT_MIN_DAYS} jours de pas — il en faut 2.`
     );
   }
 

@@ -3,7 +3,7 @@ import { NEAT } from './neatDrift.js';
 import { SLEEP } from './sleepDiagnosis.js';
 import { etaLabel, incompleteLabel } from './calibrationCopy.js';
 import { implausibleDetail } from './plausibility.js';
-import { fmtTDEE, UNREADABLE_LABEL, extensionBlockedLabel } from './trendUncertainty.js';
+import { fmtTDEE, fmtRange, readableFromLabel, UNREADABLE_LABEL } from './trendUncertainty.js';
 
 /**
  * Bande d'état — LE VERDICT, PAS LE TABLEAU DE BORD.
@@ -193,11 +193,13 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
   if (tdee !== null && signals?.trendReadable === false) {
     // Allongement refusé (rupture, TDEE incohérent) : le chiffre court reste la
     // meilleure estimation — « lecture provisoire », pas une attente muette.
+    // Dit en clair : une fourchette et une date, pas « ± » ni « fenêtre ». La
+    // cause du blocage (rupture) reste détaillée dans la carte TDEE des Cibles.
     const blocked = signals.extensionBlocked;
+    const range = ci95 !== null ? `Dépense estimée ${fmtRange(tdee, ci95)}` : `Dépense estimée ${fmtTDEE(tdee, ci95)}`;
     return verdict(TONE.IDLE, STATUS_KIND.TREND_UNREADABLE, blocked ? 'Lecture provisoire' : UNREADABLE_LABEL,
-      `TDEE ${fmtTDEE(tdee, ci95)} sur ${signals.windowSize} j : ` +
-      (blocked ? extensionBlockedLabel(blocked) : 'la fenêtre s’allonge') +
-      ', continue les pesées. Cibles inchangées.');
+      `${range} : fourchette trop large pour ajuster tes cibles. ` +
+      (readableFromLabel(signals.readableFrom) || 'Continue les pesées.'));
   }
 
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {

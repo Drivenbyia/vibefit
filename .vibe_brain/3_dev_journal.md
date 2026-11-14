@@ -1725,3 +1725,36 @@ Chromium 390 px sans erreur.
 
 Vérification : `npm run lint` ✅ · `npm test` **381/381** (+7) · `vite build` ✅.
 
+
+## Session 2026-11-14 (suite) — Audit lecture / saisie / intelligence
+
+Demande : relire tout l'historique de la PWA et l'améliorer côté donnée,
+lecture, UX et intelligence, avec un plan. Méthode : lecture des décisions et
+du journal, puis rendu réel (Chromium 390 px) sur un jeu de données calqué
+sur la série 24/10 → 13/11 (arrêt médical, coupure, calibration, Apple Watch).
+
+Constats au rendu :
+- Écart à la cible écrit de trois façons sur l'onglet Semaine (kcal/j de la
+  semaine précédente, cumul de la semaine en cours, kcal/j de la même).
+- Carte Poids : « −1.0 kg sur la semaine » en vert, tirée de deux pesées
+  brutes à 0,5 kg, sous une bande qui dit « lecture provisoire ».
+- Carte TDEE : « ±454 », « pas encore lisible », « TDEE bas », « précision
+  insuffisante », « fenêtre non allongée » — la même incertitude cinq fois.
+- Aujourd'hui : 3 écrans, les mesures du matin tout en bas, aucun indicateur
+  de ce qui manque ; hier incomplet invisible.
+- Semaine : 14 cartes, 3,7 écrans ; Cibles : 3,7 écrans dont 1,5 d'éditeurs
+  suspendus pendant la phase. (Lots 4 et 5 : proposés, non faits — ils
+  retirent ou fusionnent des cartes demandées, donc accord explicite requis.)
+
+Livré (lots 1 à 3) :
+- `utils/format.js` ; `WeekSummary` en kcal/j ; `WeightCard` neutre ;
+  accords ; `DayBar`, `WaistCard`, `plateauProtocol` en virgule.
+- `projectReadability` + `signals.readableFrom` ; `fmtRange`,
+  `readableFromLabel` ; bande d'état et `recalibrationBlock` ; `TdeeRange`.
+- `dayCompleteness`, `useEntryChecklist`, `EntryChecklist` ; ancres
+  `entry-*` dans `TodayView`, `setDateKey` passé par `App`.
+
+Vérification : `npm run lint` ✅ · `npm test` **397/397** (+16) · `vite build`
+✅ · Chromium 390 et 360 px : pastilles, saut vers la carte avec focus,
+« Hier à compléter » → veille, fourchette TDEE, zéro erreur, zéro
+débordement horizontal.

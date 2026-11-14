@@ -1,9 +1,23 @@
 import { Scale, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import { fmtFr } from '../../../utils/dateUtils.js';
+import { fmtDec, fmtSigned } from '../../../utils/format.js';
 import Card from '../../ui/Card.jsx';
 
-export default function WeightCard({ avgWeight, weightDelta, weightSeries }) {
+/**
+ * Pesées de la semaine. L'écart première → dernière pesée est donné en encre
+ * NEUTRE : deux pesées brutes ne font pas une tendance (le reste de l'app
+ * refuse de conclure à moins de ±300 kcal d'incertitude), et une baisse n'est
+ * une bonne nouvelle qu'en sèche — ni vert, ni corail. Sous la résolution de
+ * la balance, l'écart n'est pas mesurable : « stable ».
+ */
+export default function WeightCard({ avgWeight, weightDelta, weightSeries, scaleResolutionKg = 0.5 }) {
+  const measurable = weightDelta !== null && Math.abs(weightDelta) > scaleResolutionKg + 1e-9;
+  const DeltaIcon = !measurable ? Minus : weightDelta < 0 ? TrendingDown : TrendingUp;
+  const deltaText = measurable
+    ? `${fmtSigned(weightDelta)} kg entre la première et la dernière pesée`
+    : `Stable à la résolution de ta balance (±${fmtDec(scaleResolutionKg)} kg)`;
+
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -13,7 +27,7 @@ export default function WeightCard({ avgWeight, weightDelta, weightSeries }) {
         </div>
         {avgWeight !== null && (
           <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: PALETTE.ink }}>
-            moy. {avgWeight.toFixed(1)} kg
+            moy. {fmtDec(avgWeight)} kg
           </span>
         )}
       </div>
@@ -32,26 +46,19 @@ export default function WeightCard({ avgWeight, weightDelta, weightSeries }) {
                 {fmtFr(key)}
               </span>
               <span className="vf-mono vf-tabular" style={{ fontSize: 14, fontWeight: 700, color: PALETTE.ink }}>
-                {w.toFixed(1)} kg
+                {fmtDec(w)} kg
               </span>
             </div>
           ))}
           {weightDelta !== null && (
             <div style={{
-              marginTop: 10, padding: '8px 10px',
-              background: weightDelta < 0 ? PALETTE.deepSoft : weightDelta > 0 ? PALETTE.alertSoft : PALETTE.bg,
-              borderRadius: 12, display: 'flex', alignItems: 'center', gap: 6,
+              marginTop: 10, padding: '8px 10px', background: PALETTE.bg,
+              borderRadius: 12, display: 'flex', alignItems: 'flex-start', gap: 6,
             }}>
-              {weightDelta < 0
-                ? <TrendingDown size={14} color={PALETTE.deep} strokeWidth={2.5} />
-                : weightDelta > 0
-                ? <TrendingUp size={14} color={PALETTE.alert} strokeWidth={2.5} />
-                : <Minus size={14} color={PALETTE.muted} strokeWidth={2.5} />}
-              <span className="vf-body" style={{
-                fontSize: 12, fontWeight: 700,
-                color: weightDelta < 0 ? PALETTE.deep : weightDelta > 0 ? PALETTE.alert : PALETTE.muted,
-              }}>
-                {weightDelta >= 0 ? '+' : ''}{weightDelta.toFixed(1)} kg sur la semaine
+              <DeltaIcon size={14} color={PALETTE.muted} strokeWidth={2.5} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span className="vf-body" style={{ fontSize: 12, color: PALETTE.muted, lineHeight: 1.45 }}>
+                <strong style={{ color: PALETTE.ink }}>{deltaText}</strong>
+                {' '}— pesées brutes, pas une tendance : celle-ci se lit sur plusieurs semaines (bande d’état, Cibles).
               </span>
             </div>
           )}

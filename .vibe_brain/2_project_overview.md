@@ -7,11 +7,38 @@ last_updated: 2026-11-14
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/dreamy-allen-tufgff`
+- Branche active : `claude/peaceful-ptolemy-3kmgad`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 381 tests** — `npm test`
+- **Suite de tests : Vitest, 397 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-11-14 (suite) — Audit lecture / saisie / intelligence, lots 1 à 3
+Audit de l'app au rendu (Chromium 390 px, jeu de données calqué sur la série
+réelle) et de l'historique des échanges. Plan en 6 lots, détaillé dans la
+section **Backlog** ; lots 1 à 3 livrés dans cette PR, lots 4 à 6 à arbitrer.
+
+- **Lot 1 — un chiffre, une écriture** : `utils/format.js` (virgule décimale,
+  signe typographique, accords). En-tête Semaine : écart à la cible en
+  **kcal/j** (il était en cumul hebdo, « −1 088 kcal », à côté de trois
+  « −218 kcal/j »). Carte Poids : écart première → dernière pesée en encre
+  neutre, « stable » sous la résolution de la balance (il était vert, « −1,0 kg
+  sur la semaine », pendant que la bande refusait de conclure). Plus de
+  « semaine(s) ». Dates de fenêtre en JJ/MM.
+- **Lot 2 — le TDEE se lit** : `projectReadability` (trendUncertainty) et
+  `signals.readableFrom` — date AU PLUS TÔT d'une tendance lisible, d'après le
+  bruit de pesée mesuré et la rupture qui bloque l'allongement (série réelle :
+  17/11, fenêtre de 21 j). Bande d'état en clair : « Dépense estimée entre
+  1 502 et 2 410 kcal/j : fourchette trop large pour ajuster tes cibles.
+  Lisible au plus tôt le 17/11… ». `targets/TdeeRange.jsx` : fourchette à 95 %
+  sur une piste, estimation, base des cibles, plancher — « ta base est dans la
+  fourchette ». « TDEE bas » masqué tant que la tendance est illisible.
+- **Lot 3 — la saisie se voit** : `utils/dayCompleteness.js`,
+  `useEntryChecklist`, `today/EntryChecklist.jsx` — quatre pastilles (Poids,
+  Sommeil, Apport, Pas) sous la bande, un tap mène à la carte et au champ ;
+  sur le jour courant, « Hier à compléter : … » ouvre la veille. La pesée
+  d'hier n'est jamais réclamée (elle ne se rattrape pas).
+- Aucune donnée ni schéma modifié ; aucun fichier supprimé.
 
 ### Session 2026-11-14 — PR D : ruptures de fenêtre, protéines de phase, jour atypique
 - L'allongement de la fenêtre TDEE s'arrête aux ruptures (coupure, début de
@@ -561,6 +588,8 @@ src/
     presetUtils.js     — computePresetTargets, clampTargetField, macroConflictKcal, deriveBaseTDEE,
                          DEFAULT_TARGETS (dérivé de DEFAULT_TDEE — ici pour éviter un cycle d'import)
     reminderUtils.js   — weeklyReminderCopy(presetId, …) : texte rappel hebdo par type d'objectif
+    format.js          — formats français partagés (fmtInt, fmtDec, fmtSigned, fmtDayMonth, plural)
+    dayCompleteness.js — dayChecklist(day), yesterdayGap(data, todayKey) : complétude de la saisie, PUR
     vibeStatus.js      — summarizeStatus() : ARBITRE PUR de la bande d'état. Ne calcule aucun
                          diagnostic, choisit lequel publier et le raccourcit. Rétention d'eau
                          prioritaire sur les avertissements (elle bloque une coupe injustifiée).
@@ -634,6 +663,30 @@ src/
 > amélioration, feu vert du développeur entre chaque. Ordre d'exécution
 > validé : n°3 → n°1 → n°2 → n°4. **n°2 et n°4 mergés avant le 06/11/2026**
 > (premier TDEE mesuré possible, première recalibration). Le reste attend.
+
+**Plan « lecture / saisie / intelligence » (audit du 14/11)**
+- [x] **Lot 1 — Un chiffre, une écriture** (S) : formats français partagés,
+  écart à la cible en kcal/j partout, poids hebdo sans faux verdict.
+- [x] **Lot 2 — Le TDEE se lit** (M) : fourchette visuelle, texte en clair,
+  date au plus tôt d'une tendance lisible.
+- [x] **Lot 3 — La saisie se voit** (M) : liste de saisie du jour, rattrapage
+  d'hier.
+- [ ] **Lot 4 — Semaine allégée** (M) — *à arbitrer, retire des cartes* :
+  14 cartes, 3,8 écrans. Protéines, pas et écart sont dits trois fois (Bilan
+  en haut, Moyennes au milieu, Rappel hebdo en bas) ; le Bilan parle de la
+  semaine PRÉCÉDENTE au-dessus d'un écran de la semaine en cours. Proposé :
+  Rappel hebdo fondu dans le Bilan (un seul texte, une action), Bilan aligné
+  sur la semaine affichée, sections « Cette semaine » / « Tendances » /
+  « Coach », cartes de détail (Poids, Tour de taille) repliables.
+- [ ] **Lot 5 — Cibles allégées** (S) — *à arbitrer* : pendant une phase, les
+  trois éditeurs TRAIN / OFF / WE (suspendus) occupent 1,5 écran ; les
+  replier sous « Cibles cyclées — reprennent à la clôture ». Profil et
+  balance (réglés une fois) sous « Réglages de mesure ».
+- [ ] **Lot 6 — Saisie sans recopie** (M–L) = n°5 : Raccourci iOS → JSON →
+  Fusionner. Reste le coût n°1 ; la liste de saisie le rend visible, elle ne
+  le supprime pas. À vérifier d'abord : Raccourcis lit-il le RMSSD ?
+- Questions ouvertes : la carte d'apport dit « depuis FatSecret », le journal
+  du 14/11 parle de MyFitnessPal — libellé à confirmer.
 
 **Engagé, dans l'ordre**
 - [x] **n°3 — CI GitHub** (S) : tests + build sur chaque PR. *Mergée — PR #17.*

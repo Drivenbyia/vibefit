@@ -48,6 +48,7 @@ export default function TargetsView({ data, setData }) {
         canRecalibrate={canRecalibrate}
         blockedReason={blockedReason}
         onRecalibrate={recalibrate}
+        baseTDEE={baseTDEE}
       />
       <ProfileCard
         sex={profile.sex}

@@ -1,11 +1,15 @@
 import { TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
 import { fmtFr } from '../../../utils/dateUtils.js';
+import { fmtSignedInt } from '../../../utils/format.js';
 
 /**
  * En-tête de semaine. Le chiffre de droite est l'ÉCART À LA CIBLE (apport −
- * cible, jours saisis). Couleur par écart MOYEN par jour, ±100 kcal = dans la cible :
- * vert dans la cible, or en dessous, corail au-dessus (DESIGN.md §1).
+ * cible) en kcal PAR JOUR comparable — la même unité que le bilan, la
+ * tendance 12 semaines et le rappel. Un cumul hebdomadaire (« −1 088 kcal »)
+ * à côté d'un « −218 kcal/j » se lisait comme deux mesures différentes.
+ * Couleur : ±100 kcal/j = dans la cible (vert), or en dessous, corail
+ * au-dessus (DESIGN.md §1).
  */
 export default function WeekSummary({ start, recordedDays, trackedDays = 7, targetGap = 0, comparableDays = 0 }) {
   const perDay = comparableDays > 0 ? targetGap / comparableDays : 0;
@@ -33,15 +37,15 @@ export default function WeekSummary({ start, recordedDays, trackedDays = 7, targ
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, justifyContent: 'flex-end' }}>
           <BalanceIcon size={16} color={balanceColor} strokeWidth={2.5} />
-          <span
-            className="vf-hero vf-tabular"
-            style={{ fontSize: 22, color: balanceColor }}
-          >
-            {targetGap >= 0 ? '+' : ''}{Math.round(targetGap)}
+          <span className="vf-hero vf-tabular" style={{ fontSize: 22, color: balanceColor }}>
+            {comparableDays > 0 ? fmtSignedInt(perDay) : '—'}
           </span>
           <span className="vf-body" style={{ fontSize: 11, fontWeight: 500, color: PALETTE.muted }}>
-            kcal
+            kcal/j
           </span>
+        </div>
+        <div style={{ fontSize: 11, color: PALETTE.muted, marginTop: 2 }}>
+          {comparableDays > 0 ? `sur ${comparableDays} j comparable${comparableDays > 1 ? 's' : ''}` : 'aucun jour comparable'}
         </div>
       </div>
     </div>

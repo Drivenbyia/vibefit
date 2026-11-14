@@ -1,3 +1,4 @@
+import { fmtDec } from '../../../utils/format.js';
 import { PALETTE } from '../../../constants/config.js';
 import { shortFr } from '../../../utils/dateUtils.js';
 import { num } from '../../../utils/mathUtils.js';
@@ -64,7 +65,7 @@ export default function DayBar({ day, dayKey, target, isToday, onPress }) {
         color: hasData ? PALETTE.ink : PALETTE.muted,
         letterSpacing: '0.02em',
       }}>
-        {hasData ? `${(kcal / 1000).toFixed(1)}k` : '—'}
+        {hasData ? `${fmtDec(kcal / 1000)}k` : '—'}
       </div>
     </button>
   );

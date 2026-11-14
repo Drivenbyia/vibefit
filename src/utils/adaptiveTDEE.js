@@ -9,7 +9,7 @@ import {
 import { toKey, addDays } from './dateUtils.js';
 import { isExcluded, sanitizeProtocol } from '../models/protocol.js';
 import { checkTDEE, TDEE_CHECK } from './plausibility.js';
-import { slopeWithError, tdeeCi95, isReadable, sanitizeScaleResolution } from './trendUncertainty.js';
+import { slopeWithError, tdeeCi95, isReadable, sanitizeScaleResolution, projectReadability } from './trendUncertainty.js';
 import { TREND_WINDOW_SIZES, TDEE_RUPTURE_MARGIN_DAYS } from '../constants/config.js';
 
 const SMOOTHING_WINDOW = 7;
@@ -318,6 +318,7 @@ export function calibrationProgress(data, today = toKey(new Date())) {
  *   tdeeCi95            — ±kcal à 95 % sur le TDEE (pente + quantification)
  *   control             — calcul de contrôle moindres carrés { slopeKgPerWeek, tdee } (debug)
  *   trendReadable       — intervalle ≤ ±300 kcal (sinon : pas de recalibration)
+ *   readableFrom        — si illisible : { date, windowSize } au plus tôt, ou null
  *   windowSize          — 14, 21 ou 28 j (allongée tant que la tendance est illisible)
  *   extensionBlocked    — allongement refusé (rupture ou TDEE incohérent) ou null
  *   hasEnoughData       — true si recouvrement ≥ MIN_OVERLAP_DAYS sur la fenêtre
@@ -415,6 +416,7 @@ export function extractSignals(data) {
     return {
       start, end, size, win, overlap, slope, olsControl,
       ci95: tdeeCi95(fit),
+      sigma: fit?.sigma ?? null,
       // 10 jours croisés sur 14, au prorata sur 21 ou 28.
       hasEnough: size > 0 && overlap >= Math.min(Math.ceil((MIN_OVERLAP_DAYS * size) / WINDOW_SIZE), size),
       interpolatedCount: tdeeWindow.filter((e) => e.interpolated).length,
@@ -508,6 +510,11 @@ export function extractSignals(data) {
   // Intervalle à 95 % du TDEE (±kcal) et lisibilité — publiés avec le TDEE.
   const tdeeCi95Kcal = measuredTDEE !== null ? (est?.ci95 ?? null) : null;
   const trendReadable = measuredTDEE !== null ? isReadable(tdeeCi95Kcal) : null;
+  // Tendance illisible : date au plus tôt où elle peut le devenir (lecture
+  // seule, aucune décision ne s'appuie dessus).
+  const readableFrom = trendReadable === false
+    ? projectReadability({ sigmaKg: est?.sigma ?? null, windowSize: size, windowStart, windowEnd, extensionBlocked })
+    : null;
 
   // Garde-fou de plausibilité : un résultat juste arithmétiquement peut être
   // faux physiologiquement (tendance de poids faussée par une balance au kg
@@ -543,6 +550,8 @@ export function extractSignals(data) {
     tdeeCi95: tdeeCi95Kcal,
     // Intervalle ≤ ±300 kcal ? null sans TDEE.
     trendReadable,
+    // Illisible : { date, windowSize } au plus tôt, ou null si imprévisible.
+    readableFrom,
     // Taille de la fenêtre retenue (14, 21 ou 28 j) et résolution de balance.
     windowSize: size,
     // Allongement refusé : null, ou { reason: 'cut'|'atypical'|'implausible', date }.

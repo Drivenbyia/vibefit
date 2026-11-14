@@ -1,7 +1,7 @@
 import { etaLabel } from './calibrationCopy.js';
 import { TDEE_LOW_BMR_FACTOR, TREND_MAX_CI95_KCAL, TREND_WINDOW_SIZES } from '../constants/config.js';
 import { TDEE_CHECK, IMPLAUSIBLE_LABEL, LOW_LABEL, implausibleDetail } from './plausibility.js';
-import { UNREADABLE_LABEL, extensionBlockedLabel } from './trendUncertainty.js';
+import { UNREADABLE_LABEL, extensionBlockedLabel, readableFromLabel } from './trendUncertainty.js';
 
 // Au-delà de cet écart, la recalibration est bloquée : un tel saut trahit une
 // saisie douteuse bien plus probablement qu'une vraie dérive métabolique.
@@ -23,7 +23,7 @@ const fr = (n) => Math.round(n).toLocaleString('fr-FR');
  * @returns {{ blockedReason: string|null, canRecalibrate: boolean, delta: number|null }}
  */
 export function recalibrationBlock(signals, baseTDEE) {
-  const { adaptiveTDEE, measuredTDEE, tdeeCheck, tdeeCi95, trendReadable, windowSize, extensionBlocked, hasEnoughData, overlapDays, windowStart, excludedDays, calibration } = signals;
+  const { adaptiveTDEE, measuredTDEE, tdeeCheck, tdeeCi95, trendReadable, windowSize, extensionBlocked, readableFrom, hasEnoughData, overlapDays, windowStart, excludedDays, calibration } = signals;
   const delta = adaptiveTDEE !== null && baseTDEE !== null ? adaptiveTDEE - baseTDEE : null;
 
   let blockedReason = null;
@@ -42,10 +42,11 @@ export function recalibrationBlock(signals, baseTDEE) {
     blockedReason = 'Profil incomplet — renseigne sexe, année de naissance et taille pour vérifier la plausibilité de la mesure.';
   } else if (trendReadable === false) {
     const maxSize = TREND_WINDOW_SIZES[TREND_WINDOW_SIZES.length - 1];
+    const next = readableFromLabel(readableFrom) || 'Continue les pesées.';
     blockedReason = `${UNREADABLE_LABEL} — ±${fr(tdeeCi95)} kcal à 95 % sur ${windowSize} j, il faut ±${TREND_MAX_CI95_KCAL} au plus.` +
       (extensionBlocked
-        ? ` Lecture provisoire : ${extensionBlockedLabel(extensionBlocked)}. Continue les pesées.`
-        : windowSize < maxSize ? ' La fenêtre s\'allonge (21 puis 28 j) à mesure que les jours s\'ajoutent.' : ' Continue les pesées.') +
+        ? ` Lecture provisoire : ${extensionBlockedLabel(extensionBlocked)}. ${next}`
+        : windowSize < maxSize ? ` La fenêtre s'allonge (21 puis 28 j) à mesure que les jours s'ajoutent. ${readableFromLabel(readableFrom)}`.trimEnd() : ` ${next}`) +
       ' Pas de recalibration d\'ici là.';
   } else if (tdeeCheck?.status === TDEE_CHECK.LOW) {
     blockedReason = `${LOW_LABEL} : sous ${fr(tdeeCheck.lowKcal)} kcal (${String(TDEE_LOW_BMR_FACTOR).replace('.', ',')} × métabolisme de base ${fr(tdeeCheck.bmr)} kcal).` +

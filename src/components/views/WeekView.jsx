@@ -58,7 +58,7 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
         daysNotLogged={daysNotLogged}
       />
       <WaistCard waistSeries={waistSeries} />
-      <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} />
+      <WeightCard avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries} scaleResolutionKg={data.scaleResolutionKg} />
       <LongTrendCard data={data} targets={resolvedTargets} />
       <WeekReminder
         presetId={data.presetId} weekly={weekly} inPhase={inPhase} phaseLabel={phase?.label}

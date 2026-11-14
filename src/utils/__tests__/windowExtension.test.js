@@ -81,7 +81,10 @@ describe('allongement de la fenêtre — ruptures et plausibilité', () => {
     const status = summarizeStatus({ diagnosis: null, signals: s });
     expect(status.kind).toBe(STATUS_KIND.TREND_UNREADABLE);
     expect(status.headline).toBe('Lecture provisoire');
-    expect(status.detail).toMatch(/^TDEE ~1\s956 kcal \(±454\) sur 14 j : fenêtre non allongée \(jour atypique du 24\/10\)/);
+    // En clair : une fourchette et une date, la cause reste dans la carte TDEE.
+    expect(status.detail).toMatch(/^Dépense estimée entre 1\s502 et 2\s410 kcal\/j : fourchette trop large/);
+    expect(status.detail).toContain('Lisible au plus tôt le 17/11');
+    expect(s.readableFrom).toEqual({ date: '2026-11-17', windowSize: 21 });
     expect(status.detail).not.toContain('s’allonge');
     const r = recalibrationBlock(s, 2050);
     expect(r.canRecalibrate).toBe(false);
