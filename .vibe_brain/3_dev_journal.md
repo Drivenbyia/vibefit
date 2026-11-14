@@ -1725,3 +1725,18 @@ Chromium 390 px sans erreur.
 
 Vérification : `npm run lint` ✅ · `npm test` **381/381** (+7) · `vite build` ✅.
 
+## Session 2026-11-14 (suite) — Import Apple Santé par presse-papier
+
+- Le développeur ouvre VibeFit depuis l'icône de l'écran d'accueil : stockage
+  séparé de Safari, donc pas d'import par lien. On passe par le presse-papier.
+- `utils/healthImport.js` : `parseHealthImport` (dictionnaire plat → jour
+  partiel, nombres « 2 159,3 kcal » acceptés, bornes, date ISO sinon
+  aujourd'hui) ; `hooks/useHealthImport.js` (readText → `mergeDays`) ;
+  `HealthImportCard.jsx` sur le jour courant ; `setData` passé à `TodayView`.
+- Raccourcis : seul « Variabilité de la fréquence cardiaque » (SDNN) est
+  visible, pas de RMSSD ⇒ `hrvSdnn` importé, `hrv` reste manuel.
+- Tests : `healthImport.test.js` (+6). Vérifié dans Chromium à 390 px :
+  import de 4 valeurs, aucune erreur.
+
+Vérification : `npm run lint` ✅ · `npm test` **387/387** (+6) · `vite build` ✅.
+
