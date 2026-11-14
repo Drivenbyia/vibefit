@@ -123,7 +123,7 @@ function hasAnyData(day) {
   return Boolean(
     day && (
       day.intake?.kcal || day.workout || day.expenditure?.kcal || day.expenditure?.steps
-      || day.weight || day.waist || day.heavyWork || day.notes || formatSleep(day.sleep)
+      || day.weight || day.waist || day.heavyWork || day.atypical || day.notes || formatSleep(day.sleep)
       || formatInfoActivities(day.infoActivities)
     )
   );
@@ -158,6 +158,7 @@ function formatDay(key, day, data) {
   }
   if (day.workout) parts.push(`Séance: ${day.workout === 'none' ? 'aucune (repos déclaré)' : day.workout}`);
   if (day.heavyWork) parts.push('Chantier: oui');
+  if (day.atypical) parts.push('Jour atypique: oui');
   // Séances Apple Santé : info seulement, publiées pour le lecteur, lues par aucun calcul.
   const infoActs = formatInfoActivities(day.infoActivities);
   if (infoActs) parts.push(`Activités (info): ${infoActs}`);

@@ -20,6 +20,13 @@ export const emptyDay = () => ({
   // entraînement, et le transformer en jour TRAIN servirait une cible haute un
   // jour de repos programmé.
   heavyWork: false,
+  // Jour atypique — jeûne, gros restaurant, écart. Marque une RUPTURE pour le
+  // TDEE : le glycogène et l'eau qui suivent faussent les pesées plusieurs
+  // jours. Structuré pour la même raison que le chantier (en texte libre,
+  // aucun calcul ne peut le lire). Ne retire AUCUNE donnée du calcul : l'apport
+  // de ce jour est réel. Il interdit seulement à la fenêtre du TDEE de
+  // s'allonger par-dessus (décision du 2026-11-14).
+  atypical: false,
   waist: '',
   weight: '',
   // Sommeil saisi depuis la montre. `durationMin` est la valeur canonique en

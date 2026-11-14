@@ -1,17 +1,29 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-10-31
+last_updated: 2026-11-14
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/stoic-fermi-55d45d`
+- Branche active : `claude/dreamy-allen-tufgff`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 374 tests** — `npm test`
+- **Suite de tests : Vitest, 381 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-11-14 — PR D : ruptures de fenêtre, protéines de phase, jour atypique
+- L'allongement de la fenêtre TDEE s'arrête aux ruptures (coupure, début de
+  calibration, jour `atypical`, plus 3 jours de marge) et quand il rendrait
+  le TDEE incohérent. Verdict « Lecture provisoire ».
+- Série réelle au 13/11 : 14 j (31/10 → 13/11), ~1 956 kcal ±454, plus de
+  « Mesure incohérente ». Contrôle prévu vers le 05/12.
+- Cible unique de phase : protéines 130 g (`REST_PROTEIN_G`).
+- Carte « Jour atypique » (Aujourd'hui), publiée dans l'export.
+- À faire par le développeur dans l'app : base TDEE 1 950, preset au choix
+  (Sèche légère ⇒ 1 750, Sèche forte ⇒ 1 600 avec le plancher ; cible visée
+  ~1 650).
 
 ### Session 2026-11-07 — PR C : régression robuste Theil-Sen
 - Pente retenue : Theil-Sen (médiane des pentes entre paires) sur les pesées
@@ -641,7 +653,8 @@ src/
 - [x] **Linter** (S) : *mergée — PR #21*. PR séparée. `CLAUDE.md` cite `npm run lint`, absent de
   `package.json`. Ajoute une devDependency ⇒ décision à documenter.
 - [ ] **n°5 — Raccourci iOS → JSON → Fusionner** (M–L, option B) : à
-  vérifier d'abord que Raccourcis lit le RMSSD.
+  vérifier d'abord que Raccourcis lit le RMSSD. **Remonté en priorité le
+  14/11** : la saisie quotidienne (Santé + MyFitnessPal) est le coût n°1.
 - [x] **n°6 — Historique graphique multi-semaines** (M) : *mergée — PR #23*.
   Poids, tour de taille, écart à la cible sur 12 semaines, lecture seule.
 - [x] **n°9 — Tendance calorique lisible sans la couleur** (S) : *mergée — PR #24*.

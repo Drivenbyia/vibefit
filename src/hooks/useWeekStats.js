@@ -67,8 +67,8 @@ export function useWeekStats(dateKey, data, targets) {
     return vs.length > 0 ? vs.reduce((a, b) => a + b, 0) / vs.length : fallback;
   };
 
-  // Pendant une phase, le plancher est celui de la cible unique (170 g en
-  // Sèche forte), pas celui de TRAIN.
+  // Pendant une phase, le plancher est celui de la cible unique (130 g,
+  // REST_PROTEIN_G), pas celui de TRAIN.
   const restTarget = weekTargets.rest;
   const inPhase = days.some(({ key, day }) => dayType(key, day, phases ?? []) === 'rest');
   const proteinFloor = (inPhase ? restTarget?.protein : null) ?? weekTargets.train?.protein ?? PROTEIN_FLOOR;

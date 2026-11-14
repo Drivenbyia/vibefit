@@ -10,7 +10,7 @@ import { toKey, addDays } from './dateUtils.js';
 import { isExcluded, sanitizeProtocol } from '../models/protocol.js';
 import { checkTDEE, TDEE_CHECK } from './plausibility.js';
 import { slopeWithError, tdeeCi95, isReadable, sanitizeScaleResolution } from './trendUncertainty.js';
-import { TREND_WINDOW_SIZES } from '../constants/config.js';
+import { TREND_WINDOW_SIZES, TDEE_RUPTURE_MARGIN_DAYS } from '../constants/config.js';
 
 const SMOOTHING_WINDOW = 7;
 const HISTORY_SCAN_DAYS = 30;  // horizon de scan pour la fenêtre glissante
@@ -319,6 +319,7 @@ export function calibrationProgress(data, today = toKey(new Date())) {
  *   control             — calcul de contrôle moindres carrés { slopeKgPerWeek, tdee } (debug)
  *   trendReadable       — intervalle ≤ ±300 kcal (sinon : pas de recalibration)
  *   windowSize          — 14, 21 ou 28 j (allongée tant que la tendance est illisible)
+ *   extensionBlocked    — allongement refusé (rupture ou TDEE incohérent) ou null
  *   hasEnoughData       — true si recouvrement ≥ MIN_OVERLAP_DAYS sur la fenêtre
  *   overlapDays         — jours avec poids ET apport sur la fenêtre
  *   interpolatedCount   — poids reconstruits par interpolation sur la fenêtre
@@ -355,6 +356,7 @@ export function extractSignals(data) {
       weight: excluded ? null : weight,
       intake: excluded ? null : intake,
       heavyWork: !excluded && !!day?.heavyWork,
+      atypical: !excluded && !!day?.atypical,
       excluded,
     });
   }
@@ -426,13 +428,40 @@ export function extractSignals(data) {
   // remonte le début à 21 puis 28 jours, même fin, tant que la fenêtre
   // allongée reste hors coupure (et après le début de calibration) et
   // suffisamment saisie. Faute de mieux, la plus longue tentée reste.
+  //
+  // Deux garde-fous (décision du 2026-11-14) :
+  //   - RUPTURE : la partie AJOUTÉE, plus les TDEE_RUPTURE_MARGIN_DAYS jours
+  //     qui la précèdent, ne contient ni coupure, ni jour d'avant calibration,
+  //     ni jour atypique. Un début de fenêtre posé juste après un jeûne ou une
+  //     reprise mesure le remplissage du glycogène, pas le bilan.
+  //   - PLAUSIBILITÉ : une fenêtre allongée dont le TDEE est incohérent est
+  //     refusée quand la plus courte ne l'était pas. Filet de sécurité qui
+  //     marche même sans jour atypique coché.
+  // Refusé ⇒ la fenêtre courte reste, avec son intervalle large : « lecture
+  // provisoire », jamais « mesure incohérente » par la faute de l'allongement.
+  const isImplausible = (e) => {
+    if (e.avgIntake === null || e.slope === null) return false;
+    const tdee = Math.round(e.avgIntake - e.slope * KCAL_PER_KG);
+    return checkTDEE(tdee, data?.profile, smoothedWeight, today)?.status === TDEE_CHECK.IMPLAUSIBLE;
+  };
   let est = best ? estimate(startIdx, endIdx) : null;
+  let extensionBlocked = null;
   if (est && !isReadable(est.ci95)) {
     for (const len of TREND_WINDOW_SIZES.filter((l) => l > est.size)) {
       const s0 = endIdx - len + 1;
-      if (s0 < 0 || entries.slice(s0, endIdx + 1).some((e) => e.excluded)) break;
+      if (s0 < 0) break;
+      const added = entries.slice(Math.max(0, s0 - TDEE_RUPTURE_MARGIN_DAYS), est.start);
+      const rupture = added.findLast((e) => e.excluded || e.atypical);
+      if (rupture) {
+        extensionBlocked = { reason: rupture.atypical ? 'atypical' : 'cut', date: rupture.date };
+        break;
+      }
       const longer = estimate(s0, endIdx);
       if (!longer.hasEnough) break;
+      if (isImplausible(longer) && !isImplausible(est)) {
+        extensionBlocked = { reason: 'implausible', date: longer.win[0]?.date ?? null };
+        break;
+      }
       est = longer;
       if (isReadable(est.ci95)) break;
     }
@@ -516,6 +545,8 @@ export function extractSignals(data) {
     trendReadable,
     // Taille de la fenêtre retenue (14, 21 ou 28 j) et résolution de balance.
     windowSize: size,
+    // Allongement refusé : null, ou { reason: 'cut'|'atypical'|'implausible', date }.
+    extensionBlocked,
     scaleResolutionKg: resolutionKg,
     // null sans calibration ; sinon { start, seedTDEE, requiredDays, crossedDays, active }
     calibration,

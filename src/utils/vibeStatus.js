@@ -3,7 +3,7 @@ import { NEAT } from './neatDrift.js';
 import { SLEEP } from './sleepDiagnosis.js';
 import { etaLabel, incompleteLabel } from './calibrationCopy.js';
 import { implausibleDetail } from './plausibility.js';
-import { fmtTDEE, UNREADABLE_LABEL } from './trendUncertainty.js';
+import { fmtTDEE, UNREADABLE_LABEL, extensionBlockedLabel } from './trendUncertainty.js';
 
 /**
  * Bande d'état — LE VERDICT, PAS LE TABLEAU DE BORD.
@@ -191,8 +191,13 @@ export function summarizeStatus({ diagnosis, neat, sleep, signals, expectedKgPer
   // Tendance illisible : le TDEE existe mais son intervalle dépasse ±300 kcal.
   // Rien à décider, mais à dire — sinon le chiffre serait lu comme une mesure.
   if (tdee !== null && signals?.trendReadable === false) {
-    return verdict(TONE.IDLE, STATUS_KIND.TREND_UNREADABLE, UNREADABLE_LABEL,
-      `TDEE ${fmtTDEE(tdee, ci95)} sur ${signals.windowSize} j : la fenêtre s’allonge, continue les pesées. Cibles inchangées.`);
+    // Allongement refusé (rupture, TDEE incohérent) : le chiffre court reste la
+    // meilleure estimation — « lecture provisoire », pas une attente muette.
+    const blocked = signals.extensionBlocked;
+    return verdict(TONE.IDLE, STATUS_KIND.TREND_UNREADABLE, blocked ? 'Lecture provisoire' : UNREADABLE_LABEL,
+      `TDEE ${fmtTDEE(tdee, ci95)} sur ${signals.windowSize} j : ` +
+      (blocked ? extensionBlockedLabel(blocked) : 'la fenêtre s’allonge') +
+      ', continue les pesées. Cibles inchangées.');
   }
 
   if (diagnosis?.status === DIAGNOSIS.PLATEAU_CONFIRMED) {

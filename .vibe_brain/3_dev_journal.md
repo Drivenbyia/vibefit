@@ -1703,3 +1703,25 @@ Chromium 390 px sans erreur.
 
 Vérification : `npm run lint` ✅ · `npm test` **374/374** (+7) · `vite build` ✅ ·
 Chromium 390 px sans erreur.
+
+## Session 2026-11-14 — PR D : ruptures de fenêtre, protéines de phase, jour atypique
+
+- Diagnostic sur le rapport du 14/11 : la fenêtre de 14 j était plate
+  (~1 956 kcal, ±454 à 0,5 kg), donc illisible, donc allongée à 21 j. Elle a
+  alors inclus le jeûne du 24/10 et le remplissage du glycogène qui a suivi :
+  TDEE 1 375, « incohérent ». Échange avec le coach : fenêtre glissante et
+  résolution de balance existaient déjà, c'est l'allongement le bug.
+- `extractSignals` : boucle d'allongement avec garde « rupture » (coupure,
+  avant calibration, `atypical`, marge `TDEE_RUPTURE_MARGIN_DAYS` = 3) et
+  garde « plausibilité ». `signals.extensionBlocked`.
+  `extensionBlockedLabel` (trendUncertainty), verdict « Lecture provisoire »
+  (vibeStatus), texte de `recalibrationBlock`.
+- `computeSingleTarget` : protéines `REST_PROTEIN_G` = 130.
+- `emptyDay().atypical`, `AtypicalDayCard.jsx` sous la carte d'apport,
+  « Jour atypique: oui » dans l'export.
+- Tests : `windowExtension.test.js` (+7, série réelle 24/10 → 13/11) ;
+  attentes 160 → 130 mises à jour (phase, calibration, coachContext) ; le
+  test d'allongement bloqué par une coupure annonce désormais la raison.
+
+Vérification : `npm run lint` ✅ · `npm test` **381/381** (+7) · `vite build` ✅.
+
