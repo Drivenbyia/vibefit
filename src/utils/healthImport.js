@@ -11,7 +11,8 @@ import { WEIGHT_MIN_KG, WEIGHT_MAX_KG, INTAKE_MIN_KCAL, INTAKE_MAX_KCAL } from '
  *
  * Format (toutes les clés facultatives sauf une valeur au moins) :
  *   { date: 'YYYY-MM-DD', kcal, protein, carbs, fat, steps, weight,
- *     sleepMin, rhr, hrvSdnn, hrv }
+ *     sleepMin, sleepStages, sleepDurations, rhr, hrvSdnn, hrv }
+ * `sleepStages` + `sleepDurations` (phases brutes) priment sur `sleepMin`.
  * Les valeurs peuvent arriver en texte, avec unité ou virgule décimale
  * (« 2 159,3 kcal ») : c'est ce que produit Raccourcis selon les actions.
  */
@@ -50,6 +51,33 @@ function extractJson(text) {
   }
 }
 
+/** « 1:02:03 », « 20:27 », « 59 » → secondes ; illisible → null. */
+function durationSeconds(text) {
+  const parts = String(text).trim().split(':');
+  if (parts.some((p) => !/^\d+([.,]\d+)?$/.test(p))) return null;
+  return parts.reduce((acc, p) => acc * 60 + parseFloat(p.replace(',', '.')), 0);
+}
+
+// Phases qui ne sont pas du sommeil (libellés anglais de Santé, et français au cas où).
+const NOT_ASLEEP = new Set(['awake', 'inbed', 'in bed', 'éveillé', 'au lit']);
+
+/**
+ * Durée de sommeil depuis les phases brutes envoyées par le raccourci :
+ * `sleepStages` (« Core\nDeep\nAwake… ») et `sleepDurations` (« 20:27\n43:23… »),
+ * alignées ligne à ligne. Les phases « Awake » et « In Bed » sont écartées.
+ * Calcul fait ici parce que les filtres « Valeur » de Raccourcis comparent un
+ * libellé français à une valeur anglaise et n'écartent rien.
+ * @returns {number|null} minutes
+ */
+export function sleepMinutesFromStages(stages, durations) {
+  if (typeof stages !== 'string' || typeof durations !== 'string') return null;
+  const names = stages.split(/[\r\n]+/).map((n) => n.trim()).filter(Boolean);
+  const secs = durations.split(/[\r\n]+/).map((d) => d.trim()).filter(Boolean).map(durationSeconds);
+  if (!names.length || names.length !== secs.length || secs.some((n) => n === null)) return null;
+  const total = names.reduce((acc, n, i) => (NOT_ASLEEP.has(n.toLowerCase()) ? acc : acc + secs[i]), 0);
+  return total > 0 ? total / 60 : null;
+}
+
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const int = (n) => String(Math.round(n));
 
@@ -83,6 +111,8 @@ const FIELDS = {
  */
 export function parseHealthImport(text, today) {
   const raw = extractJson(text);
+  const fromStages = sleepMinutesFromStages(raw?.sleepStages, raw?.sleepDurations);
+  if (fromStages !== null) raw.sleepMin = fromStages;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('format inattendu');
   }

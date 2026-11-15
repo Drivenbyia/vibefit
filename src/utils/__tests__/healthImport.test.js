@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseHealthImport, parseHealthNumber, applyHealthImport } from '../healthImport.js';
+import { parseHealthImport, parseHealthNumber, applyHealthImport, sleepMinutesFromStages } from '../healthImport.js';
 import { emptyDay } from '../../models/day.js';
 import { mergeDays } from '../backupUtils.js';
 
@@ -139,5 +139,25 @@ describe('durée de sommeil — unité devinée', () => {
     expect(sleep('27840')).toBe('464');
     expect(sleep('464')).toBe('464');
     expect(sleep('7,7')).toBe('462');
+  });
+});
+
+describe('sommeil depuis les phases brutes (nuit réelle du 15/11)', () => {
+  const stages = 'Core\nDeep\nAwake\nCore\nREM\nCore\nREM\nCore\nDeep\nAwake\nCore\nAwake\nCore\nDeep\nCore\nREM\nAwake\nCore\nDeep\nCore\nREM\nAwake\nCore\nREM\nCore';
+  const durations = '20:27\n43:23\n1:59\n3:59\n1:29\n59\n8:58\n22:56\n22:26\n2:59\n14:57\n9:28\n48:52\n1:29\n5:29\n52:22\n29\n55:51\n1:29\n10:28\n22:56\n59\n51:52\n53:52\n17:27';
+
+  it('écarte les phases Awake : 7 h 42 et pas 7 h 58', () => {
+    expect(Math.round(sleepMinutesFromStages(stages, durations))).toBe(462);
+  });
+
+  it('prime sur sleepMin (qui inclut l’éveil)', () => {
+    const clip = JSON.stringify({ sleepMin: '28670,0565259457', sleepStages: stages, sleepDurations: durations });
+    expect(parseHealthImport(clip, TODAY).day.sleep.durationMin).toBe('462');
+  });
+
+  it('In Bed écarté, heures acceptées, listes incohérentes ignorées', () => {
+    expect(sleepMinutesFromStages('In Bed\nCore', '8:00:00\n1:00:00')).toBe(60);
+    expect(sleepMinutesFromStages('Core\nDeep', '10:00')).toBeNull();
+    expect(sleepMinutesFromStages('', '')).toBeNull();
   });
 });

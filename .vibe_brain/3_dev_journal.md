@@ -1873,3 +1873,10 @@ champs vides. Accord du développeur (« ok pour les 2 ») :
 - `sleepMin` : secondes / minutes / heures converties en minutes.
 
 Vérification : `npm run lint` ✅ · `npm test` **427/427** · `vite build` ✅.
+
+Suite : la recherche Sommeil ne renvoyait rien — la première « Ajuster la
+date » recevait le texte « Date actuelle » au lieu de la variable. Corrigé,
+elle renvoie 25 phases, dont 5 « Awake » que les filtres « Valeur n'est pas
+Éveillé » n'écartaient pas (valeurs en anglais). `sleepMinutesFromStages` :
+l'app additionne elle-même les phases hors Awake / In Bed. Nuit réelle :
+7 h 42 (462 min) au lieu de 7 h 58. `npm test` **430/430**.

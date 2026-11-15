@@ -9,7 +9,7 @@ last_updated: 2026-11-15
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
 - Branche active : `claude/dreamy-allen-tufgff`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 427 tests** — `npm test`
+- **Suite de tests : Vitest, 430 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
 
@@ -61,6 +61,8 @@ section **Backlog** ; lots 1 à 3 livrés dans cette PR, lots 4 à 6 à arbitrer
 - `applyHealthImport` : un import remplace ses propres valeurs (`day.imported`),
   jamais une saisie manuelle. Import possible à toute heure.
 - `sleepMin` accepté en secondes, minutes ou heures (unité devinée).
+- Sommeil calculé par l'app depuis les phases brutes (`sleepStages`,
+  `sleepDurations`), phases « Awake » / « In Bed » écartées.
 
 ### Session 2026-11-15 — Import Santé : premier essai réel corrigé
 - Premier essai sur iPhone refusé : Raccourcis copie le dictionnaire comme
