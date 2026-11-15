@@ -14,7 +14,7 @@ const STROKE = 14;
  */
 function ActivityRings({ rings, onPick }) {
   return (
-    <div className="vf-rise" style={{ background: PALETTE.surface, border: `1px solid ${PALETTE.line}`, borderRadius: 24, padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+    <div className="vf-rise" style={{ background: PALETTE.surface, border: 'none', borderRadius: 24, padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
       <svg viewBox="0 0 140 140" width="132" height="132" role="img" aria-label={rings.map((r) => `${r.label} ${fmtInt(r.value)} sur ${r.target ? fmtInt(r.target) : 'aucune cible'}`).join(', ')} style={{ flexShrink: 0, transform: 'rotate(-90deg)' }}>
         {rings.map((r, i) => {
           const p = ringProgress(r.value, r.target) ?? 0;

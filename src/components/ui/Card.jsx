@@ -6,8 +6,8 @@ export default function Card({ children, style = {}, className = '' }) {
       className={`vf-rise ${className}`}
       style={{
         background: PALETTE.surface,
-        border: `1px solid ${PALETTE.line}`,
-        borderRadius: 22,
+        border: 'none',
+        borderRadius: 24,
         padding: 16,
         ...style,
       }}

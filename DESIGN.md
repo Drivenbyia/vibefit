@@ -293,6 +293,17 @@ montés dans `App` : on saisit depuis n'importe quel onglet, sur le jour affich�
 | Cibles | TRAIN et OFF (ou cible unique + protéines pendant une phase), pas / jour, base TDEE |
 | Données | jours saisis, dernier export (tireté or si en retard), stockage, tuile « Sauvegarder » (export en un appui) |
 
+**Grammaire commune (toute l'app)** :
+- `Card`, `WidgetTile`, `Fold` : surfaces **sans bordure**, rayon 24 (20 pour un
+  repli). La séparation se fait par la surface, jamais par un trait.
+- **Bande d'état** : carte d'état au format widget — pastille d'icône ronde
+  (seul élément qui glowe), titre, phrase, tendance dans un encart `bg`.
+- `NumberInput` : chiffre en Anton 24 px sur fond `bg`, sans bordure.
+- `Pill` : puce ronde ; active = sticker + glow.
+- Bilan du dimanche : chaque ligne devient une mini-tuile ; « Une action » sur `deepSoft`.
+- **Plus aucune barre d'accent verticale** (cartes à bord gauche) : remplacées
+  par une pastille ronde lumineuse.
+
 ---
 
 ## 4. Signature — L'ANNEAU/LA PISTE LUMINEUSE (inchangée dans son mécanisme)

@@ -16,9 +16,9 @@ export default function Fold({ title, hint, defaultOpen = false, children }) {
       <summary
         className="vf-body"
         style={{
-          minHeight: 44, padding: '0 14px', cursor: 'pointer', listStyle: 'none',
+          minHeight: 52, padding: '0 16px', cursor: 'pointer', listStyle: 'none',
           display: 'flex', alignItems: 'center', gap: 8,
-          background: 'transparent', border: `1px solid ${PALETTE.line}`, borderRadius: 16,
+          background: PALETTE.surface, border: 'none', borderRadius: 20,
         }}
       >
         <span className="vf-display" style={{ fontSize: 11, color: PALETTE.ink, letterSpacing: '0.1em', textTransform: 'uppercase', flexShrink: 0 }}>

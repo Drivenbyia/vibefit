@@ -1835,3 +1835,14 @@ rendu Chromium 390 px, saisie réglette → `intake.kcal` écrit, aucune erreur 
 
 Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
 rendu Chromium 390 px des 4 onglets, aucune erreur console.
+
+## Session 2026-11-15 (suite) — Grammaire « Pile » sur toute l'app
+
+Retour du développeur : la bande d'état « fait tache ». Refaite en carte
+widget (pastille d'icône, tendance en encart). Primitives alignées : `Card`,
+`WidgetTile`, `Fold` sans bordure ; `NumberInput` en Anton ; `Pill` en puce
+sticker ; bilan du dimanche en mini-tuiles ; barres d'accent verticales
+remplacées par des pastilles ; boutons et champs contournés passés en fond.
+
+Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
+rendu 390 px des 4 onglets, aucune erreur console.

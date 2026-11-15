@@ -10,7 +10,7 @@ import { PALETTE } from '../../constants/config.js';
 function WidgetTile({ label, missing = false, missingTone = PALETTE.muted, onPress, delay = 0, children }) {
   const style = {
     background: missing ? 'transparent' : PALETTE.surface,
-    border: missing ? `2px dashed ${missingTone}` : `1px solid ${PALETTE.line}`,
+    border: missing ? `2px dashed ${missingTone}` : 'none',
     borderRadius: 22, padding: 14, minHeight: 128, textAlign: 'left', color: PALETTE.ink,
     display: 'flex', flexDirection: 'column', gap: 4, animationDelay: `${delay}s`,
   };

@@ -32,7 +32,7 @@ export default function PhaseCard({ phase, single, canClose, onClose, onPlannedE
           style={{
             flex: 1, minHeight: 44, padding: '0 10px', borderRadius: 12,
             background: PALETTE.surfaceRaised, color: PALETTE.ink,
-            border: `1px solid ${PALETTE.line}`, fontSize: 13, colorScheme: 'dark',
+            border: 'none', fontSize: 13, colorScheme: 'dark',
           }}
         />
       </label>

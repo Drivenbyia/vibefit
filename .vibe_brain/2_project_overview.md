@@ -20,7 +20,8 @@ last_updated: 2026-11-15
   widgets poids/sommeil/macros/cœur, « + » → panneau réglette ; cartes de
   saisie complètes sous « Saisie détaillée ». DESIGN.md §3 bis.
 - Étendu à tous les onglets : widgets 2 × 2 en tête de Semaine, Cibles,
-  Données ; « + » global (monté dans `App`).
+  Données ; « + » global (monté dans `App`). Bande d'état en carte widget,
+  primitives sans bordure, champs en Anton : grammaire unique (DESIGN.md §3 bis).
 - Non fait (proposé dans la maquette A) : pile façon Wallet des cartes d'état ;
   cartes-tableaux Bilan / Moyennes de Semaine gardées telles quelles.
 

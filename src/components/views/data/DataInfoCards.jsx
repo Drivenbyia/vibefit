@@ -47,7 +47,7 @@ export function BackupHintCard() {
   return (
     <Card style={{ background: PALETTE.warnSoft, borderColor: PALETTE.warn }}>
       <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flexShrink: 0, width: 4, alignSelf: 'stretch', background: PALETTE.warn, borderRadius: 3 }} />
+        <div aria-hidden="true" style={{ flexShrink: 0, width: 10, height: 10, marginTop: 4, background: PALETTE.warn, borderRadius: 5, boxShadow: `0 0 8px ${PALETTE.warn}` }} />
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: PALETTE.warn, letterSpacing: '0.04em', marginBottom: 6, textTransform: 'uppercase' }}>
             Backup
