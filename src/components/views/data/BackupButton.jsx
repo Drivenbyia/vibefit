@@ -13,9 +13,9 @@ export default function BackupButton({ icon: Icon, label, hint, onClick, filled 
       style={{
         width: '100%',
         padding: hint ? '10px 14px' : '14px',
-        background: filled ? PALETTE.ink : PALETTE.bg,
+        background: filled ? PALETTE.ink : PALETTE.surfaceRaised,
         color: filled ? PALETTE.inkSoft : PALETTE.ink,
-        border: filled ? 'none' : `1px solid ${PALETTE.line}`,
+        border: 'none',
         borderRadius: 12,
         cursor: 'pointer',
         minHeight: 44,

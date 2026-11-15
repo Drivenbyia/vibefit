@@ -7,7 +7,7 @@ export default function TargetEditor({ title, subtitle, accent, target, onChange
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-        <div style={{ width: 4, height: 28, background: accent, borderRadius: 3 }} />
+        <div aria-hidden="true" style={{ width: 12, height: 12, background: accent, borderRadius: 6, boxShadow: `0 0 8px ${accent}`, flexShrink: 0 }} />
         <div>
           <div className="vf-body" style={{ fontSize: 13, fontWeight: 800, color: PALETTE.ink, letterSpacing: '0.04em' }}>
             {title}

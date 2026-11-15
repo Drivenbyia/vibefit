@@ -23,6 +23,7 @@ import RecoveryCard from './week/RecoveryCard.jsx';
 import CheckInCard from './week/CheckInCard.jsx';
 import WeekReminder from './week/WeekReminder.jsx';
 import ExportButton from './week/ExportButton.jsx';
+import WeekWidgets from './week/WeekWidgets.jsx';
 
 export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarget }) {
   const {
@@ -41,7 +42,12 @@ export default function WeekView({ dateKey, data, setDateKey, targets, stepsTarg
   const handleExport = useCallback(() => copy(getHistoricalWeeks(data, 8)), [copy, data]);
 
   return (
-    <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ padding: '14px 14px 120px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <WeekWidgets
+        weekly={weekly} avgWeight={avgWeight} weightDelta={weightDelta} weightSeries={weightSeries}
+        scaleResolutionKg={data.scaleResolutionKg} recordedDays={weekly.recordedDays}
+        daysUnderProtein={daysUnderProtein} proteinFloor={proteinFloor} sleep={sleep}
+      />
       <CheckInCard data={data} targets={resolvedTargets} stepsTarget={stepsTarget} />
       <WeekSection>Cette semaine</WeekSection>
       <Card>

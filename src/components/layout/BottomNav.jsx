@@ -12,7 +12,8 @@ export default function BottomNav({ tab, setTab }) {
     <div
       style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
-        background: PALETTE.surface, borderTop: `1px solid ${PALETTE.line}`,
+        background: '#1B1320', borderTop: 'none', borderRadius: '24px 24px 0 0',
+        maxWidth: 720, margin: '0 auto',
         padding: '8px 8px max(8px, env(safe-area-inset-bottom))',
         display: 'flex', justifyContent: 'space-around',
         zIndex: 100,

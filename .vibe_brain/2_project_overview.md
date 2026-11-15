@@ -7,11 +7,23 @@ last_updated: 2026-11-15
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/dreamy-allen-tufgff`
+- Branche active : `claude/nice-rubin-eh43al`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 407 tests** — `npm test`
+- **Suite de tests : Vitest, 421 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-11-15 (suite) — Aujourd'hui « Pile » : anneaux, widgets, saisie au « + »
+- Trois maquettes (canevas Design) : A · Pile, B · Pulse, C · Cruise. Choix du
+  développeur : A + la saisie « + » à réglette de B, import Santé en un appui.
+- Aujourd'hui : import Santé plein en tête, anneaux apport/protéines/pas,
+  widgets poids/sommeil/macros/cœur, « + » → panneau réglette ; cartes de
+  saisie complètes sous « Saisie détaillée ». DESIGN.md §3 bis.
+- Étendu à tous les onglets : widgets 2 × 2 en tête de Semaine, Cibles,
+  Données ; « + » global (monté dans `App`). Bande d'état en carte widget,
+  primitives sans bordure, champs en Anton : grammaire unique (DESIGN.md §3 bis).
+- Pile Wallet des cartes d'état, graphiques animés (tendance, récupération),
+  réglette de l'objectif de pas, éditeurs cyclés repliés : faits.
 
 ### Session 2026-11-14 (suite) — Audit lecture / saisie / intelligence, lots 1 à 3
 Audit de l'app au rendu (Chromium 390 px, jeu de données calqué sur la série

@@ -73,10 +73,30 @@ export default function FontStyles() {
       }
       .vf-fold > summary::-webkit-details-marker { display: none; }
       .vf-fold[open] > summary .vf-fold-chevron { transform: rotate(180deg); }
+      .vf-ring { animation: vfring 1.4s cubic-bezier(.3,.7,.2,1) both; }
+      @keyframes vfring { from { stroke-dashoffset: 100; } }
+      .vf-rise { animation: vfrise .6s cubic-bezier(.2,.8,.2,1) both; }
+      @keyframes vfrise { from { opacity: 0; transform: translateY(14px); } }
+      .vf-sheet { animation: vfsheet .4s cubic-bezier(.2,.9,.2,1) both; }
+      @keyframes vfsheet { from { transform: translateY(100%); } }
+      .vf-reveal { animation: vfreveal 1.2s cubic-bezier(.3,.7,.2,1) both; }
+      @keyframes vfreveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+      .vf-bar { animation: vfbar .8s cubic-bezier(.3,.7,.2,1) both; }
+      @keyframes vfbar { from { transform: scaleY(0); } }
+      .vf-press { transition: transform .15s ease; }
+      .vf-press:active { transform: scale(.97); }
+      .vf-ruler { -webkit-appearance: none; appearance: none; width: 100%; height: 56px; margin: 0; background: transparent; touch-action: pan-x; }
+      .vf-ruler::-webkit-slider-runnable-track { height: 56px; border-radius: 16px; background: repeating-linear-gradient(90deg, #3D2C40 0 2px, transparent 2px 14px), #1B1320; }
+      .vf-ruler::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 56px; border-radius: 5px; background: var(--vf-ruler, #3FC94F); box-shadow: 0 0 16px var(--vf-ruler, #3FC94F); }
+      .vf-ruler::-moz-range-track { height: 56px; border-radius: 16px; background: repeating-linear-gradient(90deg, #3D2C40 0 2px, transparent 2px 14px), #1B1320; }
+      .vf-ruler::-moz-range-thumb { width: 10px; height: 56px; border: 0; border-radius: 5px; background: var(--vf-ruler, #3FC94F); box-shadow: 0 0 16px var(--vf-ruler, #3FC94F); }
       .vf-fadein { animation: vffadein 200ms ease-out; }
       @keyframes vffadein {
         from { opacity: 0; transform: translateY(4px); }
         to   { opacity: 1; transform: translateY(0); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .vf-ring, .vf-rise, .vf-sheet, .vf-fadein, .vf-pulse, .vf-reveal, .vf-bar { animation: none; }
       }
     `}</style>
   );

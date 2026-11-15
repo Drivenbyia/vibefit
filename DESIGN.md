@@ -259,6 +259,61 @@ TODAYVIEW (390 px)
 
 ---
 
+## 3 bis. Aujourd'hui — direction « Pile » (2026-11-15)
+
+Choisie par le développeur parmi trois maquettes (A · Pile, B · Pulse,
+C · Cruise) : la **Pile** (widgets façon Apple, lecture en un coup d'œil) avec
+la **saisie de Pulse** (« + » et réglette). Palette, typo, analyses inchangées.
+
+- **Haut d'écran** : bande d'état → rappel de sauvegarde → **Importer depuis
+  Santé en un appui** (bouton plein `ink`, sticker `alert`, jamais replié) →
+  « Hier à compléter » → **anneaux** (apport, protéines, pas) → **widgets 2 × 2**
+  (poids + tracé 14 j, sommeil, macros, cœur) → jour atypique.
+- **Anneaux** (`ActivityRings`) : couleurs de NATURE, tokens `ember`, `aqua`,
+  `sky` (AA vérifié en texte sur `surface` et `bg`). L'état n'est jamais porté
+  par la couleur de l'anneau : valeur / cible écrites à côté. Sans cible (WE),
+  anneau vide + « sans cible ».
+- **Mesure manquante** : tuile tiretée ; neutre aujourd'hui, `warn` un jour passé.
+- **Saisie** : `+` flottant (vert `deep`, glow) → panneau du bas : onglets de
+  mesure, gros chiffre Anton, ± au cran, réglette (`.vf-ruler`), import Santé,
+  « Enregistrer ». Rien n'est écrit avant « Enregistrer ».
+- **Cartes de saisie complètes** : intactes, sous le repli « Saisie détaillée ».
+- **Mouvement** : `.vf-ring` (tracé des anneaux), `.vf-rise` (entrée décalée des
+  tuiles et de toutes les `Card`), `.vf-sheet` (panneau), `.vf-press` (appui).
+  Tout est coupé sous `prefers-reduced-motion`.
+
+**Étendue à toute l'app.** Règle commune à chaque onglet : **une grille 2 × 2
+de widgets en tête** (lecture en un coup d'œil, `ui/WidgetTile`, `ui/GaugeRing`),
+le détail et les réglages en dessous, inchangés. Le `+` et son panneau sont
+montés dans `App` : on saisit depuis n'importe quel onglet, sur le jour affiché.
+
+| Onglet | Widgets |
+|---|---|
+| Semaine | écart cible (kcal/j, couleur d'état), poids moyen (+ tracé, variation neutre), protéines (anneau : jours ≥ plancher), sommeil moyen |
+| Cibles | TRAIN et OFF (ou cible unique + protéines pendant une phase), pas / jour, base TDEE |
+| Données | jours saisis, dernier export (tireté or si en retard), stockage, tuile « Sauvegarder » (export en un appui) |
+
+**Grammaire commune (toute l'app)** :
+- `Card`, `WidgetTile`, `Fold` : surfaces **sans bordure**, rayon 24 (20 pour un
+  repli). La séparation se fait par la surface, jamais par un trait.
+- **Bande d'état** : carte d'état au format widget — pastille d'icône ronde
+  (seul élément qui glowe), titre, phrase, tendance dans un encart `bg`.
+- `NumberInput` : chiffre en Anton 24 px sur fond `bg`, sans bordure.
+- `Pill` : puce ronde ; active = sticker + glow.
+- Bilan du dimanche : chaque ligne devient une mini-tuile ; « Une action » sur `deepSoft`.
+- **Plus aucune barre d'accent verticale** (cartes à bord gauche) : remplacées
+  par une pastille ronde lumineuse.
+- **Pile Wallet** (`ui/CardStack`) : sur Aujourd'hui, carte d'état devant,
+  sauvegarde en retard et « hier à compléter » en languettes dessous ; un appui
+  déplie, « Replier la pile » referme. Une seule carte : pas de pile.
+- **Graphiques animés** : tracés révélés de gauche à droite (`.vf-reveal`),
+  barres qui poussent depuis l'axe (`.vf-bar`). Tendance 12 semaines : valeurs
+  de la semaine choisie en tuiles ; Récupération : moyenne en gros chiffre.
+- **Réglette** aussi pour l'objectif de pas (Cibles, cran 500) ; éditeurs
+  TRAIN / OFF / WE toujours sous le repli « Cibles cyclées ».
+
+---
+
 ## 4. Signature — L'ANNEAU/LA PISTE LUMINEUSE (inchangée dans son mécanisme)
 
 Héritée de la direction précédente et **conservée telle quelle** : c'est un

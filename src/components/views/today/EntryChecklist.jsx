@@ -1,5 +1,6 @@
-import { Check, ChevronRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { PALETTE } from '../../../constants/config.js';
+import YesterdayGap from './YesterdayGap.jsx';
 
 /**
  * Liste de saisie — ce qui est fait, ce qui manque, en une ligne au-dessus du
@@ -39,22 +40,9 @@ export default function EntryChecklist({ items, isToday, yesterday, onJump, onOp
         ))}
       </div>
       {yesterday && (
-        <button
-          type="button"
-          onClick={onOpenYesterday}
-          className="vf-body"
-          style={{
-            marginTop: 6, width: '100%', minHeight: 44, padding: '0 12px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 6, textAlign: 'left',
-            background: PALETTE.warnSoft, border: `1px solid ${PALETTE.warn}`, borderRadius: 12,
-            fontSize: 12, color: PALETTE.ink,
-          }}
-        >
-          <span>
-            <strong style={{ color: PALETTE.warn }}>Hier à compléter</strong> : {yesterday.missing.join(', ')}
-          </span>
-          <ChevronRight size={16} color={PALETTE.warn} style={{ marginLeft: 'auto', flexShrink: 0 }} />
-        </button>
+        <div style={{ marginTop: 6 }}>
+          <YesterdayGap yesterday={yesterday} onOpen={onOpenYesterday} />
+        </div>
       )}
     </div>
   );

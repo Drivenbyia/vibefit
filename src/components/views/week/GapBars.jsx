@@ -37,7 +37,8 @@ function GapBars({ values, selected = null, shaded = [] }) {
             boxShadow: i === selected ? `inset 0 -2px 0 ${PALETTE.ink}` : 'none',
           }}>
             {v != null && (
-              <div style={{
+              <div className="vf-bar" style={{
+                animationDelay: `${i * 0.04}s`, transformOrigin: v > 0 ? 'bottom' : 'top',
                 position: 'absolute', left: '25%', right: '25%',
                 top: v > 0 ? HALF - px(v) : HALF, height: px(v),
                 background: COLORS[gapStatus(v)],

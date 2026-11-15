@@ -13,6 +13,7 @@ import CycleEditors from './targets/CycleEditors.jsx';
 import { ResetCard, HelpCard } from './targets/FooterCards.jsx';
 import Fold from '../ui/Fold.jsx';
 import { fmtDec } from '../../utils/format.js';
+import TargetsWidgets from './targets/TargetsWidgets.jsx';
 
 export default function TargetsView({ data, setData }) {
   const { targets, stepsTarget, presetId, baseTDEE } = data;
@@ -24,15 +25,17 @@ export default function TargetsView({ data, setData }) {
     useProfileManager(data, setData, signals.smoothedWeight);
   const { phase, canClose, closePhase, setPlannedEnd } = usePhaseManager(data, setData);
 
-  // Pendant une phase, le cyclage est suspendu : ses trois éditeurs se replient.
+  // Les trois éditeurs vivent sous un repli ; pendant une phase, ils sont suspendus.
+  const phaseTarget = phase ? computeSingleTarget(presetId, baseTDEE, targets) : null;
   const editors = <CycleEditors targets={targets} suspended={!!phase} onChange={updateField} />;
 
   return (
-    <div style={{ padding: '14px 14px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ padding: '14px 14px 120px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <TargetsWidgets phaseTarget={phaseTarget} train={targets?.train} off={targets?.off} stepsTarget={stepsTarget} baseTDEE={baseTDEE} />
       {phase && (
         <PhaseCard
           phase={phase}
-          single={computeSingleTarget(presetId, baseTDEE, targets)}
+          single={phaseTarget}
           canClose={canClose}
           onClose={closePhase}
           onPlannedEndChange={setPlannedEnd}
@@ -70,11 +73,10 @@ export default function TargetsView({ data, setData }) {
         />
         <ScaleCard resolutionKg={scaleResolutionKg} onChange={setScaleResolution} />
       </Fold>
-      {phase ? (
-        <Fold title="Cibles cyclées" hint="suspendues · reprennent à la clôture">
-          {editors}
-        </Fold>
-      ) : editors}
+      {/* Les widgets du haut montrent déjà ces cibles : le réglage fin se replie. */}
+      <Fold title="Cibles cyclées" hint={phase ? 'suspendues · reprennent à la clôture' : 'réglage fin TRAIN · OFF · WE'}>
+        {editors}
+      </Fold>
       <ResetCard onReset={resetDefaults} />
       <HelpCard />
     </div>
