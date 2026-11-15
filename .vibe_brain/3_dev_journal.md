@@ -1857,3 +1857,19 @@ rendu 390 px des 4 onglets, aucune erreur console.
 
 Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
 rendu 390 px (pile repliée/dépliée, Semaine, Cibles), aucune erreur console.
+
+
+## Session 2026-11-15 (suite) — Import Santé qui se met à jour, durée de sommeil
+
+Raccourci relu depuis son lien iCloud (environnement « vibefit » autorisant
+www.icloud.com et cvws.icloud-content.com) : les actions 2 à 8 recevaient en
+entrée la sortie de l'action précédente, donc filtraient un résultat au lieu
+d'interroger Santé. Après correction côté iPhone : 8 valeurs importées.
+
+Le test de 16 h a figé les repas (767 kcal) : l'import ne remplissait que les
+champs vides. Accord du développeur (« ok pour les 2 ») :
+- `applyHealthImport` + `day.imported` : un import met à jour ses propres
+  valeurs, conserve et signale les saisies manuelles.
+- `sleepMin` : secondes / minutes / heures converties en minutes.
+
+Vérification : `npm run lint` ✅ · `npm test` **427/427** · `vite build` ✅.

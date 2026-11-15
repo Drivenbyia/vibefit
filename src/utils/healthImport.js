@@ -53,6 +53,13 @@ function extractJson(text) {
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const int = (n) => String(Math.round(n));
 
+/**
+ * Sommeil : Raccourcis additionne des durées dont l'unité dépend de l'action
+ * (secondes, minutes ou heures). Une nuit fait 30 min à 18 h : au-delà de
+ * 1080 c'est forcément des secondes, à 24 ou moins des heures.
+ */
+const toSleepMinutes = (n) => (n > 1080 ? n / 60 : n <= 24 ? n * 60 : n);
+
 // clé importée → [chemin dans le jour, bornes, formatage]
 const FIELDS = {
   kcal: [['intake', 'kcal'], [INTAKE_MIN_KCAL, INTAKE_MAX_KCAL], int],
@@ -84,7 +91,8 @@ export function parseHealthImport(text, today) {
   const day = {};
   const fields = [];
   for (const [name, [path, [lo, hi], fmt]] of Object.entries(FIELDS)) {
-    const n = parseHealthNumber(raw[name]);
+    const parsed = parseHealthNumber(raw[name]);
+    const n = parsed !== null && name === 'sleepMin' ? toSleepMinutes(parsed) : parsed;
     if (n === null || n < lo || n > hi) continue;
     const [head, leaf] = path;
     if (leaf) day[head] = { ...(day[head] ?? {}), [leaf]: fmt(n) };
@@ -93,4 +101,48 @@ export function parseHealthImport(text, today) {
   }
   if (fields.length === 0) throw new Error('aucune valeur exploitable');
   return { key, day, fields };
+}
+
+const isBlank = (v) => v === undefined || v === null || String(v).trim() === '';
+
+/**
+ * Applique un import à un jour existant (ou vide).
+ *
+ * Règle (décision du 2026-11-15) : l'import met à jour ce qu'il a lui-même
+ * écrit, jamais une saisie manuelle. Chaque valeur importée est mémorisée
+ * dans `day.imported` (« intake.kcal » → « 767 »). Au prochain import :
+ *   - champ vide                       → rempli ;
+ *   - champ égal à sa valeur importée  → remplacé (journée complétée depuis) ;
+ *   - champ différent                  → saisi ou corrigé à la main : conservé.
+ * Un import à 16 h ne fige donc plus les repas : celui de 23 h 55 les complète.
+ *
+ * @returns {{ day: Object, written: string[], kept: string[] }}
+ *   `written` : champs écrits ou mis à jour ; `kept` : saisies manuelles
+ *   conservées malgré une valeur importée différente.
+ */
+export function applyHealthImport(existing, partial, base) {
+  const day = { ...base, ...(existing ?? {}) };
+  const imported = { ...(day.imported ?? {}) };
+  const written = [];
+  const kept = [];
+
+  for (const [name, [path]] of Object.entries(FIELDS)) {
+    const [head, leaf] = path;
+    const next = leaf ? partial?.[head]?.[leaf] : partial?.[head];
+    if (isBlank(next)) continue;
+    const id = path.join('.');
+    const current = leaf ? day[head]?.[leaf] : day[head];
+    const ownedByImport = isBlank(current) || String(current) === imported[id];
+    if (!ownedByImport) {
+      if (String(current) !== next) kept.push(name);
+      continue;
+    }
+    imported[id] = next;
+    if (String(current ?? '') === next) continue;
+    if (leaf) day[head] = { ...(day[head] ?? {}), [leaf]: next };
+    else day[head] = next;
+    written.push(name);
+  }
+
+  return { day: { ...day, imported }, written, kept };
 }

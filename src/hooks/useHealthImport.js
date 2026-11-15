@@ -1,12 +1,13 @@
 import { useCallback } from 'react';
-import { parseHealthImport } from '../utils/healthImport.js';
-import { mergeDays } from '../utils/backupUtils.js';
+import { parseHealthImport, applyHealthImport } from '../utils/healthImport.js';
+import { emptyDay } from '../models/day.js';
 import { toKey } from '../utils/dateUtils.js';
 import { useTransientValue } from './useTransientValue.js';
 
 /**
  * Bouton « Importer depuis Santé » : lit le presse-papier rempli par le
- * raccourci iOS et fusionne le jour sans rien écraser (`mergeDays`).
+ * raccourci iOS. L'import met à jour ses propres valeurs, jamais une saisie
+ * manuelle (`applyHealthImport`).
  */
 /**
  * Raccourcis copie un dictionnaire comme un FICHIER JSON, pas comme du texte :
@@ -44,17 +45,17 @@ export function useHealthImport(days, setData) {
       return;
     }
     try {
-      const { key, day, fields } = parseHealthImport(text, toKey(new Date()));
-      // Fusion calculée hors du setData : l'updater reste pur.
-      const { days: merged, fieldsFilled, added } = mergeDays(days, { [key]: day });
-      setData((prev) => ({ ...prev, days: merged }));
+      const { key, day: partial } = parseHealthImport(text, toKey(new Date()));
+      // Calcul hors du setData : l'updater reste pur.
+      const { day, written, kept } = applyHealthImport(days[key], partial, emptyDay());
+      setData((prev) => ({ ...prev, days: { ...prev.days, [key]: day } }));
       const date = `${key.slice(8, 10)}/${key.slice(5, 7)}`;
-      const filled = added > 0 ? fields.length : fieldsFilled;
+      const keptMsg = kept.length ? `, ${kept.length} saisie(s) manuelle(s) conservée(s)` : '';
       setStatus({
         ok: true,
-        msg: filled > 0
-          ? `${date} : ${filled} valeur(s) importée(s), saisies existantes conservées`
-          : `${date} : tout était déjà rempli, rien n’a été écrasé`,
+        msg: written.length > 0
+          ? `${date} : ${written.length} valeur(s) importée(s) ou mise(s) à jour${keptMsg}`
+          : `${date} : rien de nouveau${keptMsg}`,
       });
     } catch (err) {
       setStatus({ ok: false, msg: `Import impossible : ${err.message}.` });
