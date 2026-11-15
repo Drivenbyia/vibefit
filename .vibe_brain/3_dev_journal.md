@@ -1804,3 +1804,23 @@ presse-papier comme fichier JSON, pas comme texte brut.
   avant « Copier dans le presse-papiers », pour forcer du texte brut.
 
 Vérification : `npm run lint` ✅ · `npm test` **407/407** · `vite build` ✅.
+
+## Session 2026-11-15 (suite) — Refonte d'Aujourd'hui : direction « Pile »
+
+Demande : la saisie « fait tableau Excel », envie d'Apple / Whoop, très visuel.
+Trois propositions sur un canevas Design (Pile, Pulse, Cruise), palette et typo
+conservées. Retenu : Pile + saisie à réglette de Pulse + import Santé en un appui.
+
+- `utils/quickEntry.js` : mesures saisissables, bornes (poids ± 8 kg autour de
+  la dernière pesée, pas de la balance), `snap` sans dérive flottante, valeur de
+  départ (saisie du jour > dernière connue > cible), `ringProgress`, `recentSeries`.
+- Hooks `useQuickEntry`, `useTodayDashboard` ; composants `ActivityRings`,
+  `TodayWidgets`, `MiniBar`, `WidgetTile`, `QuickEntryFab`, `QuickEntrySheet`,
+  `HealthImportButton`, `YesterdayGap` (extrait d'`EntryChecklist`).
+- Palette : `ember`, `aqua`, `sky` (catégoriels, AA vérifiés). Animations
+  `.vf-ring/.vf-rise/.vf-sheet/.vf-press`, coupées en mouvement réduit.
+- Rien supprimé : anciennes cartes sous « Saisie détaillée » ; `HealthImportCard`
+  conservé mais plus monté.
+
+Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
+rendu Chromium 390 px, saisie réglette → `intake.kcal` écrit, aucune erreur console.

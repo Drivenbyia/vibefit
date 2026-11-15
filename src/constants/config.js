@@ -202,6 +202,12 @@ export const PALETTE = {
   // toujours écrits à côté (cf. Bar.jsx, MacroBar.jsx).
   slate: '#FF2E9A',   // magenta synthwave — jour OFF / glucides
   umber: '#B27CE8',   // Ballas purple — lipides
+  // Anneaux d'activité (Aujourd'hui) — natures, pas états : l'état (sous / dans
+  // / hors cible) est écrit en toutes lettres à côté de chaque anneau.
+  // AA en texte sur `surface` : ember 6.4:1, aqua 9.6:1, sky 6.9:1.
+  ember: '#FF7A3D',   // stop bas du SUNSET — apport
+  aqua: '#3FD6E0',    // néon piscine de Vinewood — protéines
+  sky: '#6FA8FF',     // ciel de Santa Maria — pas
 };
 
 // Dégradé coucher de soleil San Andreas — RÉSERVÉ aux surfaces décoratives

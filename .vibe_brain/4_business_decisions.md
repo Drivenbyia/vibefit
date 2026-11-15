@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-11-15 — Aujourd'hui en anneaux et widgets, saisie rapide au « + », import Santé en un appui
+- **Décision** : direction « Pile » (DESIGN.md §3 bis). Anneaux apport / protéines / pas, widgets poids / sommeil / macros / cœur, bouton « + » qui ouvre un panneau à réglette (apport, protéines, pas, poids, sommeil), import Santé en un appui en tête d'écran et dans le panneau. Les cartes de saisie existantes passent sous un repli « Saisie détaillée ».
+- **Contexte** : le développeur aime les analyses, les couleurs et la typo, mais la saisie « fait tableau Excel à remplir ». Trois maquettes proposées le 15/11 ; choix : A (widgets) + saisie de B.
+- **Alternatives considérées** : B · Pulse (cadrans façon Whoop) et C · Cruise (HUD et missions), écartées par le développeur ; retirer les cartes de saisie, écarté (protocole anti-suppression, et score/VFC/notes n'ont pas de réglette).
+- **Raison du choix** : lecture en un coup d'œil, saisie au pouce sans clavier. Les valeurs sont écrites en chaîne comme `NumberInput` : modèle de jour, export et tests inchangés. Le poids se règle autour de la dernière pesée (± 8 kg) au pas de `scaleResolutionKg`.
+- **Impact** : `utils/quickEntry.js` (pur, testé), `useQuickEntry`, `useTodayDashboard`, composants `ActivityRings`, `TodayWidgets`, `MiniBar`, `QuickEntryFab`, `QuickEntrySheet`, `HealthImportButton`, `YesterdayGap`, `ui/WidgetTile`. `jumpTo` ouvre le repli avant de défiler. `HealthImportCard` n'est plus monté (fichier conservé). Aucun champ de données, aucune migration.
+- **Réversibilité** : Facile — remettre l'ancien ordre dans `TodayView`.
+
 ### 2026-11-14 — Sections repliables : le détail et les réglages rares se replient, rien n'est retiré
 - **Décision** : `ui/Fold.jsx` (`<details>` natif). Semaine : pesées, tour de taille, apport total et rappel hebdo sous « Détail de la semaine », replié. Cibles : profil et balance sous « Réglages de mesure » ; pendant une phase, éditeurs TRAIN / OFF / WE sous « Cibles cyclées ».
 - **Contexte** : Semaine et Cibles faisaient 3,8 écrans à 390 px. Le rappel hebdo redit le bilan et les moyennes ; les éditeurs cyclés sont sans effet pendant l'arrêt. Accord du développeur le 14/11.

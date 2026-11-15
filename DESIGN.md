@@ -259,6 +259,31 @@ TODAYVIEW (390 px)
 
 ---
 
+## 3 bis. Aujourd'hui — direction « Pile » (2026-11-15)
+
+Choisie par le développeur parmi trois maquettes (A · Pile, B · Pulse,
+C · Cruise) : la **Pile** (widgets façon Apple, lecture en un coup d'œil) avec
+la **saisie de Pulse** (« + » et réglette). Palette, typo, analyses inchangées.
+
+- **Haut d'écran** : bande d'état → rappel de sauvegarde → **Importer depuis
+  Santé en un appui** (bouton plein `ink`, sticker `alert`, jamais replié) →
+  « Hier à compléter » → **anneaux** (apport, protéines, pas) → **widgets 2 × 2**
+  (poids + tracé 14 j, sommeil, macros, cœur) → jour atypique.
+- **Anneaux** (`ActivityRings`) : couleurs de NATURE, tokens `ember`, `aqua`,
+  `sky` (AA vérifié en texte sur `surface` et `bg`). L'état n'est jamais porté
+  par la couleur de l'anneau : valeur / cible écrites à côté. Sans cible (WE),
+  anneau vide + « sans cible ».
+- **Mesure manquante** : tuile tiretée ; neutre aujourd'hui, `warn` un jour passé.
+- **Saisie** : `+` flottant (vert `deep`, glow) → panneau du bas : onglets de
+  mesure, gros chiffre Anton, ± au cran, réglette (`.vf-ruler`), import Santé,
+  « Enregistrer ». Rien n'est écrit avant « Enregistrer ».
+- **Cartes de saisie complètes** : intactes, sous le repli « Saisie détaillée ».
+- **Mouvement** : `.vf-ring` (tracé des anneaux), `.vf-rise` (entrée décalée des
+  tuiles), `.vf-sheet` (panneau), `.vf-press` (appui). Tout est coupé sous
+  `prefers-reduced-motion`.
+
+---
+
 ## 4. Signature — L'ANNEAU/LA PISTE LUMINEUSE (inchangée dans son mécanisme)
 
 Héritée de la direction précédente et **conservée telle quelle** : c'est un
