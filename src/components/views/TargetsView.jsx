@@ -25,7 +25,7 @@ export default function TargetsView({ data, setData }) {
     useProfileManager(data, setData, signals.smoothedWeight);
   const { phase, canClose, closePhase, setPlannedEnd } = usePhaseManager(data, setData);
 
-  // Pendant une phase, le cyclage est suspendu : ses trois éditeurs se replient.
+  // Les trois éditeurs vivent sous un repli ; pendant une phase, ils sont suspendus.
   const phaseTarget = phase ? computeSingleTarget(presetId, baseTDEE, targets) : null;
   const editors = <CycleEditors targets={targets} suspended={!!phase} onChange={updateField} />;
 
@@ -73,11 +73,10 @@ export default function TargetsView({ data, setData }) {
         />
         <ScaleCard resolutionKg={scaleResolutionKg} onChange={setScaleResolution} />
       </Fold>
-      {phase ? (
-        <Fold title="Cibles cyclées" hint="suspendues · reprennent à la clôture">
-          {editors}
-        </Fold>
-      ) : editors}
+      {/* Les widgets du haut montrent déjà ces cibles : le réglage fin se replie. */}
+      <Fold title="Cibles cyclées" hint={phase ? 'suspendues · reprennent à la clôture' : 'réglage fin TRAIN · OFF · WE'}>
+        {editors}
+      </Fold>
       <ResetCard onReset={resetDefaults} />
       <HelpCard />
     </div>

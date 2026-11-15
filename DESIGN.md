@@ -303,6 +303,14 @@ montés dans `App` : on saisit depuis n'importe quel onglet, sur le jour affich�
 - Bilan du dimanche : chaque ligne devient une mini-tuile ; « Une action » sur `deepSoft`.
 - **Plus aucune barre d'accent verticale** (cartes à bord gauche) : remplacées
   par une pastille ronde lumineuse.
+- **Pile Wallet** (`ui/CardStack`) : sur Aujourd'hui, carte d'état devant,
+  sauvegarde en retard et « hier à compléter » en languettes dessous ; un appui
+  déplie, « Replier la pile » referme. Une seule carte : pas de pile.
+- **Graphiques animés** : tracés révélés de gauche à droite (`.vf-reveal`),
+  barres qui poussent depuis l'axe (`.vf-bar`). Tendance 12 semaines : valeurs
+  de la semaine choisie en tuiles ; Récupération : moyenne en gros chiffre.
+- **Réglette** aussi pour l'objectif de pas (Cibles, cran 500) ; éditeurs
+  TRAIN / OFF / WE toujours sous le repli « Cibles cyclées ».
 
 ---
 

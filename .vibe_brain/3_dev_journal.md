@@ -1846,3 +1846,14 @@ remplacées par des pastilles ; boutons et champs contournés passés en fond.
 
 Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
 rendu 390 px des 4 onglets, aucune erreur console.
+
+## Session 2026-11-15 (suite) — Les trois propositions validées
+
+- Semaine : tendance 12 semaines en tuiles + tracés animés, barres d'écart qui
+  poussent ; récupération en gros chiffres, courbes plus hautes (`LongTrendChips`).
+- Cibles : objectif de pas à la réglette (2 000–20 000, cran 500, ± ) ;
+  éditeurs cyclés toujours repliés.
+- Aujourd'hui : pile Wallet (`ui/CardStack`) — état, sauvegarde, hier.
+
+Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
+rendu 390 px (pile repliée/dépliée, Semaine, Cibles), aucune erreur console.

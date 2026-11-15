@@ -25,9 +25,14 @@ import YesterdayGap from './today/YesterdayGap.jsx';
 import ActivityRings from './today/ActivityRings.jsx';
 import TodayWidgets from './today/TodayWidgets.jsx';
 import Fold from '../ui/Fold.jsx';
+import CardStack from '../ui/CardStack.jsx';
+import { PALETTE } from '../../constants/config.js';
+import { TONE } from '../../utils/vibeStatus.js';
+import { TONES } from './today/statusBandTheme.js';
 
 /**
- * Aujourd'hui — direction « Pile » (DESIGN.md §5) : ce qui se lit chaque jour
+ * Aujourd'hui — direction « Pile » (DESIGN.md §3 bis) : cartes d'état en pile
+ * façon Wallet, puis ce qui se lit chaque jour
  * en haut, en anneaux et widgets ; la saisie se fait au « + » (réglette, monté dans
  * App pour tous les onglets) ou
  * par l'import Santé en un appui. Les cartes de saisie complètes restent
@@ -44,13 +49,16 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
   const healthImport = useHealthImport(data?.days ?? {}, setData);
   const { rings, weightSeries } = useTodayDashboard({ days: data?.days, dateKey, day, dt, stepsTarget });
   const device = deviceAt(dateKey, data?.devices ?? []);
+  const statusTone = TONES[status?.tone] ?? TONES[TONE.IDLE];
 
   return (
     <div style={{ padding: '14px 14px 120px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {isToday && <StatusBand status={status} onOpenWeek={onOpenWeek} />}
-      {isToday && backup?.overdue && <BackupReminderCard status={backup} onExport={onExportBackup} />}
+      <CardStack items={[
+        isToday && status && { id: 'status', label: status.headline, tone: statusTone.color, toneSoft: statusTone.bg, node: <StatusBand status={status} onOpenWeek={onOpenWeek} /> },
+        isToday && backup?.overdue && { id: 'backup', label: backup.never ? 'Aucune sauvegarde' : 'Sauvegarde à refaire', tone: PALETTE.warn, toneSoft: PALETTE.warnSoft, node: <BackupReminderCard status={backup} onExport={onExportBackup} /> },
+        yesterday && { id: 'yesterday', label: 'Hier à compléter', tone: PALETTE.warn, toneSoft: PALETTE.warnSoft, node: <YesterdayGap yesterday={yesterday} onOpen={() => setDateKey(yesterday.key)} /> },
+      ].filter(Boolean)} />
       {isToday && setData && <HealthImportButton status={healthImport.status} onImport={healthImport.importFromClipboard} />}
-      <YesterdayGap yesterday={yesterday} onOpen={() => setDateKey(yesterday.key)} />
       <ActivityRings rings={rings} onPick={onQuickEntry} />
       <TodayWidgets day={day} dt={dt} weightSeries={weightSeries} isToday={isToday} onPick={onQuickEntry} />
       <AtypicalDayCard atypical={!!day.atypical} onToggle={() => updateDay({ atypical: !day.atypical })} />

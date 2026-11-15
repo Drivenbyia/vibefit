@@ -49,6 +49,7 @@ function WeekLine({ values, color, height = 40, minSpan = 1, selected = null, sh
       {shadedRuns(shaded).map(({ start, len }) => (
         <rect key={`s${start}`} x={start * colW} y={0} width={len * colW} height={height} fill={PALETTE.line} opacity={0.45} />
       ))}
+      <g className="vf-reveal">
       {segments(values).map((seg) => (
         <path key={seg[0]} d={seg.map((i, k) => `${k ? 'L' : 'M'}${cx(i).toFixed(1)} ${sy(values[i]).toFixed(1)}`).join(' ')}
           fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -60,6 +61,7 @@ function WeekLine({ values, color, height = 40, minSpan = 1, selected = null, sh
           <path d={dot(i)} stroke={color} strokeWidth={i === selected ? 8 : core} strokeLinecap="round" vectorEffect="non-scaling-stroke" />
         </g>
       ))}
+      </g>
     </svg>
   );
 }

@@ -79,6 +79,10 @@ export default function FontStyles() {
       @keyframes vfrise { from { opacity: 0; transform: translateY(14px); } }
       .vf-sheet { animation: vfsheet .4s cubic-bezier(.2,.9,.2,1) both; }
       @keyframes vfsheet { from { transform: translateY(100%); } }
+      .vf-reveal { animation: vfreveal 1.2s cubic-bezier(.3,.7,.2,1) both; }
+      @keyframes vfreveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+      .vf-bar { animation: vfbar .8s cubic-bezier(.3,.7,.2,1) both; }
+      @keyframes vfbar { from { transform: scaleY(0); } }
       .vf-press { transition: transform .15s ease; }
       .vf-press:active { transform: scale(.97); }
       .vf-ruler { -webkit-appearance: none; appearance: none; width: 100%; height: 56px; margin: 0; background: transparent; touch-action: pan-x; }
@@ -92,7 +96,7 @@ export default function FontStyles() {
         to   { opacity: 1; transform: translateY(0); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .vf-ring, .vf-rise, .vf-sheet, .vf-fadein, .vf-pulse { animation: none; }
+        .vf-ring, .vf-rise, .vf-sheet, .vf-fadein, .vf-pulse, .vf-reveal, .vf-bar { animation: none; }
       }
     `}</style>
   );

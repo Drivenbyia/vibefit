@@ -22,8 +22,8 @@ last_updated: 2026-11-15
 - Étendu à tous les onglets : widgets 2 × 2 en tête de Semaine, Cibles,
   Données ; « + » global (monté dans `App`). Bande d'état en carte widget,
   primitives sans bordure, champs en Anton : grammaire unique (DESIGN.md §3 bis).
-- Non fait (proposé dans la maquette A) : pile façon Wallet des cartes d'état ;
-  cartes-tableaux Bilan / Moyennes de Semaine gardées telles quelles.
+- Pile Wallet des cartes d'état, graphiques animés (tendance, récupération),
+  réglette de l'objectif de pas, éditeurs cyclés repliés : faits.
 
 ### Session 2026-11-14 (suite) — Audit lecture / saisie / intelligence, lots 1 à 3
 Audit de l'app au rendu (Chromium 390 px, jeu de données calqué sur la série

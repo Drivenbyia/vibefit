@@ -1,6 +1,7 @@
 import { PALETTE } from '../../../constants/config.js';
 import { useLongTrend } from '../../../hooks/useLongTrend.js';
-import { ddmm, weekReadout } from '../../../utils/longTrendCopy.js';
+import { ddmm } from '../../../utils/longTrendCopy.js';
+import LongTrendChips from './LongTrendChips.jsx';
 import Card from '../../ui/Card.jsx';
 import SectionLabel from '../../ui/SectionLabel.jsx';
 import WeekLine from '../../ui/WeekLine.jsx';
@@ -19,7 +20,7 @@ const Row = ({ title, children }) => (
  * Tendance sur 12 semaines — poids, tour de taille, écart à la cible.
  * LECTURE SEULE : trois petits graphiques à un seul axe chacun (unités
  * différentes, jamais de double axe), sur les mêmes colonnes de semaines.
- * Un tap sur une colonne affiche ses valeurs ; le tableau donne tout.
+ * Un tap sur une colonne affiche ses valeurs en tuiles ; le tableau donne tout.
  */
 export default function LongTrendCard({ data, targets }) {
   const { weeks, selected, select } = useLongTrend(data, targets);
@@ -27,15 +28,13 @@ export default function LongTrendCard({ data, targets }) {
   return (
     <Card>
       <SectionLabel>Tendance — {weeks.length} semaines</SectionLabel>
-      <div className="vf-mono vf-tabular" aria-live="polite" style={{ fontSize: 11, color: PALETTE.ink, minHeight: 16 }}>
-        {weekReadout(weeks[selected])}
-      </div>
+      <LongTrendChips week={weeks[selected]} />
       <div style={{ position: 'relative' }}>
         <Row title="Poids — moyenne de la semaine">
-          <WeekLine values={weeks.map((w) => w.weight)} color={PALETTE.ink} minSpan={1} selected={selected} shaded={shaded} label="Poids moyen par semaine" />
+          <WeekLine values={weeks.map((w) => w.weight)} color={PALETTE.ink} height={56} minSpan={1} selected={selected} shaded={shaded} label="Poids moyen par semaine" />
         </Row>
         <Row title="Tour de taille">
-          <WeekLine values={weeks.map((w) => w.waist)} color={PALETTE.ink} minSpan={2} selected={selected} shaded={shaded} label="Tour de taille par semaine" />
+          <WeekLine values={weeks.map((w) => w.waist)} color={PALETTE.ink} height={48} minSpan={2} selected={selected} shaded={shaded} label="Tour de taille par semaine" />
         </Row>
         <Row title="Écart à la cible — kcal par jour">
           <GapBars values={weeks.map((w) => w.gapPerDay)} selected={selected} shaded={shaded} />
