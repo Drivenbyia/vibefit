@@ -1,15 +1,15 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-11-14
+last_updated: 2026-11-15
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/peaceful-ptolemy-3kmgad`
+- Branche active : `claude/dreamy-allen-tufgff`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 403 tests** — `npm test`
+- **Suite de tests : Vitest, 407 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
 
@@ -42,6 +42,15 @@ section **Backlog** ; lots 1 à 3 livrés dans cette PR, lots 4 à 6 à arbitrer
   natif), `week/WeekSection.jsx`, `targets/CycleEditors.jsx`. Carte d'apport :
   « depuis MyFitnessPal ».
 - Aucune donnée ni schéma modifié ; aucun fichier supprimé.
+
+### Session 2026-11-15 — Import Santé : premier essai réel corrigé
+- Premier essai sur iPhone refusé : Raccourcis copie le dictionnaire comme
+  fichier JSON, `readText()` ne le voyait pas. Lecture par
+  `navigator.clipboard.read()` (texte puis tout type « json »), repli sur
+  `readText()` ; JSON extrait du premier « { » au dernier « } ».
+- « Regrouper par Jour » renvoie une ligne par source (« 1113\n0 ») : on
+  garde la plus grande valeur, sans additionner (doublons iPhone/montre).
+- Erreurs plus parlantes : presse-papier vide, ou début du contenu reçu.
 
 ### Session 2026-11-14 (suite) — Import Apple Santé (raccourci iOS)
 - Bouton « Importer depuis Santé » sur Aujourd'hui : lit le presse-papier

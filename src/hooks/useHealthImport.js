@@ -8,13 +8,37 @@ import { useTransientValue } from './useTransientValue.js';
  * Bouton « Importer depuis Santé » : lit le presse-papier rempli par le
  * raccourci iOS et fusionne le jour sans rien écraser (`mergeDays`).
  */
+/**
+ * Raccourcis copie un dictionnaire comme un FICHIER JSON, pas comme du texte :
+ * `readText()` renvoie alors vide. On parcourt donc les types du presse-papier
+ * (texte d'abord, puis tout type « json ») avant de retomber sur `readText()`.
+ */
+async function readClipboardText() {
+  if (navigator.clipboard?.read) {
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const type = item.types.find((t) => t === 'text/plain')
+          ?? item.types.find((t) => t.includes('json'));
+        if (type) {
+          const text = await (await item.getType(type)).text();
+          if (text.trim()) return text;
+        }
+      }
+    } catch {
+      // Type non lisible ou API refusée : on tente readText.
+    }
+  }
+  return navigator.clipboard.readText();
+}
+
 export function useHealthImport(days, setData) {
   const [status, setStatus] = useTransientValue(5000);
 
   const importFromClipboard = useCallback(async () => {
     let text;
     try {
-      text = await navigator.clipboard.readText();
+      text = await readClipboardText();
     } catch {
       setStatus({ ok: false, msg: 'Lecture du presse-papier refusée — appuie sur « Coller » quand l’iPhone le demande.' });
       return;
