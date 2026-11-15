@@ -1787,3 +1787,20 @@ Vérification : `npm run lint` ✅ · `npm test` **403/403** · `vite build` ✅
 Chromium 360 px : sections ouvertes au tap, restent ouvertes pendant
 l'édition, valeur enregistrée, zéro erreur, zéro débordement. Semaine 3,8 →
 2,9 écrans, Cibles 3,8 → 2,3.
+
+
+## Session 2026-11-15 — Import Santé : correctifs après le premier essai réel
+
+Le développeur a monté le raccourci ; le bouton répondait « le presse-papier
+ne contient pas les données du raccourci » alors que le dictionnaire copié
+était un JSON valide. Cause : Raccourcis pose un dictionnaire dans le
+presse-papier comme fichier JSON, pas comme texte brut.
+
+- `useHealthImport` : `readClipboardText()` parcourt `clipboard.read()`
+  (text/plain, puis tout type contenant « json »), repli `readText()`.
+- `healthImport` : JSON extrait entre accolades ; message « vide » ou extrait
+  du contenu reçu ; valeur multi-lignes (une par source) → maximum.
+- Côté raccourci, conseil donné : action « Texte » contenant le Dictionnaire
+  avant « Copier dans le presse-papiers », pour forcer du texte brut.
+
+Vérification : `npm run lint` ✅ · `npm test` **407/407** · `vite build` ✅.

@@ -16,12 +16,38 @@ import { WEIGHT_MIN_KG, WEIGHT_MAX_KG, INTAKE_MIN_KCAL, INTAKE_MAX_KCAL } from '
  * (« 2 159,3 kcal ») : c'est ce que produit Raccourcis selon les actions.
  */
 
-/** « 2 159,3 kcal » → 2159.3 ; vide ou illisible → null. */
+const parseOne = (line) => {
+  const n = parseFloat(line.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+};
+
+/**
+ * « 2 159,3 kcal » → 2159.3 ; vide ou illisible → null.
+ * Plusieurs lignes (« 1113\n0 ») = un échantillon par source (iPhone, montre)
+ * renvoyé par « Regrouper par Jour » : on garde le plus grand. Additionner
+ * compterait deux fois les mêmes pas.
+ */
 export function parseHealthNumber(v) {
   if (typeof v === 'number') return Number.isFinite(v) ? v : null;
   if (typeof v !== 'string') return null;
-  const n = parseFloat(v.replace(/[\s\u00a0\u202f]/g, '').replace(',', '.'));
-  return Number.isFinite(n) ? n : null;
+  const values = v.split(/[\r\n]+/).map(parseOne).filter((n) => n !== null);
+  return values.length ? Math.max(...values) : null;
+}
+
+/**
+ * Texte collé → objet. Tolère ce qui entoure le dictionnaire (texte ajouté
+ * par Raccourcis, retour à la ligne) : on prend du premier « { » au dernier « } ».
+ */
+function extractJson(text) {
+  const s = String(text ?? '').trim();
+  if (!s) throw new Error('le presse-papier est vide — relance le raccourci juste avant');
+  const a = s.indexOf('{');
+  const b = s.lastIndexOf('}');
+  try {
+    return JSON.parse(a >= 0 && b > a ? s.slice(a, b + 1) : s);
+  } catch {
+    throw new Error(`le presse-papier ne contient pas les données du raccourci (reçu : « ${s.slice(0, 40)}${s.length > 40 ? '…' : ''} »)`);
+  }
 }
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -49,12 +75,7 @@ const FIELDS = {
  * ignorée plutôt qu'importée.
  */
 export function parseHealthImport(text, today) {
-  let raw;
-  try {
-    raw = JSON.parse(String(text ?? '').trim());
-  } catch {
-    throw new Error('le presse-papier ne contient pas les données du raccourci');
-  }
+  const raw = extractJson(text);
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('format inattendu');
   }

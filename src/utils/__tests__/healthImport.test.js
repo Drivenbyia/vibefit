@@ -14,6 +14,31 @@ describe('parseHealthNumber', () => {
     expect(parseHealthNumber(null)).toBeNull();
     expect(parseHealthNumber('abc')).toBeNull();
   });
+
+  it('une valeur par source (iPhone + montre) : la plus grande, pas la somme', () => {
+    expect(parseHealthNumber('1113\n0')).toBe(1113);
+    expect(parseHealthNumber('4 200\n8 553')).toBe(8553);
+  });
+});
+
+describe('presse-papier réel du raccourci (15/11, 01:53)', () => {
+  const real = '{"weight":"","rhr":"67","protein":"","carbs":"","fat":"","date":"2026-11-15","kcal":"","steps":"1113\\n0","hrvSdnn":""}';
+
+  it('importe FC repos et pas, ignore les champs vides', () => {
+    const { key, day, fields } = parseHealthImport(real, TODAY);
+    expect(key).toBe('2026-11-15');
+    expect(day).toEqual({ expenditure: { steps: '1113' }, sleep: { rhr: '67' } });
+    expect(fields).toEqual(['steps', 'rhr']);
+  });
+
+  it('tolère du texte autour du dictionnaire', () => {
+    expect(parseHealthImport(`Dictionnaire\n${real}\n`, TODAY).fields).toEqual(['steps', 'rhr']);
+  });
+
+  it('presse-papier vide : message explicite', () => {
+    expect(() => parseHealthImport('  ', TODAY)).toThrow(/vide/);
+    expect(() => parseHealthImport('bonjour', TODAY)).toThrow(/reçu : « bonjour »/);
+  });
 });
 
 describe('parseHealthImport', () => {
