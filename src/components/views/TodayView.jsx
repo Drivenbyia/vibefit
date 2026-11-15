@@ -19,23 +19,21 @@ import NotesCard from './today/NotesCard.jsx';
 import EntryChecklist from './today/EntryChecklist.jsx';
 import { useEntryChecklist } from '../../hooks/useEntryChecklist.js';
 import { useHealthImport } from '../../hooks/useHealthImport.js';
-import { useQuickEntry } from '../../hooks/useQuickEntry.js';
 import { useTodayDashboard } from '../../hooks/useTodayDashboard.js';
 import HealthImportButton from './today/HealthImportButton.jsx';
 import YesterdayGap from './today/YesterdayGap.jsx';
 import ActivityRings from './today/ActivityRings.jsx';
 import TodayWidgets from './today/TodayWidgets.jsx';
-import QuickEntryFab from './today/QuickEntryFab.jsx';
-import QuickEntrySheet from './today/QuickEntrySheet.jsx';
 import Fold from '../ui/Fold.jsx';
 
 /**
  * Aujourd'hui — direction « Pile » (DESIGN.md §5) : ce qui se lit chaque jour
- * en haut, en anneaux et widgets ; la saisie se fait au « + » (réglette) ou
+ * en haut, en anneaux et widgets ; la saisie se fait au « + » (réglette, monté dans
+ * App pour tous les onglets) ou
  * par l'import Santé en un appui. Les cartes de saisie complètes restent
  * intactes sous « Saisie détaillée ».
  */
-export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, setData, onOpenWeek, backup, onExportBackup, setDateKey }) {
+export default function TodayView({ dateKey, day, updateDay, targets, stepsTarget, data, setData, onOpenWeek, backup, onExportBackup, setDateKey, onQuickEntry }) {
   const {
     dt, intake, steps, isMonday, isToday,
     computedKcal, macroDelta, showMacroWarning, showUndereatAlert,
@@ -44,8 +42,7 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
   const { phase, trainingSuspended } = usePhase(data, dateKey);
   const { items, yesterday, jumpTo } = useEntryChecklist(data, dateKey, day, isToday);
   const healthImport = useHealthImport(data?.days ?? {}, setData);
-  const { rings, weightSeries, quickTargets } = useTodayDashboard({ days: data?.days, dateKey, day, dt, stepsTarget });
-  const entry = useQuickEntry({ day, days: data?.days, dateKey, updateDay, targets: quickTargets, scaleResolutionKg: data?.scaleResolutionKg });
+  const { rings, weightSeries } = useTodayDashboard({ days: data?.days, dateKey, day, dt, stepsTarget });
   const device = deviceAt(dateKey, data?.devices ?? []);
 
   return (
@@ -54,8 +51,8 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
       {isToday && backup?.overdue && <BackupReminderCard status={backup} onExport={onExportBackup} />}
       {isToday && setData && <HealthImportButton status={healthImport.status} onImport={healthImport.importFromClipboard} />}
       <YesterdayGap yesterday={yesterday} onOpen={() => setDateKey(yesterday.key)} />
-      <ActivityRings rings={rings} onPick={entry.open} />
-      <TodayWidgets day={day} dt={dt} weightSeries={weightSeries} isToday={isToday} onPick={entry.open} />
+      <ActivityRings rings={rings} onPick={onQuickEntry} />
+      <TodayWidgets day={day} dt={dt} weightSeries={weightSeries} isToday={isToday} onPick={onQuickEntry} />
       <AtypicalDayCard atypical={!!day.atypical} onToggle={() => updateDay({ atypical: !day.atypical })} />
       <Fold title="Saisie détaillée" hint={isMonday ? 'tour de taille du lundi, macros, séance, notes' : 'macros, séance, sommeil, notes'}>
         <EntryChecklist items={items} isToday={isToday} yesterday={null} onJump={jumpTo} onOpenYesterday={() => {}} />
@@ -73,8 +70,6 @@ export default function TodayView({ dateKey, day, updateDay, targets, stepsTarge
         <div id="entry-sleep"><SleepCard day={day} updateDay={updateDay} /></div>
         <NotesCard day={day} updateDay={updateDay} />
       </Fold>
-      <QuickEntryFab onPress={() => entry.open('kcal')} />
-      {entry.isOpen && <QuickEntrySheet entry={entry} healthImport={healthImport} />}
     </div>
   );
 }

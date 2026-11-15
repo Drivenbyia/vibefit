@@ -9,7 +9,7 @@ import Sparkline from '../../ui/Sparkline.jsx';
 import MiniBar from './MiniBar.jsx';
 
 const big = { fontSize: 32, lineHeight: 1 };
-const unit = { fontSize: 13, color: PALETTE.muted };
+const unit = { fontSize: 13, color: PALETTE.muted, textTransform: 'none' };
 
 /** Grille 2 × 2 : poids, sommeil, macros, cœur. Poids et sommeil ouvrent la saisie rapide. */
 function TodayWidgets({ day, dt, weightSeries, isToday, onPick }) {

@@ -1824,3 +1824,14 @@ conservées. Retenu : Pile + saisie à réglette de Pulse + import Santé en un 
 
 Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
 rendu Chromium 390 px, saisie réglette → `intake.kcal` écrit, aucune erreur console.
+
+## Session 2026-11-15 (suite) — « Pile » sur tous les onglets
+
+- `useAppQuickEntry` : « + » et panneau montés dans `App`, jour affiché, sûrs
+  avant chargement. Vérifié : saisie des pas depuis Semaine, Cibles, Données.
+- `ui/GaugeRing`, `week/WeekWidgets`, `targets/TargetsWidgets`,
+  `data/DataWidgets` ; `Card` passe en `.vf-rise`, rayon 22.
+- Données : `StatusCard` / `ProtectionCard` démontées (doublons), fichiers gardés.
+
+Vérification : `npm run lint` ✅ · `npm test` **421/421** · `vite build` ✅ ·
+rendu Chromium 390 px des 4 onglets, aucune erreur console.

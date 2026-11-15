@@ -23,6 +23,14 @@ type: RÉFÉRENCE — lire avant toute proposition architecturale
 
 ## Décisions enregistrées
 
+### 2026-11-15 — Direction « Pile » sur tous les onglets, saisie rapide globale
+- **Décision** : chaque onglet ouvre sur une grille 2 × 2 de widgets (Semaine, Cibles, Données), détail inchangé en dessous. Le « + » et le panneau de saisie montent dans `App` (`useAppQuickEntry`) et écrivent sur le jour affiché depuis n'importe quel onglet. Toutes les `Card` entrent avec `.vf-rise`.
+- **Contexte** : demande du développeur — « l'intégrer à tous les écrans, pas juste l'accueil ».
+- **Alternatives considérées** : remplacer les cartes-tableaux (Bilan, Moyennes) par les widgets — écarté pour l'instant, elles portent l'action du dimanche et le détail par macro ; proposé au développeur. Dans Données, `StatusCard` et `ProtectionCard` ne sont plus montées (même information dans les widgets), fichiers conservés.
+- **Raison du choix** : même grammaire visuelle partout ; aucun calcul nouveau, les widgets lisent les hooks existants (`useWeekStats`, `computeSingleTarget`, `backupStatus`).
+- **Impact** : `TodayView` reçoit `onQuickEntry` ; plus de `useQuickEntry` local. Aucune donnée ni migration.
+- **Réversibilité** : Facile.
+
 ### 2026-11-15 — Aujourd'hui en anneaux et widgets, saisie rapide au « + », import Santé en un appui
 - **Décision** : direction « Pile » (DESIGN.md §3 bis). Anneaux apport / protéines / pas, widgets poids / sommeil / macros / cœur, bouton « + » qui ouvre un panneau à réglette (apport, protéines, pas, poids, sommeil), import Santé en un appui en tête d'écran et dans le panneau. Les cartes de saisie existantes passent sous un repli « Saisie détaillée ».
 - **Contexte** : le développeur aime les analyses, les couleurs et la typo, mais la saisie « fait tableau Excel à remplir ». Trois maquettes proposées le 15/11 ; choix : A (widgets) + saisie de B.

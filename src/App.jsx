@@ -12,6 +12,9 @@ import TodayView from './components/views/TodayView.jsx';
 import WeekView from './components/views/WeekView.jsx';
 import TargetsView from './components/views/TargetsView.jsx';
 import DataView from './components/views/DataView.jsx';
+import QuickEntryFab from './components/views/today/QuickEntryFab.jsx';
+import QuickEntrySheet from './components/views/today/QuickEntrySheet.jsx';
+import { useAppQuickEntry } from './hooks/useAppQuickEntry.js';
 
 export default function VibeFit() {
   const [data, setData, loaded] = useVibefitStorage();
@@ -41,6 +44,8 @@ export default function VibeFit() {
     [dateKey, setData]
   );
 
+  const { entry, healthImport } = useAppQuickEntry({ data, setData, dateKey, day, updateDay, dayTargets });
+
   if (!loaded) {
     return (
       <div className="vf-app vf-body" style={{ minHeight: '100vh', background: PALETTE.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -67,10 +72,12 @@ export default function VibeFit() {
     >
       <FontStyles />
       <Header dateKey={dateKey} setDateKey={setDateKey} day={day} updateDay={updateDay} targets={dayTargets} phases={data.phases} />
-      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={dayTargets} stepsTarget={data.stepsTarget} data={data} setData={setData} onOpenWeek={openWeek} backup={backup} onExportBackup={exportBackupNow} setDateKey={setDateKey} />}
+      {tab === 'today' && <TodayView dateKey={dateKey} day={day} updateDay={updateDay} targets={dayTargets} stepsTarget={data.stepsTarget} data={data} setData={setData} onOpenWeek={openWeek} backup={backup} onExportBackup={exportBackupNow} setDateKey={setDateKey} onQuickEntry={entry.open} />}
       {tab === 'week' && <WeekView dateKey={dateKey} data={data} setDateKey={setDateKey} targets={targets} stepsTarget={data.stepsTarget} />}
       {tab === 'targets' && <TargetsView data={data} setData={setData} />}
       {tab === 'data' && <DataView data={data} setData={setData} backup={backup} storageStatus={storageStatus} />}
+      <QuickEntryFab onPress={() => entry.open('kcal')} />
+      {entry.isOpen && <QuickEntrySheet entry={entry} healthImport={healthImport} />}
       <BottomNav tab={tab} setTab={setTab} />
     </div>
   );

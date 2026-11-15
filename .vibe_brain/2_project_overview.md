@@ -19,7 +19,10 @@ last_updated: 2026-11-15
 - Aujourd'hui : import Santé plein en tête, anneaux apport/protéines/pas,
   widgets poids/sommeil/macros/cœur, « + » → panneau réglette ; cartes de
   saisie complètes sous « Saisie détaillée ». DESIGN.md §3 bis.
-- Non fait (proposé dans la maquette A) : pile façon Wallet des cartes d'état.
+- Étendu à tous les onglets : widgets 2 × 2 en tête de Semaine, Cibles,
+  Données ; « + » global (monté dans `App`).
+- Non fait (proposé dans la maquette A) : pile façon Wallet des cartes d'état ;
+  cartes-tableaux Bilan / Moyennes de Semaine gardées telles quelles.
 
 ### Session 2026-11-14 (suite) — Audit lecture / saisie / intelligence, lots 1 à 3
 Audit de l'app au rendu (Chromium 390 px, jeu de données calqué sur la série

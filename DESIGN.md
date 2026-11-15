@@ -279,8 +279,19 @@ la **saisie de Pulse** (« + » et réglette). Palette, typo, analyses inchangé
   « Enregistrer ». Rien n'est écrit avant « Enregistrer ».
 - **Cartes de saisie complètes** : intactes, sous le repli « Saisie détaillée ».
 - **Mouvement** : `.vf-ring` (tracé des anneaux), `.vf-rise` (entrée décalée des
-  tuiles), `.vf-sheet` (panneau), `.vf-press` (appui). Tout est coupé sous
-  `prefers-reduced-motion`.
+  tuiles et de toutes les `Card`), `.vf-sheet` (panneau), `.vf-press` (appui).
+  Tout est coupé sous `prefers-reduced-motion`.
+
+**Étendue à toute l'app.** Règle commune à chaque onglet : **une grille 2 × 2
+de widgets en tête** (lecture en un coup d'œil, `ui/WidgetTile`, `ui/GaugeRing`),
+le détail et les réglages en dessous, inchangés. Le `+` et son panneau sont
+montés dans `App` : on saisit depuis n'importe quel onglet, sur le jour affiché.
+
+| Onglet | Widgets |
+|---|---|
+| Semaine | écart cible (kcal/j, couleur d'état), poids moyen (+ tracé, variation neutre), protéines (anneau : jours ≥ plancher), sommeil moyen |
+| Cibles | TRAIN et OFF (ou cible unique + protéines pendant une phase), pas / jour, base TDEE |
+| Données | jours saisis, dernier export (tireté or si en retard), stockage, tuile « Sauvegarder » (export en un appui) |
 
 ---
 

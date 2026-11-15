@@ -19,10 +19,5 @@ export function useTodayDashboard({ days, dateKey, day, dt, stepsTarget }) {
     [days, dateKey]
   );
 
-  const quickTargets = useMemo(
-    () => ({ kcal: dt.kcal, protein: dt.protein, steps: num(stepsTarget) || null }),
-    [dt.kcal, dt.protein, stepsTarget]
-  );
-
-  return { rings, weightSeries, quickTargets };
+  return { rings, weightSeries };
 }
