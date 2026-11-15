@@ -11,7 +11,8 @@ import { WEIGHT_MIN_KG, WEIGHT_MAX_KG, INTAKE_MIN_KCAL, INTAKE_MAX_KCAL } from '
  *
  * Format (toutes les clés facultatives sauf une valeur au moins) :
  *   { date: 'YYYY-MM-DD', kcal, protein, carbs, fat, steps, weight,
- *     sleepMin, rhr, hrvSdnn, hrv }
+ *     sleepMin, sleepStages, sleepDurations, rhr, hrvSdnn, hrv }
+ * `sleepStages` + `sleepDurations` (phases brutes) priment sur `sleepMin`.
  * Les valeurs peuvent arriver en texte, avec unité ou virgule décimale
  * (« 2 159,3 kcal ») : c'est ce que produit Raccourcis selon les actions.
  */
@@ -50,8 +51,42 @@ function extractJson(text) {
   }
 }
 
+/** « 1:02:03 », « 20:27 », « 59 » → secondes ; illisible → null. */
+function durationSeconds(text) {
+  const parts = String(text).trim().split(':');
+  if (parts.some((p) => !/^\d+([.,]\d+)?$/.test(p))) return null;
+  return parts.reduce((acc, p) => acc * 60 + parseFloat(p.replace(',', '.')), 0);
+}
+
+// Phases qui ne sont pas du sommeil (libellés anglais de Santé, et français au cas où).
+const NOT_ASLEEP = new Set(['awake', 'inbed', 'in bed', 'éveillé', 'au lit']);
+
+/**
+ * Durée de sommeil depuis les phases brutes envoyées par le raccourci :
+ * `sleepStages` (« Core\nDeep\nAwake… ») et `sleepDurations` (« 20:27\n43:23… »),
+ * alignées ligne à ligne. Les phases « Awake » et « In Bed » sont écartées.
+ * Calcul fait ici parce que les filtres « Valeur » de Raccourcis comparent un
+ * libellé français à une valeur anglaise et n'écartent rien.
+ * @returns {number|null} minutes
+ */
+export function sleepMinutesFromStages(stages, durations) {
+  if (typeof stages !== 'string' || typeof durations !== 'string') return null;
+  const names = stages.split(/[\r\n]+/).map((n) => n.trim()).filter(Boolean);
+  const secs = durations.split(/[\r\n]+/).map((d) => d.trim()).filter(Boolean).map(durationSeconds);
+  if (!names.length || names.length !== secs.length || secs.some((n) => n === null)) return null;
+  const total = names.reduce((acc, n, i) => (NOT_ASLEEP.has(n.toLowerCase()) ? acc : acc + secs[i]), 0);
+  return total > 0 ? total / 60 : null;
+}
+
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const int = (n) => String(Math.round(n));
+
+/**
+ * Sommeil : Raccourcis additionne des durées dont l'unité dépend de l'action
+ * (secondes, minutes ou heures). Une nuit fait 30 min à 18 h : au-delà de
+ * 1080 c'est forcément des secondes, à 24 ou moins des heures.
+ */
+const toSleepMinutes = (n) => (n > 1080 ? n / 60 : n <= 24 ? n * 60 : n);
 
 // clé importée → [chemin dans le jour, bornes, formatage]
 const FIELDS = {
@@ -76,6 +111,8 @@ const FIELDS = {
  */
 export function parseHealthImport(text, today) {
   const raw = extractJson(text);
+  const fromStages = sleepMinutesFromStages(raw?.sleepStages, raw?.sleepDurations);
+  if (fromStages !== null) raw.sleepMin = fromStages;
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('format inattendu');
   }
@@ -84,7 +121,8 @@ export function parseHealthImport(text, today) {
   const day = {};
   const fields = [];
   for (const [name, [path, [lo, hi], fmt]] of Object.entries(FIELDS)) {
-    const n = parseHealthNumber(raw[name]);
+    const parsed = parseHealthNumber(raw[name]);
+    const n = parsed !== null && name === 'sleepMin' ? toSleepMinutes(parsed) : parsed;
     if (n === null || n < lo || n > hi) continue;
     const [head, leaf] = path;
     if (leaf) day[head] = { ...(day[head] ?? {}), [leaf]: fmt(n) };
@@ -93,4 +131,48 @@ export function parseHealthImport(text, today) {
   }
   if (fields.length === 0) throw new Error('aucune valeur exploitable');
   return { key, day, fields };
+}
+
+const isBlank = (v) => v === undefined || v === null || String(v).trim() === '';
+
+/**
+ * Applique un import à un jour existant (ou vide).
+ *
+ * Règle (décision du 2026-11-15) : l'import met à jour ce qu'il a lui-même
+ * écrit, jamais une saisie manuelle. Chaque valeur importée est mémorisée
+ * dans `day.imported` (« intake.kcal » → « 767 »). Au prochain import :
+ *   - champ vide                       → rempli ;
+ *   - champ égal à sa valeur importée  → remplacé (journée complétée depuis) ;
+ *   - champ différent                  → saisi ou corrigé à la main : conservé.
+ * Un import à 16 h ne fige donc plus les repas : celui de 23 h 55 les complète.
+ *
+ * @returns {{ day: Object, written: string[], kept: string[] }}
+ *   `written` : champs écrits ou mis à jour ; `kept` : saisies manuelles
+ *   conservées malgré une valeur importée différente.
+ */
+export function applyHealthImport(existing, partial, base) {
+  const day = { ...base, ...(existing ?? {}) };
+  const imported = { ...(day.imported ?? {}) };
+  const written = [];
+  const kept = [];
+
+  for (const [name, [path]] of Object.entries(FIELDS)) {
+    const [head, leaf] = path;
+    const next = leaf ? partial?.[head]?.[leaf] : partial?.[head];
+    if (isBlank(next)) continue;
+    const id = path.join('.');
+    const current = leaf ? day[head]?.[leaf] : day[head];
+    const ownedByImport = isBlank(current) || String(current) === imported[id];
+    if (!ownedByImport) {
+      if (String(current) !== next) kept.push(name);
+      continue;
+    }
+    imported[id] = next;
+    if (String(current ?? '') === next) continue;
+    if (leaf) day[head] = { ...(day[head] ?? {}), [leaf]: next };
+    else day[head] = next;
+    written.push(name);
+  }
+
+  return { day: { ...day, imported }, written, kept };
 }
