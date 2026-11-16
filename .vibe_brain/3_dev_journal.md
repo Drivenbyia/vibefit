@@ -1880,3 +1880,18 @@ elle renvoie 25 phases, dont 5 « Awake » que les filtres « Valeur n'est pas
 Éveillé » n'écartaient pas (valeurs en anglais). `sleepMinutesFromStages` :
 l'app additionne elle-même les phases hors Awake / In Bed. Nuit réelle :
 7 h 42 (462 min) au lieu de 7 h 58. `npm test` **430/430**.
+
+### Session 2026-11-16 — Rapport coach : objectif de pas, jours futurs, semaines vides
+Question ouverte du développeur : remplacer MyFitnessPal dans l'app (écarté,
+base d'aliments trop lourde pour le gain), puis coach IA intégré via l'API
+Claude (écarté : pas de clé API ni de paiement à l'usage). En relisant un vrai
+rapport contre les instructions du coach, trois défauts de l'export :
+- `formatProtocol` et `formatCoachContext` publiaient « objectif 8 000 pas »
+  pendant l'arrêt médical, alors que les instructions suspendent tout objectif
+  d'activité. Masqué quand `isTrainingSuspended(today)`.
+- `getHistoricalWeeks` listait les jours après aujourd'hui en « Aucune donnée
+  saisie ». Filtrés (`key <= today`).
+- Les semaines vides occupaient chacune un bloc : une seule ligne en fin de
+  rapport, avec leurs dates.
+Vérification : `npm run lint` ✅ · `npm test` **434/434**.
+Reste ouvert : objectif de pas encore affiché dans l'UI pendant la phase.

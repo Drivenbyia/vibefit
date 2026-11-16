@@ -30,6 +30,11 @@ const real = () => {
 };
 
 describe('formatCoachContext', () => {
+  it('hors phase : l’objectif de pas est publié', () => {
+    const lines = formatCoachContext({ ...real(), phases: [] }, { today: TODAY });
+    expect(field(lines, 'Pas montre (7 j)')).toMatch(/· objectif 8\s000$/);
+  });
+
   it('état vide : chaque champ mesuré vaut « — »', () => {
     const lines = formatCoachContext({ days: {} }, { today: TODAY });
     for (const f of ['Phase', 'TDEE adaptatif', 'Poids lissé', 'Tour de taille', 'Pas montre', 'Protéines', 'Sommeil', 'VFC RMSSD', 'FC repos']) {
@@ -45,7 +50,8 @@ describe('formatCoachContext', () => {
     expect(field(lines, 'TDEE adaptatif')).toMatch(/^calibration 1\/14 j croisés depuis le 24\/10\/2026 · 14\/14 au plus tôt le 06\/11/);
     expect(field(lines, 'Cible')).toMatch(/^cible unique 2\s050 kcal\/j$/);
     expect(field(lines, 'Tour de taille (3 dernières mesures)')).toBe('87,0 cm (19/10) · 87,5 cm (12/10) · 88,0 cm (05/10)');
-    expect(field(lines, 'Pas montre (7 j)')).toMatch(/^8\s250\/j sur 6 jours · objectif 8\s000$/);
+    // Arrêt médical : effort interdit, les pas sont un contexte sans objectif.
+    expect(field(lines, 'Pas montre (7 j)')).toMatch(/^8\s250\/j sur 6 jours$/);
     expect(field(lines, 'Protéines (7 j)')).toBe('153 g/j sur 6 jours · plancher 130 g');
     expect(field(lines, 'Sommeil (7 j)')).toBe('7 h 30 sur 6 nuits');
     expect(field(lines, 'VFC RMSSD (nuit)')).toBe('55 ms sur 6 nuits (7 j)');

@@ -7,7 +7,7 @@ import { computeRecovery } from './recoveryBaseline.js';
 import { resolveTargets } from './presetUtils.js';
 import { etaLabel } from './calibrationCopy.js';
 import { fmtDuration } from './sleepDiagnosis.js';
-import { deviceAt, isCyclingSuspended, isReferenceMeasure, measureSource, phaseAt } from '../models/protocol.js';
+import { deviceAt, isCyclingSuspended, isReferenceMeasure, isTrainingSuspended, measureSource, phaseAt } from '../models/protocol.js';
 import { PRESETS, PROTEIN_FLOOR, DEFAULT_STEPS_TARGET, REST_DAY_TYPE, MEASURE_SOURCES } from '../constants/config.js';
 
 /**
@@ -118,8 +118,10 @@ export function formatCoachContext(data, { today = toKey(new Date()) } = {}) {
   const steps = watchStepsAverage(last7, { devices, periods });
   const stepsTarget = data?.stepsTarget ?? DEFAULT_STEPS_TARGET;
   const stepKeys = last7.filter(({ day }) => num(day?.expenditure?.steps) > 0).map(({ key }) => key);
+  // Effort interdit par la phase : les pas sont un contexte, sans objectif.
+  const stepsGoal = isTrainingSuspended(today, data?.phases ?? []) ? '' : ` · objectif ${int(stepsTarget)}`;
   const stepsStr = steps.avg != null
-    ? `${int(steps.avg)}/j sur ${nOf(steps.days, 'jour')} · objectif ${int(stepsTarget)}${mixed(stepKeys, cut)}`
+    ? `${int(steps.avg)}/j sur ${nOf(steps.days, 'jour')}${stepsGoal}${mixed(stepKeys, cut)}`
     : lastBeforeCut(days, cut, (_, d) => positive(d?.expenditure?.steps), (v) => `${int(v)} pas`);
 
   const scoped7 = nutritionScope(last7, periods);

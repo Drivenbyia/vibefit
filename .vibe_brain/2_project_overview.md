@@ -1,17 +1,27 @@
 ---
 type: AUTO-SAVE & UPDATE
-last_updated: 2026-11-15
+last_updated: 2026-11-16
 ---
 
 # 🗺️ Project Overview — VibeFit
 
 ## État actuel du projet
 - **Phase : 🎨 Direction artistique figée — « Los Santos Dusk » (GTA San Andreas / Cali 90s / hip-hop / ciné 80s / streetwear), persistée dans `DESIGN.md`**
-- Branche active : `claude/dreamy-allen-tufgff`
+- Branche active : `claude/sharp-tesla-ax03h0`
 - **Hébergement : GitHub Pages** (`.github/workflows/pages.yml`, `https://drivenbyia.github.io/vibefit/`) — Netlify abandonné (quota de déploiements atteint) ; `netlify.toml` conservé, inerte
-- **Suite de tests : Vitest, 430 tests** — `npm test`
+- **Suite de tests : Vitest, 434 tests** — `npm test`
 - **Lint : ESLint 9** — `npm run lint` (`eslint.config.js`, règles React du projet)
 - **CI : GitHub Actions** (`.github/workflows/ci.yml`) — `npm ci`, `npm run lint`, `npm test`, `npm run build` sur chaque PR et chaque push sur `main`, Node 20 comme Netlify
+
+### Session 2026-11-16 — Rapport coach : trois défauts de lecture corrigés
+- Phase sans effort (`isTrainingSuspended`) : plus d'objectif de pas dans la
+  ligne 🎯 (« suspendu ») ni dans « Pas montre (7 j) » du Contexte courant.
+- Jours futurs de la semaine en cours retirés (lus comme des trous de saisie).
+- Semaines entièrement vides regroupées sur une ligne en fin de rapport.
+- Coach IA intégré (API Claude) étudié puis écarté par le développeur : clé
+  API et coût à l'usage non souhaités. Le rapport reste collé dans le projet Claude.
+- Ouvert : l'app affiche encore un objectif de pas pendant l'arrêt
+  (`PhaseRestCard`, widgets Cibles, `ExpenditureCard`) — à trancher.
 
 ### Session 2026-11-15 (suite) — Aujourd'hui « Pile » : anneaux, widgets, saisie au « + »
 - Trois maquettes (canevas Design) : A · Pile, B · Pulse, C · Cruise. Choix du
