@@ -3,7 +3,7 @@ import { extractSignals } from './adaptiveTDEE.js';
 import { TDEE_CHECK, IMPLAUSIBLE_LABEL, implausibleDetail, tdeeQualifier } from './plausibility.js';
 import { fmtTDEE, fmtPrecision, UNREADABLE_LABEL } from './trendUncertainty.js';
 import { PRESETS, DEFAULT_STEPS_TARGET, MEASURE_SOURCES } from '../constants/config.js';
-import { isExcluded, measureSource, isCyclingSuspended, formatInfoActivities } from '../models/protocol.js';
+import { isExcluded, measureSource, isCyclingSuspended, isTrainingSuspended, formatInfoActivities } from '../models/protocol.js';
 import { computeSingleTarget, DEFAULT_TDEE } from './presetUtils.js';
 import { formatCoachContext } from './coachContext.js';
 
@@ -26,16 +26,22 @@ export function formatProtocol(data) {
   // celui de TRAIN, en repli sur OFF si des cibles anciennes sont incomplètes.
   const protein = t.train?.protein ?? t.off?.protein ?? null;
   const steps = data?.stepsTarget ?? DEFAULT_STEPS_TARGET;
+  const today = toKey(new Date());
+  // Phase où l'effort est interdit : aucun objectif d'activité n'est publié.
+  // L'afficher ferait lire au coach une consigne que la phase suspend.
+  const stepsStr = isTrainingSuspended(today, data?.phases ?? [])
+    ? ' | Objectif pas : suspendu (phase en cours, pas = contexte)'
+    : ` | Objectif pas : ${Number(steps).toLocaleString('fr-FR')}/j`;
 
   // Phase sans cyclage : la cible servie est la cible unique, pas TRAIN/OFF.
   // Publier les cibles cyclées ferait lire au cardiologue ou au coach des
   // chiffres que l'app n'applique pas.
-  if (isCyclingSuspended(toKey(new Date()), data?.phases ?? [])) {
+  if (isCyclingSuspended(today, data?.phases ?? [])) {
     const single = computeSingleTarget(presetId, data?.baseTDEE ?? DEFAULT_TDEE, t);
     return (
       `🎯 Preset : ${label} | Cible unique : ${single.kcal} kcal/j (cyclage TRAIN/OFF suspendu)` +
       ` · protéines ${single.protein} g` +
-      ` | Objectif pas : ${Number(steps).toLocaleString('fr-FR')}/j`
+      stepsStr
     );
   }
 
@@ -43,7 +49,7 @@ export function formatProtocol(data) {
     `🎯 Preset : ${label} | Cibles : TRAIN ${kcal('train')} / OFF ${kcal('off')}` +
     ` / WE ${kcal('we')} kcal` +
     (protein != null ? ` · protéines ${Math.round(protein)} g` : '') +
-    ` | Objectif pas : ${Number(steps).toLocaleString('fr-FR')}/j`
+    stepsStr
   );
 }
 
@@ -229,23 +235,30 @@ export function getHistoricalWeeks(data, n = 8) {
     '',
   ];
 
+  // Semaines entièrement vides : regroupées sur une ligne en fin de rapport.
+  // Un bloc par semaine vide coûtait de la lecture sans rien apprendre ; la
+  // ligne garde le trou visible, sans le noyer.
+  const emptyWeeks = [];
   for (let w = 0; w < n; w++) {
     const weekStart = startOfWeek(addDays(currentWeekStart, -w * 7));
-    const weekDays = Array.from({ length: 7 }, (_, d) => {
-      const key = addDays(weekStart, d);
-      return { key, day: days[key] ?? null };
-    });
+    // Jours futurs exclus : « Aucune donnée saisie » sur demain se lirait
+    // comme un trou de saisie alors que le jour n'a pas eu lieu.
+    const weekDays = Array.from({ length: 7 }, (_, d) => addDays(weekStart, d))
+      .filter((key) => key <= today)
+      .map((key) => ({ key, day: days[key] ?? null }));
 
-    const weekHasData = weekDays.some(({ day }) => hasAnyData(day));
-
-    lines.push(`## Semaine du ${fmtFr(weekStart)}`);
-
-    if (!weekHasData) {
-      lines.push('Aucune donnée saisie pour cette semaine');
-    } else {
-      weekDays.forEach(({ key, day }) => lines.push(formatDay(key, day, data)));
+    if (!weekDays.some(({ day }) => hasAnyData(day))) {
+      emptyWeeks.push(weekStart);
+      continue;
     }
 
+    lines.push(`## Semaine du ${fmtFr(weekStart)}`);
+    weekDays.forEach(({ key, day }) => lines.push(formatDay(key, day, data)));
+    lines.push('');
+  }
+
+  if (emptyWeeks.length > 0) {
+    lines.push(`Aucune donnée saisie pour ${emptyWeeks.length > 1 ? 'les semaines' : 'la semaine'} du ${emptyWeeks.map(fmtDayFr).join(', ')}`);
     lines.push('');
   }
 

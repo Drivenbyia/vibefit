@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { formatProtocol, getHistoricalWeeks } from '../exportUtils.js';
 import { computePresetTargets } from '../presetUtils.js';
 
@@ -63,5 +63,32 @@ describe('getHistoricalWeeks — en-tête du rapport', () => {
     const lines = report.split('\n').filter((l) => l.length > 0);
     expect(lines[1]).toContain('⚡ TDEE adaptatif');
     expect(lines[2]).toContain('🎯 Preset : Sèche légère');
+  });
+});
+
+describe('rapport : objectif de pas, jours futurs, semaines vides', () => {
+  const PHASE = { id: 'm', type: 'medical_stop', label: 'Arrêt médical', start: '2026-08-29', plannedEnd: '2027-03-01', endedAt: null };
+  // Lundi 16/11/2026 au soir : le reste de la semaine n'a pas eu lieu.
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 10, 16, 20)); });
+  afterEach(() => vi.useRealTimers());
+
+  it('arrêt médical : aucun objectif de pas publié', () => {
+    const line = formatProtocol({ presetId: 'cut_strong', stepsTarget: 8000, phases: [PHASE] });
+    expect(line).toContain('Objectif pas : suspendu');
+    expect(line).not.toMatch(/8\s000/);
+  });
+
+  it('n’affiche pas les jours futurs de la semaine en cours', () => {
+    const report = getHistoricalWeeks({ days: { '2026-11-16': { weight: '77' } } }, 1);
+    expect(report).toContain('Poids: 77 kg');
+    expect(report).not.toMatch(/mardi 17 novembre/);
+    expect(report).not.toMatch(/dimanche 22 novembre/);
+  });
+
+  it('regroupe les semaines vides sur une ligne', () => {
+    const report = getHistoricalWeeks({ days: { '2026-11-16': { weight: '77' } } }, 3);
+    expect(report).not.toContain('## Semaine du lundi 9 novembre');
+    expect(report).not.toContain('## Semaine du lundi 2 novembre');
+    expect(report).toContain('Aucune donnée saisie pour les semaines du 09/11/2026, 02/11/2026');
   });
 });
